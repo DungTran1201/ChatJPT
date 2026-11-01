@@ -237,23 +237,45 @@ async def stream_message_endpoint(
 
         # Định dạng cấu trúc câu trả lời sư phạm của Sensei theo cài đặt người dùng (FR-067, FR-068)
         formatting_rules = []
-        lang_target = "tiếng Việt" if current_user.get("language_preference", "vi") == "vi" else ("English" if current_user.get("language_preference") == "en" else "日本語")
-        
+        user_lang = current_user.get("language_preference", "vi")
+        if user_lang == "vi":
+            lang_label = "tiếng Việt"
+            formatting_rules.append(
+                "QUY TẮC BẮT BUỘC VỀ NGÔN NGỮ (TUYỆT ĐỐI TUÂN THỦ):\n"
+                "1. Người học đang sử dụng giao diện TIẾNG VIỆT.\n"
+                "2. TUYỆT ĐỐI KHÔNG DÙNG TIẾNG ANH trong bất kỳ câu dịch hay phần giải thích nào.\n"
+                "3. Toàn bộ bản dịch đặt dưới mỗi câu tiếng Nhật PHẢI 100% LÀ TIẾNG VIỆT.\n"
+                "4. Toàn bộ phần phân tích ngữ pháp, từ vựng và sắc thái PHẢI 100% LÀ TIẾNG VIỆT (dùng thuật ngữ 'Khiêm nhường ngữ', 'Tôn kính ngữ', v.v. - KHÔNG dùng tiếng Anh như 'Humble verb suffix')."
+            )
+        elif user_lang == "ja":
+            lang_label = "日本語"
+            formatting_rules.append(
+                "言語規則: ユーザーの表示言語は日本語です。要約や解説はすべて自然な日本語で記述してください。"
+            )
+        else:
+            lang_label = "English"
+            formatting_rules.append(
+                "LANGUAGE RULE: Provide all translations and grammar breakdown in English."
+            )
+
         if current_user.get("response_show_furigana", 1):
             formatting_rules.append(
-                "- FURIGANA: BẮT BUỘC gắn Furigana cho chữ Kanji bằng định dạng Ruby: `[漢字](かんじ)` hoặc `<ruby>漢字<rt>かんじ</rt></ruby>`."
+                "- FURIGANA: BẮT BUỘC gắn Furigana cho chữ Kanji bằng định dạng Ruby: `[漢字](かんじ)` (ví dụ: `[私](わたし)は[雪](ゆき)と[申](もう)します。`). Giữa các từ hoặc cụm từ nên có khoảng cách nhẹ để hệ thống hiển thị interlinear rõ ràng."
             )
         if current_user.get("response_highlight_grammar", 1):
             formatting_rules.append(
-                "- TÔ MÀU NGỮ PHÁP: Với trợ từ hoặc từ ngữ trọng tâm, bọc viền `{từ}[g-green]`; với mẫu câu/ngữ pháp đặc biệt, bọc `{mẫu}[g-orange]`."
+                "- TÔ MÀU NGỮ PHÁP (MÀU XANH LÁ ĐỒNG NHẤT): Với trợ từ hoặc cấu trúc/ngữ pháp trọng tâm, bọc viền bằng `{từ}[g-green]`. TUYỆT ĐỐI chỉ dùng `[g-green]` (đồng nhất màu xanh lá). TUYỆT ĐỐI KHÔNG dùng màu cam hoặc ngắt đôi từ (ví dụ: `{開けて}[g-green]`, không tách rời `{開}[g-orange]{けて}[g-orange]`)."
             )
         if current_user.get("response_show_translation", 1):
             formatting_rules.append(
-                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu hoặc đoạn thoại tiếng Nhật PHẢI có dòng dịch nghĩa sang {lang_target} đặt ngay bên dưới, định dạng trong ngoặc: `(Bản dịch: ...)` hoặc `(... )`."
+                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu hoặc đoạn thoại tiếng Nhật BẮT BUỘC PHẢI CÓ dòng dịch nghĩa sang {lang_label} đặt ngay bên dưới, định dạng trong ngoặc: `(Bản dịch: ...)` hoặc `(... )`. Nhắc lại: Bắt buộc 100% bằng {lang_label}, không được sót câu nào sang tiếng Anh."
             )
         if current_user.get("response_grammar_breakdown", 1):
             formatting_rules.append(
-                "- PHÂN TÍCH TỪ VỰNG & NGỮ PHÁP: Ở cuối lời thoại, hãy giải thích ngắn gọn 1-2 từ mới hoặc cấu trúc ngữ pháp trọng tâm để người học nắm bắt."
+                f"- PHÂN TÍCH TỪ VỰNG & NGỮ PHÁP: Ở cuối câu trả lời, hãy tạo khối phân tích riêng biệt ngăn cách bởi `---` và tiêu đề `### 🔍 Phân tích Ngữ pháp & Từ vựng`. Liệt kê các mục theo dạng:\n"
+                f"1. **Cấu trúc/Từ vựng**\n"
+                f"- *Ý nghĩa:* Giải thích bằng {lang_label}\n"
+                f"- *Sắc thái:* Phân tích sư phạm bằng {lang_label}\n"
             )
 
         if formatting_rules:

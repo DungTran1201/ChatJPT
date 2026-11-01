@@ -5,7 +5,7 @@ import {
   parsePedagogicalBlocks,
   speakJapaneseSpeech,
   JapaneseSentenceBlock,
-  hasJapaneseText
+  isPredominantlyJapanese,
 } from '@/utils/japaneseParser';
 
 interface JapaneseInterlinearViewProps {
@@ -40,11 +40,18 @@ export default function JapaneseInterlinearView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
       {blocks.map((block, bIdx) => {
-        const isJp = hasJapaneseText(block.rawText);
+        const isJp = isPredominantlyJapanese(block.rawText);
 
         if (!isJp) {
           return (
-            <div key={bIdx} style={{ fontSize: '0.92rem', color: 'var(--text-primary)', lineHeight: 1.6 }}>
+            <div
+              key={bIdx}
+              style={{
+                fontSize: '0.92rem',
+                color: 'var(--text-primary)',
+                lineHeight: 1.6,
+              }}
+            >
               {block.rawText}
             </div>
           );
@@ -56,27 +63,26 @@ export default function JapaneseInterlinearView({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '6px',
+              gap: '8px',
               padding: '6px 0',
               borderBottom: bIdx < blocks.length - 1 ? '1px dashed var(--border-subtle)' : 'none',
-              paddingBottom: bIdx < blocks.length - 1 ? '12px' : '4px',
+              paddingBottom: bIdx < blocks.length - 1 ? '14px' : '6px',
             }}
           >
             {/* Top row: Word tokens + Speaker button */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px' }}>
               {/* Words row */}
               <div
                 style={{
                   display: 'flex',
                   flexWrap: 'wrap',
                   alignItems: 'flex-end',
-                  columnGap: '12px',
-                  rowGap: '10px',
+                  columnGap: '10px',
+                  rowGap: '12px',
                 }}
               >
                 {block.tokens.map((token, tIdx) => {
-                  const isGreen = highlightGrammar && token.grammarHighlight === 'green';
-                  const isOrange = highlightGrammar && token.grammarHighlight === 'orange';
+                  const isHighlighted = highlightGrammar && token.grammarHighlight === 'green';
 
                   return (
                     <div
@@ -86,19 +92,20 @@ export default function JapaneseInterlinearView({
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'flex-end',
-                        minWidth: '20px',
+                        minWidth: '18px',
                       }}
                     >
                       {/* 1. Furigana (Hiragana reading above Kanji) */}
                       {showFurigana && (
                         <span
                           style={{
-                            fontSize: '0.68rem',
-                            color: 'var(--text-secondary)',
-                            lineHeight: 1,
-                            minHeight: '13px',
-                            fontWeight: 400,
+                            fontSize: '0.74rem',
+                            color: 'var(--accent, #10b981)',
+                            lineHeight: 1.1,
+                            minHeight: '16px',
+                            fontWeight: 500,
                             letterSpacing: '0.02em',
+                            userSelect: 'none',
                           }}
                         >
                           {token.furigana || ''}
@@ -108,37 +115,32 @@ export default function JapaneseInterlinearView({
                       {/* 2. Main Japanese Word / Kanji */}
                       <span
                         style={{
-                          fontSize: '1.18rem',
-                          fontWeight: isGreen || isOrange ? 600 : 500,
-                          color: isGreen
-                            ? 'var(--accent, #16a34a)'
-                            : isOrange
-                            ? '#ea580c'
-                            : 'var(--text-primary)',
+                          fontSize: '1.22rem',
+                          fontWeight: isHighlighted ? 600 : 500,
+                          color: isHighlighted ? 'var(--accent, #16a34a)' : 'var(--text-primary)',
                           lineHeight: 1.35,
-                          padding: isGreen || isOrange ? '1px 7px' : '1px 2px',
-                          borderRadius: isGreen || isOrange ? '6px' : '0',
-                          border: isGreen ? '1.5px solid var(--accent, #22c55e)' : 'none',
-                          backgroundColor: isGreen
-                            ? 'rgba(34, 197, 94, 0.12)'
-                            : isOrange
-                            ? 'rgba(254, 215, 170, 0.75)'
-                            : 'transparent',
+                          padding: isHighlighted ? '2px 8px' : '2px 2px',
+                          borderRadius: isHighlighted ? '6px' : '0',
+                          border: isHighlighted ? '1.5px solid var(--accent, #22c55e)' : 'none',
+                          backgroundColor: isHighlighted ? 'rgba(34, 197, 94, 0.12)' : 'transparent',
                           transition: 'all 0.15s ease',
                         }}
                       >
                         {token.text}
                       </span>
 
-                      {/* 3. Romaji (Pronunciation underneath) */}
+                      {/* 3. Romaji (Pronunciation underneath with clear legible typography) */}
                       {showRomaji && token.romaji && (
                         <span
                           style={{
-                            fontSize: '0.72rem',
-                            color: 'var(--text-muted)',
-                            lineHeight: 1,
-                            marginTop: '3px',
+                            fontSize: '0.84rem',
+                            fontWeight: 500,
+                            color: 'var(--text-secondary)',
+                            lineHeight: 1.2,
+                            marginTop: '4px',
                             fontFamily: 'var(--font-sans)',
+                            letterSpacing: '0.015em',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {token.romaji}
@@ -154,53 +156,70 @@ export default function JapaneseInterlinearView({
                 <button
                   type="button"
                   onClick={() => handleSpeak(block.rawText, bIdx)}
-                  title="Nghe phát âm tiếng Nhật chuẩn giọng Tokyo"
+                  title="Nghe phát âm tiếng Nhật chuẩn Tokyo"
                   aria-label="Phát âm tiếng Nhật"
                   style={{
                     background: playingIdx === bIdx ? 'var(--bg-selected)' : 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-full)',
-                    width: '28px',
-                    height: '28px',
+                    border: '1px solid var(--border-default)',
+                    color: playingIdx === bIdx ? 'var(--accent)' : 'var(--text-muted)',
+                    borderRadius: 'var(--radius-sm)',
+                    width: '30px',
+                    height: '30px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: playingIdx === bIdx ? 'var(--accent)' : 'var(--text-muted)',
-                    transition: 'all var(--transition-fast)',
                     flexShrink: 0,
-                    marginBottom: '4px',
+                    marginBottom: '2px',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-                  </svg>
+                  {playingIdx === bIdx ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                  )}
                 </button>
               )}
             </div>
 
-            {/* 4. Display Language Translation (Below Japanese Sentence) */}
+            {/* Translation in user language underneath the whole sentence */}
             {showTranslation && block.translation && (
               <div
                 style={{
                   fontSize: '0.88rem',
                   color: 'var(--text-secondary)',
                   lineHeight: 1.5,
-                  paddingLeft: '2px',
-                  marginTop: '2px',
+                  paddingTop: '6px',
+                  fontStyle: 'normal',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px',
                 }}
               >
-                {block.translation}
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: '3px',
+                    height: '16px',
+                    backgroundColor: 'var(--accent, #22c55e)',
+                    borderRadius: '2px',
+                    flexShrink: 0,
+                    marginTop: '2px',
+                  }}
+                />
+                <span style={{ color: 'var(--text-primary)' }}>{block.translation}</span>
               </div>
             )}
           </div>
         );
       })}
-
-      {isStreaming && <span className="cursor-blink" aria-hidden="true" />}
     </div>
   );
 }
-

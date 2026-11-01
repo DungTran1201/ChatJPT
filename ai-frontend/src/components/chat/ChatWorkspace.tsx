@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import JapaneseInterlinearView from '@/components/chat/JapaneseInterlinearView';
-import { hasJapaneseText } from '@/utils/japaneseParser';
+import { isPredominantlyJapanese } from '@/utils/japaneseParser';
 
 import { AttachmentItem } from '@/services/attachmentService';
 import { MessageAttachments } from '@/components/ui/AttachmentUploader';
@@ -63,6 +63,7 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
   const highlightGrammar = currentUser?.response_highlight_grammar !== false;
   const showRomaji = currentUser?.response_show_romaji !== false;
   const showAudio = currentUser?.response_audio_speech !== false;
+  const showBreakdown = currentUser?.response_grammar_breakdown !== false;
 
   const copyToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -100,16 +101,72 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
         return (
           <React.Fragment key={index}>
             {paragraphs.map((para, pIdx) => {
-              if (!para.trim()) return null;
+              const trimmed = para.trim();
+              if (!trimmed) return null;
+
+              // 1. Horizontal divider
+              if (trimmed === '---' || trimmed === '***') {
+                return (
+                  <hr
+                    key={pIdx}
+                    style={{
+                      border: 'none',
+                      borderTop: '1px dashed var(--border-subtle)',
+                      margin: '1.25rem 0',
+                    }}
+                  />
+                );
+              }
+
+              // 2. Grammar & Vocabulary breakdown heading
+              if (/^#{1,3}\s+(🔍\s*)?(Phân tích Ngữ pháp|文法・語彙分析|Vocabulary & Grammar)/i.test(trimmed)) {
+                if (!showBreakdown) return null;
+                const headingText = trimmed.replace(/^#{1,3}\s+/, '');
+                return (
+                  <div
+                    key={pIdx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginTop: '1.25rem',
+                      marginBottom: '0.6rem',
+                      padding: '8px 12px',
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--accent, #10b981)',
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span>🔍</span>
+                    <span>{headingText}</span>
+                  </div>
+                );
+              }
+
+              // 3. Markdown Headings (h1 - h6)
+              const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+              if (headingMatch) {
+                const level = headingMatch[1].length;
+                const text = headingMatch[2];
+                if (level === 1) return <h1 key={pIdx} style={{ margin: '1rem 0 0.5rem' }}>{renderInline(text)}</h1>;
+                if (level === 2) return <h2 key={pIdx} style={{ margin: '0.85rem 0 0.4rem' }}>{renderInline(text)}</h2>;
+                return <h3 key={pIdx} style={{ margin: '0.75rem 0 0.35rem' }}>{renderInline(text)}</h3>;
+              }
+
+              // 4. Unordered bullet lists
               if (para.includes('\n- ') || para.startsWith('- ')) {
                 const items = para.split('\n').filter(l => l.trim().startsWith('- '));
                 return (
-                  <ul key={pIdx}>
+                  <ul key={pIdx} style={{ margin: '0.4rem 0 0.6rem 1.4rem', paddingLeft: 0, listStyleType: 'disc' }}>
                     {items.map((item, itemIdx) => {
-                      const lineContent = item.replace(/^- /, '');
+                      const lineContent = item.replace(/^- /, '').trim();
+                      const isJp = isPredominantlyJapanese(lineContent);
                       return (
-                        <li key={itemIdx}>
-                          {hasJapaneseText(lineContent) ? (
+                        <li key={itemIdx} style={{ margin: '0.35rem 0', lineHeight: 1.6, color: 'var(--text-primary)' }}>
+                          {isJp ? (
                             <JapaneseInterlinearView
                               content={lineContent}
                               showTranslation={showTranslation}
@@ -128,9 +185,57 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                 );
               }
 
-              if (hasJapaneseText(para)) {
+              // 5. Numbered items (e.g. "1. **～つかまつります**" or "2. **千変万化**")
+              if (/^\d+\.\s+/.test(trimmed)) {
+                const lines = trimmed.split('\n');
                 return (
-                  <div key={pIdx} style={{ margin: '0.6rem 0' }}>
+                  <div
+                    key={pIdx}
+                    style={{
+                      margin: '0.6rem 0',
+                      padding: '10px 14px',
+                      background: 'var(--bg-surface)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    {lines.map((ln, lnIdx) => {
+                      const cleanLn = ln.trim();
+                      if (!cleanLn) return null;
+                      if (cleanLn.startsWith('- ')) {
+                        const bulletText = cleanLn.replace(/^- /, '');
+                        return (
+                          <div key={lnIdx} style={{ margin: '0.3rem 0 0.3rem 1rem', fontSize: '0.9rem', lineHeight: 1.55 }}>
+                            • {renderInline(bulletText)}
+                          </div>
+                        );
+                      }
+                      const isJp = isPredominantlyJapanese(cleanLn);
+                      return (
+                        <div key={lnIdx} style={{ margin: '0.25rem 0' }}>
+                          {isJp ? (
+                            <JapaneseInterlinearView
+                              content={cleanLn}
+                              showTranslation={showTranslation}
+                              showFurigana={showFurigana}
+                              highlightGrammar={highlightGrammar}
+                              showRomaji={showRomaji}
+                              showAudio={showAudio}
+                            />
+                          ) : (
+                            <div style={{ fontSize: '0.93rem', lineHeight: 1.6 }}>{renderInline(cleanLn)}</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }
+
+              // 6. Conversational Japanese dialogue sentence
+              if (isPredominantlyJapanese(para)) {
+                return (
+                  <div key={pIdx} style={{ margin: '0.75rem 0' }}>
                     <JapaneseInterlinearView
                       content={para}
                       showTranslation={showTranslation}
@@ -144,7 +249,12 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                 );
               }
 
-              return <p key={pIdx}>{renderInline(para)}</p>;
+              // 7. Standard regular text
+              return (
+                <p key={pIdx} style={{ margin: '0.55rem 0', lineHeight: 1.65, color: 'var(--text-primary)' }}>
+                  {renderInline(para)}
+                </p>
+              );
             })}
           </React.Fragment>
         );
@@ -154,19 +264,69 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
   );
 }
 
-function renderInline(text: string) {
-  const boldParts = text.split(/(\*\*.*?\*\*)/g);
-  return boldParts.map((bPart, bIdx) => {
-    if (bPart.startsWith('**') && bPart.endsWith('**')) {
-      return <strong key={bIdx}>{bPart.slice(2, -2)}</strong>;
+function renderInline(text: string): React.ReactNode {
+  // Support bold (**text**), italic (*text*), inline code (`code`), ruby ([漢字](かんじ)), and quotes 「...」
+  const segments = text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`|\[[^\]]+\]\([^)]+\)|「[^」]+」)/g);
+  return segments.map((seg, sIdx) => {
+    if (!seg) return null;
+    if (seg.startsWith('**') && seg.endsWith('**') && seg.length > 4) {
+      return (
+        <strong key={sIdx} style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+          {seg.slice(2, -2)}
+        </strong>
+      );
     }
-    const codeParts = bPart.split(/(`.*?`)/g);
-    return codeParts.map((cPart, cIdx) => {
-      if (cPart.startsWith('`') && cPart.endsWith('`')) {
-        return <code key={cIdx}>{cPart.slice(1, -1)}</code>;
-      }
-      return cPart;
-    });
+    if (seg.startsWith('*') && seg.endsWith('*') && seg.length > 2) {
+      return (
+        <em key={sIdx} style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+          {seg.slice(1, -1)}
+        </em>
+      );
+    }
+    if (seg.startsWith('`') && seg.endsWith('`') && seg.length > 2) {
+      return (
+        <code
+          key={sIdx}
+          style={{
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '4px',
+            padding: '1px 5px',
+            fontSize: '0.85em',
+            color: 'var(--accent, #10b981)',
+            fontFamily: 'monospace',
+          }}
+        >
+          {seg.slice(1, -1)}
+        </code>
+      );
+    }
+    const rubyMatch = seg.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (rubyMatch) {
+      return (
+        <ruby key={sIdx} style={{ padding: '0 2px' }}>
+          {rubyMatch[1]}
+          <rt style={{ fontSize: '0.72em', color: 'var(--accent, #10b981)', fontWeight: 500 }}>
+            {rubyMatch[2]}
+          </rt>
+        </ruby>
+      );
+    }
+    if (seg.startsWith('「') && seg.endsWith('」')) {
+      return (
+        <span
+          key={sIdx}
+          style={{
+            color: 'var(--accent, #10b981)',
+            fontWeight: 600,
+            padding: '0 2px',
+          }}
+        >
+          {seg}
+        </span>
+      );
+    }
+    return seg;
   });
 }
 
