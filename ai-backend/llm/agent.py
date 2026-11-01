@@ -525,6 +525,27 @@ class ChatAgentOrchestrator:
         target_model = model_override or cfg["default_model"] or "gemini-3.8-flash"
         initial_prov = LangChainModelFactory.detect_provider_for_model(target_model)
 
+        # 0.1 DIRECT IN-PROJECT EMBEDDED MODEL ROUTING (FR-061)
+        if target_model == "qwen2.5-0.5b-embedded" or "embedded" in str(target_model).lower():
+            logger.info("Yêu cầu mô hình trực tiếp nhúng trong dự án: %s", target_model)
+            from src.services.embedded_model_service import EmbeddedModelService
+            try:
+                for chunk in EmbeddedModelService.generate_stream(prompt=prompt, history=history, model_id=target_model):
+                    yield {"token": chunk, "status": "streaming"}
+                    await asyncio.sleep(0.01)
+
+                yield {
+                    "status": "done",
+                    "model": target_model,
+                    "provider": "ollama",
+                    "embedded": True
+                }
+                return
+            except Exception as e:
+                logger.warning("Lỗi mô hình nhúng: %s.", e)
+                yield {"status": "error", "message": str(e)}
+                return
+
         # 0. DIRECT OFFLINE SEMANTIC CACHE ROUTING
         if target_model == "offline-semantic-cache" or initial_prov == "offline":
             logger.info("Yêu cầu chế độ Offline Semantic Cache trực tiếp.")

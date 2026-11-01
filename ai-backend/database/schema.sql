@@ -248,13 +248,13 @@ CREATE INDEX IF NOT EXISTS idx_user_api_keys_user_id ON user_api_keys(user_id);
 
 
 -- ------------------------------------------------------------------------------
--- 11. BẢNG BỘ NHỚ ĐỆM NGỮ NGHĨA (SEMANTIC_CACHE)
--- Bounded Context: Offline Chat & Semantic Caching Context (FR-044, ADR-007)
+-- 11. BẢNG BỘ NHỚ ĐỆM NGỮ NGHĨA (SEMANTIC_CACHE & FTS5)
+-- Bounded Context: Offline Chat & Semantic Caching Context (FR-044, FR-062, FR-063, ADR-007)
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS semantic_cache (
     id VARCHAR(36) PRIMARY KEY,
     prompt_raw TEXT NOT NULL,
-    prompt_normalized TEXT NOT NULL,
+    prompt_normalized TEXT NOT NULL UNIQUE,
     category VARCHAR(50) NOT NULL DEFAULT 'general',
     response_text TEXT NOT NULL,
     keywords TEXT,
@@ -266,3 +266,50 @@ CREATE TABLE IF NOT EXISTS semantic_cache (
 
 CREATE INDEX IF NOT EXISTS idx_semantic_cache_category ON semantic_cache(category);
 CREATE INDEX IF NOT EXISTS idx_semantic_cache_normalized ON semantic_cache(prompt_normalized);
+
+-- Bảng ảo tìm kiếm toàn văn FTS5 cho quy mô hàng chục nghìn câu hỏi (10,000+ entries)
+CREATE VIRTUAL TABLE IF NOT EXISTS semantic_cache_fts USING fts5(
+    prompt_normalized,
+    keywords,
+    category,
+    content='semantic_cache',
+    content_rowid='rowid'
+);
+
+CREATE TRIGGER IF NOT EXISTS trg_semantic_cache_ai AFTER INSERT ON semantic_cache BEGIN
+  INSERT INTO semantic_cache_fts(rowid, prompt_normalized, keywords, category)
+  VALUES (new.rowid, new.prompt_normalized, new.keywords, new.category);
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_semantic_cache_ad AFTER DELETE ON semantic_cache BEGIN
+  INSERT INTO semantic_cache_fts(semantic_cache_fts, rowid, prompt_normalized, keywords, category)
+  VALUES('delete', old.rowid, old.prompt_normalized, old.keywords, old.category);
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_semantic_cache_au AFTER UPDATE ON semantic_cache BEGIN
+  INSERT INTO semantic_cache_fts(semantic_cache_fts, rowid, prompt_normalized, keywords, category)
+  VALUES('delete', old.rowid, old.prompt_normalized, old.keywords, old.category);
+  INSERT INTO semantic_cache_fts(rowid, prompt_normalized, keywords, category)
+  VALUES (new.rowid, new.prompt_normalized, new.keywords, new.category);
+END;
+
+
+-- ------------------------------------------------------------------------------
+-- 12. BẢNG MÔ HÌNH NHÚNG TRỰC TIẾP NỘI BỘ (EMBEDDED_MODELS)
+-- Bounded Context: Direct In-Project Local Model Context (FR-061)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS embedded_models (
+    id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size_bytes INTEGER NOT NULL DEFAULT 0,
+    min_ram_gb REAL NOT NULL DEFAULT 4.0,
+    min_avail_ram_gb REAL NOT NULL DEFAULT 1.5,
+    min_disk_gb REAL NOT NULL DEFAULT 1.5,
+    min_cpu_cores INTEGER NOT NULL DEFAULT 2,
+    download_status VARCHAR(30) NOT NULL DEFAULT 'NOT_DOWNLOADED' CHECK (download_status IN ('NOT_DOWNLOADED', 'DOWNLOADING', 'READY', 'ERROR')),
+    download_progress INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

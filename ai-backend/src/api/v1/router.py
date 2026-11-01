@@ -12,6 +12,7 @@ from src.api.v1.prompts import prompts_router
 from src.api.v1.rules import rules_router
 from src.api.v1.attachments import attachments_router
 from src.api.v1.api_keys import api_keys_router
+from src.api.v1.embedded_model import embedded_router
 
 class HealthResponse(BaseModel):
     model_config = {"extra": "allow"}
@@ -46,3 +47,4 @@ api_router.include_router(prompts_router)
 api_router.include_router(rules_router)
 api_router.include_router(attachments_router)
 api_router.include_router(api_keys_router)
+api_router.include_router(embedded_router)

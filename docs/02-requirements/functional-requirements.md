@@ -1297,3 +1297,44 @@
 - **Độ Ưu Tiên**: `MUST`.
 - **Trạng Thái**: `IMPLEMENTED`.
 - **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-058`, `BR-005`.
+
+---
+
+### FR-061: Mô Hình Siêu Nhẹ Trực Tiếp Trong Dự Án & Kiểm Soát Cổng Phần Cứng (In-Project Direct Embedded Model & Hardware Verification Gate)
+- **Mã Yêu Cầu**: `FR-061`
+- **Tên Yêu Cầu**: Mô Hình Siêu Nhẹ Trực Tiếp Trong Dự Án & Kiểm Soát Cổng Phần Cứng (In-Project Direct Embedded Model & Hardware Verification Gate).
+- **Mô Tả**: Tích hợp mô hình AI siêu nhẹ trực tiếp trong nội tại dự án (In-Process Embedded Model Runner) thay vì phụ thuộc vào máy chủ ngoài (như Ollama hay dịch vụ mạng bên ngoài):
+  - **Không tải sẵn theo mã nguồn (On-Demand Download Only)**: Nhằm tiết kiệm dung lượng kho mã nguồn và băng thông cài đặt, tệp trọng số mô hình không được đóng gói sẵn trong repo.
+  - **Cổng kiểm tra điều kiện phần cứng (Hardware Verification Gate)**: Trước khi cho phép tải về, hệ thống tự động kiểm tra phần cứng của người dùng (tối thiểu 2 CPU Cores, Tổng RAM $\ge 4.0\text{GB}$, RAM khả dụng $\ge 1.5\text{GB}$, Dung lượng ổ đĩa trống $\ge 1.5\text{GB}$). Nếu không đạt điều kiện, hệ thống khóa nút tải về và hiển thị chẩn đoán rõ ràng từng thông số.
+  - **Trình quản lý tải về (Embedded Download Manager)**: Khi phần cứng đủ điều kiện, cho phép tải tệp mô hình vào thư mục `ai-backend/models/embedded/` với thanh tiến trình thời gian thực, khả năng hủy và xóa tệp để giải phóng bộ nhớ.
+  - **Thực thi suy luận trực tiếp (Direct In-Process Execution)**: Khi mô hình đã sẵn sàng, backend nạp và suy luận trực tiếp trong cùng tiến trình ứng dụng, hỗ trợ truyền luồng SSE mượt mà.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-021`, `FR-058`, `BR-005`.
+
+---
+
+### FR-062: Bộ Nhớ Đệm Ngữ Nghĩa Tiếng Nhật Quy Mô Lớn (Large-Scale Japanese Semantic Knowledge Cache 10,000+)
+- **Mã Yêu Cầu**: `FR-062`
+- **Tên Yêu Cầu**: Bộ Nhớ Đệm Ngữ Nghĩa Tiếng Nhật Quy Mô Lớn (Large-Scale Japanese Semantic Knowledge Cache 10,000+).
+- **Mô Tả**: Xây dựng và thiết lập cơ sở dữ liệu tri thức sư phạm tiếng Nhật quy mô hàng chục nghìn câu hỏi & câu trả lời chuẩn mực (10,000+ entries) trong `semantic_cache`:
+  - Bao quát toàn diện các phân hệ: Ngữ pháp JLPT (N5 đến N1), Phân biệt Trợ từ (は vs が, に vs で, へ, を...), Mẫu câu Kaiwa tình huống thực tế (Nhà hàng, Ga tàu, Sân bay, Phỏng vấn, Công sở), Từ vựng & Hán tự (Kanji Onyomi/Kunyomi, Lượng từ), Kính ngữ (Keigo) và Cặp tự/tha động từ.
+  - **Tối ưu hóa tìm kiếm siêu tốc FTS5 (Full-Text Search 5 Indexing)**: Sử dụng bảng ảo SQLite FTS5 kết hợp B-Tree index chuẩn hóa để phân rã token tiếng Nhật và từ khóa, giới hạn tập ứng viên xuống top 30 trước khi tính điểm Jaccard tương đồng, bảo đảm thời gian tra cứu $\le 5\text{ms}$ dù dữ liệu lên tới hàng chục nghìn bản ghi.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-060`.
+
+---
+
+### FR-063: Tự Động Học Tương Tác Vào Bộ Nhớ Đệm & Chống Trùng Lặp (Auto-Learning Interaction Memory with Deduplication)
+- **Mã Yêu Cầu**: `FR-063`
+- **Tên Yêu Cầu**: Tự Động Học Tương Tác Vào Bộ Nhớ Đệm & Chống Trùng Lặp (Auto-Learning Interaction Memory with Deduplication).
+- **Mô Tả**: Cơ chế ghi nhớ và mở rộng tri thức đệm tự động sau mỗi lượt hội thoại:
+  - Khi người dùng gửi câu hỏi và mô hình (Gemini, Groq, Claude, OpenAI hoặc Embedded) hoàn tất câu trả lời chất lượng cao, hệ thống tự động ghi nhận cặp Q&A vào Semantic Cache.
+  - **Quy tắc chống trùng lặp tuyệt đối (Strict Deduplication Invariant)**: Trước khi lưu, hệ thống chuẩn hóa câu hỏi qua Unicode NFKC và kiểm tra tồn tại. Nếu câu hỏi đã có trong cache (hoặc tương đồng ngữ nghĩa $\ge 0.95$), hệ thống **tuyệt đối không tạo bản ghi mới** mà chỉ cập nhật tăng `hit_count = hit_count + 1` và cập nhật mốc thời gian `updated_at`.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-060`, `FR-062`.

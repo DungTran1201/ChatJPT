@@ -202,3 +202,17 @@
 
 
 
+
+---
+
+### 2.28 UC-MOD-004 [UC-040]: Tải & Vận Hành Mô Hình Siêu Nhẹ Nhúng Trực Tiếp (Hardware-Gated Embedded Model)
+- **Mục Tiêu Của Actor**: Kiểm tra điều kiện phần cứng máy chủ/người dùng và cho phép tải mô hình siêu nhẹ nhúng trực tiếp (Qwen 2.5 0.5B Embedded) để trò chuyện ngoại tuyến/cục bộ tốc độ cao mà không cần bất kỳ máy chủ bên ngoài hay dịch vụ Ollama nào.
+- **Sự Kiện Kích Hoạt**: Người dùng nhấn "Kiểm tra phần cứng" hoặc "Tải mô hình nhúng trực tiếp" tại tab Cài đặt Mô hình AI (`/settings?tab=models`).
+- **Phụ Thuộc**: Phụ thuộc vào `FR-061`, `OP-042`, `OP-043`, `OP-044`, `OP-045`, `SEQ-005`.
+
+---
+
+### 2.29 UC-MOD-005 [UC-041]: Tra Cứu & Tự Động Học Semantic Cache 10,000+ với Cơ Chế Chống Trùng Lặp
+- **Mục Tiêu Của Actor**: Tra cứu tức thì các câu hỏi tiếng Nhật phổ biến trong kho tri thức 10,000+ bản ghi với tốc độ dưới 5ms (thông qua SQLite FTS5 và B-Tree Index), đồng thời tự động lưu trữ mọi câu hỏi & câu trả lời mới vào Semantic Cache mà không tạo bản ghi trùng lặp (Strict Deduplication).
+- **Sự Kiện Kích Hoạt**: Người dùng gửi tin nhắn trò chuyện hoặc hệ thống phản hồi hoàn tất một lượt chat (`chat.py`).
+- **Phụ Thuộc**: Phụ thuộc vào `FR-062`, `FR-063`, `OP-046`, `SEQ-005`.

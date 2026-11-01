@@ -93,6 +93,9 @@ AI-CHAN CAPABILITIES
 | **FR-058** | Automatic Model Failover & Quota Circuit Breaker | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Tự động chuyển tiếp mô hình khi cạn kiệt hạn ngạch truy cập HTTP 429 và thông báo SSE. |
 | **FR-059** | Multi-Model Thread Context Continuity | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Cho phép đổi mô hình giữa chừng trong cùng một luồng hội thoại mà không mất ngữ cảnh lịch sử. |
 | **FR-060** | Offline Chat & Semantic Caching Engine | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Chế độ ngoại tuyến độc lập không cần GPU/CPU/API Key, phục vụ câu trả lời qua bộ nhớ đệm ngữ nghĩa. |
+| **FR-061** | In-Project Direct Embedded Model & Hardware Verification Gate | `CAP-AGENT-MGMT` | **MUST** | `IMPLEMENTED` | Mô hình siêu nhẹ nhúng trực tiếp không cần server ngoài, kiểm tra phần cứng trước khi tải về. |
+| **FR-062** | Large-Scale Japanese Semantic Knowledge Cache 10,000+ | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Thiết lập hàng chục nghìn câu hỏi/trả lời tiếng Nhật phổ biến với chỉ mục FTS5 tốc độ cao. |
+| **FR-063** | Auto-Learning Interaction Memory with Deduplication | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Tự động lưu Q&A vào Semantic Cache sau mỗi lượt chat, chống lưu trùng lặp câu đã có. |
 
 ---
 

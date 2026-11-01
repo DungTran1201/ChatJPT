@@ -86,6 +86,9 @@
 | **BO-02** | `CAP-CHAT-AI` | **FR-058** | Automatic Model Failover & Quota Circuit Breaker | `AC-004-A` | `PROC-AI-01` (Quy trình Chuyển vùng dự phòng tự động) | `UC-CHAT-04` (Tự động phục hồi lỗi AI Provider) |
 | **BO-01** | `CAP-CHAT-AI` | **FR-059** | Multi-Model Thread Context Continuity | `AC-003-E` | `PROC-CHAT-03` (Quy trình Tùy biến mô hình AI) | `UC-CHAT-03` (Chọn mô hình AI đàm thoại) |
 | **BO-01** | `CAP-CHAT-AI` | **FR-060** | Offline Chat & Semantic Caching Engine | `AC-003-C` | `PROC-CHAT-02` (Quy trình Xử lý & Hiển thị kết quả AI) | `UC-CHAT-02` (Nhận câu trả lời từ AI) |
+| **BO-02** | `CAP-AGENT-MGMT` | **FR-061** | In-Project Direct Embedded Model & Hardware Verification Gate | `TC-043` | `PROC-024` (Quản lý mô hình nhúng cục bộ) | `UC-040` (Tải & vận hành mô hình nhúng nội bộ) |
+| **BO-01** | `CAP-CHAT-AI` | **FR-062** | Large-Scale Japanese Semantic Knowledge Cache 10,000+ | `TC-044` | `PROC-025` (Truy vấn tri thức đệm FTS5) | `UC-041` (Tra cứu tri thức tiếng Nhật ngoại tuyến) |
+| **BO-01** | `CAP-CHAT-AI` | **FR-063** | Auto-Learning Interaction Memory with Deduplication | `TC-045` | `PROC-025` (Ghi nhận & khử trùng lặp đệm) | `UC-041` (Tự động mở rộng bộ nhớ đệm hội thoại) |
 
 ---
 

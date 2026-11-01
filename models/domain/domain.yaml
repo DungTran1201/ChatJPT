@@ -134,15 +134,36 @@ entities:
   attributes:
   - id: UUID (PK)
   - prompt_raw: string
-  - prompt_normalized: string (indexed)
+  - prompt_normalized: string (UNIQUE, indexed)
   - category: string (indexed)
   - response_text: string (TEXT)
   - keywords: string (comma-separated, nullable)
   - similarity_score: float (default 1.0)
   - hit_count: integer (default 1)
+  - is_auto_learned: boolean (default false)
+  - fts_indexed: boolean (default true)
+  - created_at: timestamp
+  - updated_at: timestamp
+- name: EmbeddedModel
+  aggregate_root: true
+  attributes:
+  - id: string (PK, e.g. qwen2.5-0.5b-embedded)
+  - name: string
+  - file_path: string
+  - file_size_bytes: integer
+  - min_ram_gb: float (default 4.0)
+  - min_avail_ram_gb: float (default 1.5)
+  - min_disk_gb: float (default 1.5)
+  - min_cpu_cores: integer (default 2)
+  - download_status: enum(NOT_DOWNLOADED, DOWNLOADING, READY, ERROR)
+  - download_progress: integer (0..100)
+  - is_eligible: boolean
   - created_at: timestamp
   - updated_at: timestamp
 relationships:
+- from: EmbeddedModel
+  to: AgentModel
+  type: one-to-one
 - from: User
   to: Conversation
   type: one-to-many

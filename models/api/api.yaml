@@ -287,3 +287,39 @@ apis:
     source_refs:
     - FR-020
     - CAP-USER
+  - id: OP-042
+    method: GET
+    path: /models/embedded/hardware-check
+    summary: Inspect client/host hardware specs and evaluate eligibility for embedded model download
+    use_case: UC-040
+    source_refs:
+    - FR-061
+  - id: OP-043
+    method: POST
+    path: /models/embedded/download
+    summary: Download in-project ultra-lightweight model directly when hardware prerequisites are satisfied
+    use_case: UC-040
+    source_refs:
+    - FR-061
+  - id: OP-044
+    method: GET
+    path: /models/embedded/status
+    summary: Get download status, progress, and runtime readiness of in-project embedded model
+    use_case: UC-040
+    source_refs:
+    - FR-061
+  - id: OP-045
+    method: DELETE
+    path: /models/embedded
+    summary: Delete in-project model files and reclaim local storage space
+    use_case: UC-040
+    source_refs:
+    - FR-061
+  - id: OP-046
+    method: GET
+    path: /semantic-cache/stats
+    summary: Retrieve semantic cache inventory metrics, total indexed Q&A count (10,000+), and hit rate
+    use_case: UC-041
+    source_refs:
+    - FR-062
+    - FR-063

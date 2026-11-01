@@ -1101,3 +1101,113 @@
 
 
 
+
+---
+
+## 10. Phân Hệ Mô Hình Nhúng Siêu Nhẹ & Semantic Cache (Embedded Model & Semantic Cache Endpoints)
+
+---
+
+### 10.1 GET /api/v1/models/embedded/hardware-check [OP-042]
+- **Mục đích**: Kiểm tra phần cứng máy chủ/thiết bị người dùng và đánh giá điều kiện tải/chạy mô hình siêu nhẹ nhúng trực tiếp (`FR-061`, `UC-040`).
+- **Responses**:
+  - `200 OK`:
+    ```json
+    {
+      "eligible": true,
+      "metrics": {
+        "cpu_cores": 12,
+        "total_ram_gb": 16.0,
+        "avail_ram_gb": 8.5,
+        "free_disk_gb": 45.2,
+        "os_name": "Windows 10",
+        "architecture": "AMD64"
+      },
+      "checks": [
+        {"id": "cpu_cores", "name": "CPU Cores", "required": ">= 2 cores", "actual": "12 cores", "passed": true},
+        {"id": "total_ram", "name": "Total System RAM", "required": ">= 4.0 GB", "actual": "16.0 GB", "passed": true},
+        {"id": "avail_ram", "name": "Available Free RAM", "required": ">= 1.5 GB", "actual": "8.5 GB", "passed": true},
+        {"id": "free_disk", "name": "Free Disk Space", "required": ">= 1.5 GB", "actual": "45.2 GB", "passed": true}
+      ],
+      "message": "Phần cứng thiết bị đủ điều kiện chạy mô hình siêu nhẹ nhúng trực tiếp."
+    }
+    ```
+
+---
+
+### 10.2 POST /api/v1/models/embedded/download [OP-043]
+- **Mục đích**: Tải mô hình siêu nhẹ nhúng trực tiếp vào dự án (chặn tải nếu phần cứng không đạt yêu cầu) (`FR-061`, `UC-040`).
+- **Request Body**:
+  ```json
+  {
+    "model_id": "qwen2.5-0.5b-embedded"
+  }
+  ```
+- **Responses**:
+  - `200 OK`:
+    ```json
+    {
+      "success": true,
+      "model_id": "qwen2.5-0.5b-embedded",
+      "status": "READY",
+      "progress": 100,
+      "message": "Đã tải và cấu hình thành công mô hình siêu nhẹ nhúng trực tiếp trong dự án."
+    }
+    ```
+  - `400 Bad Request`: Phần cứng không đạt yêu cầu tối thiểu.
+
+---
+
+### 10.3 GET /api/v1/models/embedded/status [OP-044]
+- **Mục đích**: Truy xuất trạng thái tải về, tiến độ và mức độ sẵn sàng chạy trực tiếp (`FR-061`, `UC-040`).
+- **Responses**:
+  - `200 OK`:
+    ```json
+    {
+      "id": "qwen2.5-0.5b-embedded",
+      "name": "Qwen 2.5 0.5B (Direct In-Project Embedded)",
+      "file_path": "models/embedded/qwen2.5-0.5b-embedded.bin",
+      "download_status": "READY",
+      "download_progress": 100,
+      "file_exists": true,
+      "actual_file_size_bytes": 398000000,
+      "is_active": true
+    }
+    ```
+
+---
+
+### 10.4 DELETE /api/v1/models/embedded [OP-045]
+- **Mục đích**: Xóa tệp mô hình nhúng để giải phóng dung lượng ổ đĩa (`FR-061`, `UC-040`).
+- **Responses**:
+  - `200 OK`:
+    ```json
+    {
+      "success": true,
+      "model_id": "qwen2.5-0.5b-embedded",
+      "status": "NOT_DOWNLOADED",
+      "message": "Đã xóa mô hình nhúng trực tiếp để giải phóng dung lượng ổ đĩa."
+    }
+    ```
+
+---
+
+### 10.5 GET /api/v1/semantic-cache/stats [OP-046]
+- **Mục đích**: Báo cáo số liệu kho tri thức Semantic Cache (10,000+ câu hỏi tiếng Nhật) và thống kê lượt tra cứu (`FR-062`, `FR-063`, `UC-041`).
+- **Responses**:
+  - `200 OK`:
+    ```json
+    {
+      "total_entries": 10509,
+      "total_hits": 10505,
+      "categories": [
+        {"category": "vocabulary", "count": 6500},
+        {"category": "grammar", "count": 1800},
+        {"category": "practice_drill", "count": 1200},
+        {"category": "kaiwa", "count": 450},
+        {"category": "verbs", "count": 300},
+        {"category": "particles", "count": 150},
+        {"category": "counters", "count": 100}
+      ]
+    }
+    ```

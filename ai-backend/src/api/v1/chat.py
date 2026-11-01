@@ -263,6 +263,18 @@ async def stream_message_endpoint(
                 (assistant_msg_id, conversation_id, final_text, final_model_used)
             )
 
+            # Tự động học vào Semantic Cache với cơ chế Deduplication (FR-063, BR-022)
+            if final_text and prompt_text:
+                try:
+                    from src.services.semantic_cache_service import SemanticCacheService
+                    SemanticCacheService.learn_interaction(
+                        prompt_raw=prompt_text,
+                        response_text=final_text,
+                        category="learned_chat"
+                    )
+                except Exception:
+                    pass
+
             # Tính toán telemetry hoàn tất: latency, token usage, trừ quota & ghi log (FR-029, FR-030, BR-019)
             total_latency_ms = (time.perf_counter() - start_time) * 1000
             prompt_tokens_est = max(int(len(prompt_text.split()) * 1.3), 5)

@@ -7,6 +7,7 @@ import { AgentModel, ModelSearchResponse } from '@/types';
 import Icon from '@/components/ui/Icon';
 import { useApp } from '@/context/AppContext';
 import ApiKeysTab from '@/components/settings/ApiKeysTab';
+import EmbeddedModelCard from '@/components/settings/EmbeddedModelCard';
 
 interface UserProfile {
   id: string;
@@ -1934,6 +1935,9 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
+
+            {/* In-Project Ultra-Lightweight Embedded Model & Semantic Cache */}
+            <EmbeddedModelCard />
 
             {/* Instant Search Bar (FR-037, NFR-022) */}
             <div style={{
