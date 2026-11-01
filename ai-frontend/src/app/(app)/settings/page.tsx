@@ -16,6 +16,11 @@ interface UserProfile {
   avatar_url: string;
   bio: string;
   phone_number: string;
+  age?: number | null;
+  occupation?: string;
+  interests?: string;
+  japanese_level?: string;
+  learning_goal?: string;
   theme_preference: 'DARK' | 'LIGHT' | 'SYSTEM';
   language_preference: 'vi' | 'en';
   status: string;
@@ -61,6 +66,11 @@ export default function SettingsPage() {
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [age, setAge] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [interests, setInterests] = useState('');
+  const [japaneseLevel, setJapaneseLevel] = useState('CHUA_HOC');
+  const [learningGoal, setLearningGoal] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [showAvatarEdit, setShowAvatarEdit] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -149,6 +159,11 @@ export default function SettingsPage() {
         setUsername(u.username || '');
         setBio(u.bio || '');
         setPhoneNumber(u.phone_number || '');
+        setAge(u.age !== null && u.age !== undefined ? String(u.age) : '');
+        setOccupation(u.occupation || '');
+        setInterests(u.interests || '');
+        setJapaneseLevel(u.japanese_level || 'CHUA_HOC');
+        setLearningGoal(u.learning_goal || '');
         setAvatarUrl(u.avatar_url || '');
         setThemePreference(u.theme_preference || 'DARK');
         setLanguagePreference(u.language_preference || 'en');
@@ -569,7 +584,12 @@ export default function SettingsPage() {
           full_name: fullName.trim(),
           username: username.trim() || null,
           bio: bio.trim(),
-          phone_number: phoneNumber.trim()
+          phone_number: phoneNumber.trim(),
+          age: age.trim() ? parseInt(age.trim(), 10) : null,
+          occupation: occupation.trim() || null,
+          interests: interests.trim() || null,
+          japanese_level: japaneseLevel || 'CHUA_HOC',
+          learning_goal: learningGoal.trim() || null
         })
       });
 
@@ -1039,6 +1059,124 @@ export default function SettingsPage() {
                   className="input"
                   style={{ width: '100%' }}
                 />
+              </div>
+
+              {/* Personalization Section for Japanese Learning */}
+              <div style={{
+                marginTop: '1.5rem',
+                marginBottom: '1.5rem',
+                padding: '1.25rem',
+                background: 'rgba(236, 72, 153, 0.04)',
+                border: '1px solid rgba(236, 72, 153, 0.2)',
+                borderRadius: 'var(--radius-md)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '1rem' }}>🌸</span>
+                  <div>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                      Thông Tin Cá Nhân Hóa (Personalization)
+                    </h3>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
+                      Cung cấp thêm thông tin để Trợ lý ảo AI Sensei cá nhân hóa ngữ cảnh luyện Kaiwa và giải thích bài học phù hợp nhất.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      Độ Tuổi (Age)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={120}
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      placeholder="Ví dụ: 25"
+                      className="input"
+                      style={{ width: '100%' }}
+                    />
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                      Từ 1 đến 120 tuổi (tùy chọn)
+                    </span>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      Nghề Nghiệp (Occupation)
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={100}
+                      value={occupation}
+                      onChange={(e) => setOccupation(e.target.value)}
+                      placeholder="Kỹ sư phần mềm, Sinh viên, Kế toán..."
+                      className="input"
+                      style={{ width: '100%' }}
+                    />
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                      Tối đa 100 ký tự
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      Trình Độ Tiếng Nhật Mục Tiêu (Japanese Level)
+                    </label>
+                    <select
+                      value={japaneseLevel}
+                      onChange={(e) => setJapaneseLevel(e.target.value)}
+                      className="input"
+                      style={{ width: '100%', height: '38px' }}
+                    >
+                      <option value="CHUA_HOC">Chưa từng học / Mới bắt đầu</option>
+                      <option value="N5">JLPT N5 (Sơ cấp 1 - Chữ cái &amp; Câu đơn giản)</option>
+                      <option value="N4">JLPT N4 (Sơ cấp 2 - Giao tiếp hàng ngày cơ bản)</option>
+                      <option value="N3">JLPT N3 (Trung cấp - Giao tiếp tự nhiên)</option>
+                      <option value="N2">JLPT N2 (Trung - Cao cấp - Công sở &amp; Tin tức)</option>
+                      <option value="N1">JLPT N1 (Cao cấp - Lưu loát mọi ngữ cảnh)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      Mục Tiêu Học Tập (Learning Goal)
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={255}
+                      value={learningGoal}
+                      onChange={(e) => setLearningGoal(e.target.value)}
+                      placeholder="Luyện Kaiwa giao tiếp, Lấy bằng N3, Đi làm công ty Nhật..."
+                      className="input"
+                      style={{ width: '100%' }}
+                    />
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                      Định hướng bài học cho Sensei
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Sở Thích &amp; Chủ Đề Quan Tâm (Interests &amp; Topics)
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={255}
+                    value={interests}
+                    onChange={(e) => setInterests(e.target.value)}
+                    placeholder="Anime, Manga, Du lịch Tokyo, Văn hóa ẩm thực, Công nghệ, Nhiếp ảnh..."
+                    className="input"
+                    style={{ width: '100%' }}
+                  />
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                    Sensei sẽ lồng ghép các từ vựng và chủ đề này vào các buổi luyện nói hội thoại
+                  </span>
+                </div>
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>

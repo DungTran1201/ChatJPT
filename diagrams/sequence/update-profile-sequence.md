@@ -1,5 +1,5 @@
 # Sơ Đồ Tuần Tự: Cập Nhật Hồ Sơ & Tùy Chọn Cá Nhân (Profile Update Sequence)
-## Dự Án: Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)
+## Dự Án: Website Hỗ Trợ Học Tiếng Nhật & AI Virtual Sensei (ChatJPT)
 
 ---
 
@@ -7,7 +7,7 @@
 | :--- | :--- |
 | **Mã Sơ Đồ** | `DIAG-SEQ-006` |
 | **Mã Kịch Bản** | `SEQ-006` |
-| **Nguồn Sự Thật Thượng Nguồn** | [docs/09-behavior/sequence-diagrams.md](file:///c:/Users/PC/Project/ai-chan/docs/09-behavior/sequence-diagrams.md), [docs/02-requirements/functional-requirements.md](file:///c:/Users/PC/Project/ai-chan/docs/02-requirements/functional-requirements.md) (`FR-016`, `FR-017`, `FR-020`) |
+| **Nguồn Sự Thật Thượng Nguồn** | [docs/09-behavior/sequence-diagrams.md](file:///c:/Users/PC/Project/ChatJPT/docs/09-behavior/sequence-diagrams.md), [docs/02-requirements/functional-requirements.md](file:///c:/Users/PC/Project/ChatJPT/docs/02-requirements/functional-requirements.md) (`FR-016`, `FR-017`, `FR-020`) |
 | **Mục Đích** | Mô tả trình tự cập nhật các thông tin cá nhân thường (Họ tên, username slug, bio, avatar và cài đặt theme/language) |
 
 ---
@@ -23,7 +23,7 @@ sequenceDiagram
     participant API as User Router
     participant DB as SQLite DB
 
-    User->>UI: Thay đổi Họ tên, Username, Bio, Số điện thoại
+    User->>UI: Thay đổi Họ tên, Username, Bio, Số điện thoại, Độ tuổi, Nghề nghiệp, Sở thích, Cấp độ tiếng Nhật, Mục tiêu
     User->>UI: Nhấn [Lưu thay đổi]
     UI->>UI: Regex validate Username slug (3-30 ký tự [a-z0-9_-])
     UI->>Auth: PATCH /api/v1/users/me/profile (Payload JSON)
@@ -40,7 +40,7 @@ sequenceDiagram
         end
     end
 
-    API->>DB: UPDATE users SET full_name = :name, username = :user, bio = :bio, phone_number = :phone, updated_at = CURRENT_TIMESTAMP WHERE id = :user_id
+    API->>DB: UPDATE users SET full_name = :name, username = :user, bio = :bio, phone_number = :phone, age = :age, occupation = :occ, interests = :int, japanese_level = :lvl, learning_goal = :goal, updated_at = CURRENT_TIMESTAMP WHERE id = :user_id
     DB-->>API: Cập nhật thành công
     API-->>UI: HTTP 200 OK (UserProfile mới)
     UI->>UI: Cập nhật thông tin Header / Sidebar

@@ -27,6 +27,11 @@
   - `avatar_url: Optional[UrlString]` (Đường dẫn hình ảnh đại diện cá nhân - `BR-011`).
   - `bio: Optional[string]` (Tiểu sử giới thiệu ngắn, tối đa 500 ký tự).
   - `phone_number: Optional[string]` (Số điện thoại liên hệ tùy chọn).
+  - `age: Optional[int]` (Độ tuổi người dùng, phạm vi 1..120 tuổi).
+  - `occupation: Optional[string]` (Nghề nghiệp / Lĩnh vực công tác, tối đa 100 ký tự).
+  - `interests: Optional[string]` (Sở thích cá nhân / chủ đề quan tâm, tối đa 255 ký tự).
+  - `japanese_level: Optional[string]` (Trình độ tiếng Nhật mục tiêu: CHUA_HOC, N5, N4, N3, N2, N1).
+  - `learning_goal: Optional[string]` (Mục tiêu học tập tiếng Nhật của học viên, tối đa 255 ký tự).
   - `discord_id: Optional[string]` (Mã định danh duy nhất Discord, UNIQUE - `FR-027`, `FR-028`).
   - `discord_username: Optional[string]` (Tên người dùng Discord liên kết - `FR-027`).
   - `theme_preference: ThemeMode` (Chủ đề giao diện: `DARK`, `LIGHT`, `SYSTEM` - Mặc định `DARK`).
@@ -36,7 +41,7 @@
   - `password_changed_at: Optional[DateTime]` (Thời điểm đổi mật khẩu lần cuối để thu hồi phiên cũ - `SEC-007`).
   - `created_at, updated_at: DateTime` (Dấu vết thời gian tạo và cập nhật bản ghi).
 - **Hành Vi Miền (Domain Behaviors)**:
-  - `update_profile(full_name, username, bio, phone_number)`: Cập nhật thông tin định danh cá nhân.
+  - `update_profile(full_name, username, bio, phone_number, age, occupation, interests, japanese_level, learning_goal)`: Cập nhật thông tin định danh và cá nhân hóa học tập.
   - `update_avatar(avatar_url)`: Cập nhật liên kết ảnh đại diện.
   - `link_discord(discord_id, discord_username)`: Liên kết tài khoản Discord cho người dùng đã đăng nhập với kiểm tra tính duy nhất 1-1 (`FR-040`, `BR-025`).
   - `unlink_discord(current_password)`: Hủy liên kết tài khoản Discord sau khi xác thực mật khẩu, có chốt chặn bắt buộc `hashed_password IS NOT NULL` chống mất quyền truy cập tài khoản (`FR-041`, `BR-026`, `BR-027`).

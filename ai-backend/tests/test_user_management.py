@@ -66,6 +66,57 @@ class TestUserManagementAPI(unittest.TestCase):
         self.assertEqual(data["user"]["bio"], "Developer and AI researcher")
         self.assertEqual(data["user"]["phone_number"], "0987654321")
 
+    def test_update_profile_personalization_fields(self):
+        # Test personalization attributes (age, occupation, interests, japanese_level, learning_goal)
+        response = self.client.patch(
+            "/api/v1/users/me/profile",
+            json={
+                "full_name": "Yamada Taro",
+                "age": 26,
+                "occupation": "Software Engineer",
+                "interests": "Anime, Manga, Tokyo Travel, Tech",
+                "japanese_level": "N3",
+                "learning_goal": "Kaiwa fluency for working in Tokyo"
+            },
+            cookies=self.cookies
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        user = data["user"]
+        self.assertEqual(user["full_name"], "Yamada Taro")
+        self.assertEqual(user["age"], 26)
+        self.assertEqual(user["occupation"], "Software Engineer")
+        self.assertEqual(user["interests"], "Anime, Manga, Tokyo Travel, Tech")
+        self.assertEqual(user["japanese_level"], "N3")
+        self.assertEqual(user["learning_goal"], "Kaiwa fluency for working in Tokyo")
+
+        # Verify via GET /api/v1/users/me
+        get_res = self.client.get("/api/v1/users/me", cookies=self.cookies)
+        self.assertEqual(get_res.status_code, 200)
+        get_user = get_res.json()["user"]
+        self.assertEqual(get_user["age"], 26)
+        self.assertEqual(get_user["occupation"], "Software Engineer")
+        self.assertEqual(get_user["interests"], "Anime, Manga, Tokyo Travel, Tech")
+        self.assertEqual(get_user["japanese_level"], "N3")
+        self.assertEqual(get_user["learning_goal"], "Kaiwa fluency for working in Tokyo")
+
+    def test_update_profile_invalid_age_rejected(self):
+        # Age exceeds upper bound 120
+        res1 = self.client.patch(
+            "/api/v1/users/me/profile",
+            json={"age": 150},
+            cookies=self.cookies
+        )
+        self.assertEqual(res1.status_code, 422)
+
+        # Age below lower bound 1
+        res2 = self.client.patch(
+            "/api/v1/users/me/profile",
+            json={"age": 0},
+            cookies=self.cookies
+        )
+        self.assertEqual(res2.status_code, 422)
+
     def test_update_profile_invalid_username(self):
         # Username with invalid characters or too short
         response = self.client.patch(

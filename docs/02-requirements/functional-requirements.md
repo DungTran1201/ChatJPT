@@ -329,10 +329,10 @@
 
 ---
 
-### FR-015: Xem Thông Tin Hồ Sơ Cá Nhân & Thống Kê (View User Profile & Stats)
+### FR-015: Xem Thông Tin Hồ Sơ Cá Nhân & Thống Kê (View User Profile, Stats & Personalization)
 - **Mã Yêu Cầu**: `FR-015`
-- **Tên Yêu Cầu**: Xem Thông Tin Hồ Sơ Cá Nhân & Thống Kê (View User Profile & Stats).
-- **Mô Tả**: Cung cấp khả năng hiển thị chi tiết thông tin hồ sơ của người dùng hiện hành (họ tên, username, email, ảnh đại diện, tiểu sử, số điện thoại, ngày tham gia, ngày đăng nhập gần nhất) cùng số liệu thống kê sử dụng (tổng số hội thoại, tổng số tin nhắn).
+- **Tên Yêu Cầu**: Xem Thông Tin Hồ Sơ Cá Nhân, Thống Kê & Cá Nhân Hóa (View User Profile, Stats & Personalization).
+- **Mô Tả**: Cung cấp khả năng hiển thị chi tiết thông tin hồ sơ của người dùng hiện hành (họ tên, username, email, ảnh đại diện, tiểu sử, số điện thoại, ngày tham gia, ngày đăng nhập gần nhất) kèm theo các thuộc tính cá nhân hóa học tập (độ tuổi, nghề nghiệp, sở thích/chủ đề quan tâm, trình độ tiếng Nhật mục tiêu, mục tiêu học tập) cùng số liệu thống kê sử dụng (tổng số hội thoại, tổng số tin nhắn).
 - **Tác Nhân (Actor)**: `ACT-02` (Registered User).
 - **Điều Kiện Tiên Quyết (Preconditions)**: Người dùng đã đăng nhập với JWT token hợp lệ.
 - **Luồng Chính (Main Flow)**:
@@ -351,16 +351,16 @@
 
 ---
 
-### FR-016: Cập Nhật Thông Tin Hồ Sơ Định Danh (Update Profile Information)
+### FR-016: Cập Nhật Thông Tin Hồ Sơ Định Danh & Cá Nhân Hóa (Update Profile & Personalization Information)
 - **Mã Yêu Cầu**: `FR-016`
-- **Tên Yêu Cầu**: Cập Nhật Thông Tin Hồ Sơ Định Danh (Update Profile Information).
-- **Mô Tả**: Cho phép người dùng cập nhật Họ và tên (`full_name`), Tên đăng nhập (`username`), Tiểu sử (`bio`), và Số điện thoại (`phone_number`).
+- **Tên Yêu Cầu**: Cập Nhật Thông Tin Hồ Sơ Định Danh & Cá Nhân Hóa Học Tập (Update Profile & Personalization Information).
+- **Mô Tả**: Cho phép người dùng cập nhật Họ và tên (`full_name`), Tên đăng nhập (`username`), Tiểu sử (`bio`), Số điện thoại (`phone_number`), cùng các trường thông tin cá nhân hóa học tiếng Nhật không nhạy cảm: Độ tuổi (`age`, từ 1 đến 120), Nghề nghiệp (`occupation`, tối đa 100 ký tự), Sở thích/chủ đề quan tâm (`interests`, tối đa 255 ký tự), Trình độ tiếng Nhật mục tiêu (`japanese_level`: CHUA_HOC, N5..N1), và Mục tiêu học tập (`learning_goal`, tối đa 255 ký tự).
 - **Tác Nhân (Actor)**: `ACT-02` (Registered User).
 - **Điều Kiện Tiên Quyết (Preconditions)**: Người dùng đã đăng nhập hợp lệ.
 - **Luồng Chính (Main Flow)**:
-  1. Người dùng nhập thông tin cần cập nhật trên Form Hồ sơ cá nhân.
+  1. Người dùng nhập thông tin hồ sơ định danh và các trường cá nhân hóa trên Form Hồ sơ cá nhân.
   2. Client gửi request `PATCH /api/v1/users/me/profile` kèm payload JSON.
-  3. Backend kiểm tra tính hợp lệ dữ liệu (độ dài `full_name` <= 255, định dạng `username` theo `BR-007`, độ dài `bio` <= 500 ký tự, `phone_number` đúng định dạng).
+  3. Backend kiểm tra tính hợp lệ dữ liệu (độ dài `full_name` <= 255, định dạng `username` theo `BR-007`, độ dài `bio` <= 500 ký tự, `phone_number` đúng định dạng, `age` trong khoảng 1-120 nếu có, độ dài `occupation` <= 100, `interests` <= 255, `learning_goal` <= 255).
   4. Nếu người dùng đổi `username`, kiểm tra tính duy nhất trong bảng `users`.
   5. Backend thực hiện cập nhật bản ghi trong bảng `users` và cập nhật trường `updated_at`.
   6. Backend trả về thông tin hồ sơ đã cập nhật kèm mã `HTTP 200 OK`.

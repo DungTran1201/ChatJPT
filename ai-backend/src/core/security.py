@@ -90,6 +90,7 @@ async def get_current_user(request: Request) -> Dict:
     user = query_one(
         """
         SELECT id, email, full_name, username, avatar_url, bio, phone_number,
+               age, occupation, interests, japanese_level, learning_goal,
                discord_id, discord_username,
                theme_preference, language_preference, status, created_at,
                last_login_at, password_changed_at

@@ -125,7 +125,7 @@ requirements:
   actors:
   - System Backend
 - id: FR-015
-  name: View User Profile & Stats
+  name: View User Profile, Stats & Personalization
   type: functional
   capability: CAP-USER
   priority: MUST
@@ -133,7 +133,7 @@ requirements:
   actors:
   - Registered User
 - id: FR-016
-  name: Update Profile Information
+  name: Update Profile & Learning Personalization Information
   type: functional
   capability: CAP-USER
   priority: MUST

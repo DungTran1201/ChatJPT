@@ -21,6 +21,11 @@ class UpdateProfileRequest(BaseModel):
     username: Optional[str] = Field(None, description="Tên đăng nhập (3-30 ký tự chữ, số, _, .)")
     bio: Optional[str] = Field(None, max_length=500)
     phone_number: Optional[str] = Field(None, max_length=20)
+    age: Optional[int] = Field(None, ge=1, le=120, description="Tuổi người dùng (1 - 120)")
+    occupation: Optional[str] = Field(None, max_length=100, description="Nghề nghiệp / Lĩnh vực công tác")
+    interests: Optional[str] = Field(None, max_length=255, description="Sở thích cá nhân / chủ đề quan tâm")
+    japanese_level: Optional[str] = Field(None, max_length=20, description="Trình độ tiếng Nhật (CHUA_HOC, N5, N4, N3, N2, N1)")
+    learning_goal: Optional[str] = Field(None, max_length=255, description="Mục tiêu học tập tiếng Nhật")
 
 class UpdateAvatarRequest(BaseModel):
     avatar_url: str = Field(..., max_length=500, description="URL ảnh đại diện hoặc chuỗi data URI")
@@ -73,6 +78,11 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
             "avatar_url": current_user.get("avatar_url") or "",
             "bio": current_user.get("bio") or "",
             "phone_number": current_user.get("phone_number") or "",
+            "age": current_user.get("age"),
+            "occupation": current_user.get("occupation") or "",
+            "interests": current_user.get("interests") or "",
+            "japanese_level": current_user.get("japanese_level") or "CHUA_HOC",
+            "learning_goal": current_user.get("learning_goal") or "",
             "theme_preference": current_user.get("theme_preference") or "DARK",
             "language_preference": current_user.get("language_preference") or "vi",
             "status": current_user.get("status") or "ACTIVE",
@@ -135,6 +145,26 @@ async def update_profile(
         updates.append("phone_number = ?")
         params.append(req.phone_number.strip())
 
+    if req.age is not None:
+        updates.append("age = ?")
+        params.append(req.age)
+
+    if req.occupation is not None:
+        updates.append("occupation = ?")
+        params.append(req.occupation.strip())
+
+    if req.interests is not None:
+        updates.append("interests = ?")
+        params.append(req.interests.strip())
+
+    if req.japanese_level is not None:
+        updates.append("japanese_level = ?")
+        params.append(req.japanese_level.strip())
+
+    if req.learning_goal is not None:
+        updates.append("learning_goal = ?")
+        params.append(req.learning_goal.strip())
+
     if updates:
         sql = f"UPDATE users SET {', '.join(updates)} WHERE id = ?"
         params.append(user_id)
@@ -144,6 +174,7 @@ async def update_profile(
     updated = query_one(
         """
         SELECT id, email, full_name, username, avatar_url, bio, phone_number,
+               age, occupation, interests, japanese_level, learning_goal,
                theme_preference, language_preference, status, created_at, last_login_at
         FROM users WHERE id = ?
         """,
