@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useApp } from '@/context/AppContext';
 
 import { AttachmentItem } from '@/services/attachmentService';
 import { MessageAttachments } from '@/components/ui/AttachmentUploader';
@@ -188,6 +189,60 @@ export default function ChatWorkspace({
   showScrollBottom,
   scrollToBottom,
 }: ChatWorkspaceProps) {
+  const { t } = useApp();
+
+  const getGreetingText = () => {
+    const h = new Date().getHours();
+    if (h < 12) return t('chat.greeting_morning');
+    if (h < 17) return t('chat.greeting_afternoon');
+    return t('chat.greeting_evening');
+  };
+
+  const starterCards = [
+    {
+      title: t('chat.card_kaiwa_title'),
+      desc: t('chat.card_kaiwa_desc'),
+      prompt: t('chat.card_kaiwa_prompt'),
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      ),
+    },
+    {
+      title: t('chat.card_grammar_title'),
+      desc: t('chat.card_grammar_desc'),
+      prompt: t('chat.card_grammar_prompt'),
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+      ),
+    },
+    {
+      title: t('chat.card_vocab_title'),
+      desc: t('chat.card_vocab_desc'),
+      prompt: t('chat.card_vocab_prompt'),
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/>
+        </svg>
+      ),
+    },
+    {
+      title: t('chat.card_translate_title'),
+      desc: t('chat.card_translate_desc'),
+      prompt: t('chat.card_translate_prompt'),
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+          <path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>
+        </svg>
+      ),
+    },
+  ];
+
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
   const handleCopyMessage = (id: string, text: string) => {
@@ -249,13 +304,13 @@ export default function ChatWorkspace({
                 textWrap: 'balance',
               } as React.CSSProperties}
             >
-              Good {getGreeting()},{' '}
+              {getGreetingText()},{' '}
               <span style={{ color: 'var(--text-secondary)' }}>
-                {currentUser?.username || 'there'}
+                {currentUser?.username || ''}
               </span>
             </h1>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '2rem' }}>
-              What would you like to work on today?
+              {t('chat.welcome_sub')}
             </p>
 
             {/* 2 × 2 card grid */}
@@ -267,7 +322,7 @@ export default function ChatWorkspace({
                 width: '100%',
               }}
             >
-              {STARTER_CARDS.map((card, idx) => (
+              {starterCards.map((card, idx) => (
                 <button
                   key={idx}
                   type="button"

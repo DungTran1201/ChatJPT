@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ProviderKeyStatus, ApiKeyCategory } from '@/types/apiKey';
 import { ApiKeyService } from '@/services/apiKeyService';
 import Icon from '@/components/ui/Icon';
+import { useApp } from '@/context/AppContext';
 
 interface ApiKeysTabProps {
   showToast: (type: 'success' | 'error', message: string) => void;
@@ -11,6 +12,7 @@ interface ApiKeysTabProps {
 }
 
 export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
+  const { t } = useApp();
   const [keys, setKeys] = useState<ProviderKeyStatus[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeCategory, setActiveCategory] = useState<'ALL' | 'LLM' | 'SEARCH'>('ALL');
@@ -162,7 +164,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
           <div>
             <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Icon name="key" size={20} style={{ color: 'var(--accent)' }} />
-              <span>Quản lý API Keys & Tích Hợp Dịch Vụ</span>
+              <span>{t('apikeys.title')}</span>
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.35rem', maxWidth: '750px', lineHeight: 1.5 }}>
               Cấu hình khóa API cho các nhà cung cấp mô hình AI và công cụ tìm kiếm. Khóa cá nhân của bạn được mã hóa an toàn bằng 
@@ -178,7 +180,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', padding: '0.5rem 0.85rem' }}
           >
             <Icon name="refresh" size={14} className={loading ? 'spin' : ''} />
-            <span>Làm mới</span>
+            <span>{t('common.refresh')}</span>
           </button>
         </div>
 
@@ -197,7 +199,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
         }}>
           <Icon name="shield" size={18} style={{ color: '#3b82f6', flexShrink: 0 }} />
           <div>
-            <strong style={{ color: 'var(--text-primary)' }}>Nguyên tắc bảo mật: </strong>
+            <strong style={{ color: 'var(--text-primary)' }}>{t('apikeys.security_notice')} </strong>
             Hệ thống không bao giờ trả về khóa API dạng plaintext về trình duyệt sau khi đã lưu. Chỉ trạng thái cấu hình và ký tự gợi ý đã che giấu được hiển thị.
           </div>
         </div>
@@ -211,7 +213,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
           onClick={() => setActiveCategory('ALL')}
           style={{ fontSize: '0.82rem', padding: '0.4rem 0.85rem' }}
         >
-          Tất cả ({keys.length})
+          {t('apikeys.cat_all')} ({keys.length})
         </button>
         <button
           type="button"
@@ -219,7 +221,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
           onClick={() => setActiveCategory('LLM')}
           style={{ fontSize: '0.82rem', padding: '0.4rem 0.85rem' }}
         >
-          Mô hình AI (LLMs)
+          {t('apikeys.cat_llm')}
         </button>
         <button
           type="button"
@@ -227,7 +229,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
           onClick={() => setActiveCategory('SEARCH')}
           style={{ fontSize: '0.82rem', padding: '0.4rem 0.85rem' }}
         >
-          Tìm kiếm & Dịch vụ ngoài
+          {t('apikeys.cat_search')}
         </button>
       </div>
 
@@ -403,7 +405,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                         title="Xóa khóa cá nhân và hoàn tác về mặc định server"
                       >
                         <Icon name="trash" size={12} />
-                        <span>Xóa khóa</span>
+                        <span>{t('apikeys.delete_key')}</span>
                       </button>
                     )}
                   </div>

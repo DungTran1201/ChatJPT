@@ -87,7 +87,7 @@ export default function SettingsPage() {
   const [emailCurrentPassword, setEmailCurrentPassword] = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
 
-  // Change Password
+  // {t('security.change_password_title')}
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -119,20 +119,20 @@ export default function SettingsPage() {
   };
 
   const WALLPAPER_PRESETS = [
-    { id: 'none', label: 'Mặc định (Không nền)', url: '' },
-    { id: 'sakura', label: 'Vườn Sakura', url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1920&q=80' },
-    { id: 'fuji', label: 'Núi Phú Sĩ', url: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1920&q=80' },
-    { id: 'tokyo', label: 'Đêm Tokyo', url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80' },
-    { id: 'kyoto', label: 'Rừng Trúc Kyoto', url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80' },
-    { id: 'cyberpunk', label: 'Cyberpunk Shinjuku', url: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'none', label: t('settings.wp_none'), url: '' },
+    { id: 'sakura', label: t('settings.wp_sakura'), url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'fuji', label: t('settings.wp_fuji'), url: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'tokyo', label: t('settings.wp_tokyo'), url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'kyoto', label: t('settings.wp_kyoto'), url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'cyberpunk', label: t('settings.wp_cyberpunk'), url: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1920&q=80' },
   ];
 
   const ACCENT_PRESETS = [
-    { id: 'emerald', name: 'Emerald', hex: '#3ecf8e', desc: 'Mặc định sắc nét' },
-    { id: 'sakura', name: 'Sakura', hex: '#ec4899', desc: 'Hồng hoa anh đào' },
-    { id: 'violet', name: 'Violet', hex: '#8b5cf6', desc: 'Tím mộng mơ' },
-    { id: 'amber', name: 'Amber', hex: '#f59e0b', desc: 'Hổ phách ấm' },
-    { id: 'sky', name: 'Sky Blue', hex: '#0ea5e9', desc: 'Lam thanh thoát' },
+    { id: 'emerald', name: 'Emerald', hex: '#3ecf8e', desc: t('settings.accent_emerald_desc') },
+    { id: 'sakura', name: 'Sakura', hex: '#ec4899', desc: t('settings.accent_sakura_desc') },
+    { id: 'violet', name: 'Violet', hex: '#8b5cf6', desc: t('settings.accent_violet_desc') },
+    { id: 'amber', name: 'Amber', hex: '#f59e0b', desc: t('settings.accent_amber_desc') },
+    { id: 'sky', name: 'Sky Blue', hex: '#0ea5e9', desc: t('settings.accent_sky_desc') },
   ];
 
   const FONT_SIZE_PRESETS = [
@@ -723,7 +723,7 @@ export default function SettingsPage() {
     }
   };
 
-  // 4. Submit Change Password
+  // 4. Submit {t('security.change_password_title')}
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword || !newPassword) {
@@ -924,10 +924,10 @@ export default function SettingsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="chevronLeft" size={14} />
-            <span>Back to Chat</span>
+            <span>{t('header.back_to_chat')}</span>
           </Link>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Version: <strong style={{ color: 'var(--text-secondary)' }}>1.0.0</strong>
+            {t('header.version')}: <strong style={{ color: 'var(--text-secondary)' }}>1.0.0</strong>
           </div>
         </div>
 
@@ -998,7 +998,7 @@ export default function SettingsPage() {
               <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--accent)' }}>
                 {stats.total_conversations}
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Conversations</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('settings.stats_conversations')}</div>
             </div>
             <div style={{
               background: 'var(--bg-base)',
@@ -1010,7 +1010,7 @@ export default function SettingsPage() {
               <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--accent)' }}>
                 {stats.total_messages}
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Messages Sent</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('settings.stats_messages')}</div>
             </div>
           </div>
         </div>
@@ -1024,7 +1024,7 @@ export default function SettingsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="user" size={14} />
-            <span>Profile</span>
+            <span>{t('settings.tab_profile')}</span>
           </button>
 
           <button
@@ -1034,7 +1034,7 @@ export default function SettingsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="shield" size={14} />
-            <span>Security</span>
+            <span>{t('settings.tab_security')}</span>
           </button>
 
           <button
@@ -1044,7 +1044,7 @@ export default function SettingsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="settings" size={14} />
-            <span>Preferences</span>
+            <span>{t('settings.tab_preferences')}</span>
           </button>
 
           
@@ -1056,7 +1056,7 @@ export default function SettingsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="cpu" size={14} />
-            <span>AI Models</span>
+            <span>{t('settings.tab_models')}</span>
           </button>
 
           <button
@@ -1067,7 +1067,7 @@ export default function SettingsPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="key" size={14} />
-            <span>API Keys</span>
+            <span>{t('settings.tab_api_keys')}</span>
           </button>
         </div>
 
@@ -1077,7 +1077,7 @@ export default function SettingsPage() {
         {activeTab === 'profile' && (
           <div className="card" style={{ padding: '1.75rem' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>
-              Personal Profile
+              {t('profile.title')}
             </h2>
 
             {/* Avatar Setting Section */}
@@ -1095,10 +1095,10 @@ export default function SettingsPage() {
             }}>
               <div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
-                  Avatar Image
+                  {t('profile.avatar_title')}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Supports HTTPS image URLs.
+                  {t('profile.avatar_sub')}
                 </div>
               </div>
               <button
@@ -1106,14 +1106,14 @@ export default function SettingsPage() {
                 className="btn btn-secondary"
                 onClick={() => setShowAvatarEdit(!showAvatarEdit)}
               >
-                {showAvatarEdit ? 'Close' : 'Change Avatar'}
+                {showAvatarEdit ? t('profile.close_avatar') : t('profile.change_avatar')}
               </button>
 
               {showAvatarEdit && (
                 <div style={{ width: '100%', marginTop: '0.75rem', display: 'flex', gap: '8px' }}>
                   <input
                     type="url"
-                    placeholder="Enter image URL (https://...)"
+                    placeholder={t('profile.enter_avatar_url')}
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
                     className="input"
@@ -1161,7 +1161,7 @@ export default function SettingsPage() {
                     style={{ width: '100%' }}
                   />
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                    3-30 characters (letters, numbers, underscores _, dots .)
+                    {t('profile.username_desc')}
                   </span>
                 </div>
               </div>
@@ -1192,7 +1192,7 @@ export default function SettingsPage() {
                     max={120}
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    placeholder="e.g. 25"
+                    placeholder={t('profile.age_placeholder')}
                     className="input"
                     style={{ width: '100%' }}
                   />
@@ -1210,7 +1210,7 @@ export default function SettingsPage() {
                     maxLength={100}
                     value={occupation}
                     onChange={(e) => setOccupation(e.target.value)}
-                    placeholder="e.g. Software Engineer, Student"
+                    placeholder={t('profile.occupation_placeholder')}
                     className="input"
                     style={{ width: '100%' }}
                   />
@@ -1226,12 +1226,12 @@ export default function SettingsPage() {
                     className="input"
                     style={{ width: '100%', height: '38px' }}
                   >
-                    <option value="CHUA_HOC">Beginner / Not studied yet</option>
-                    <option value="N5">JLPT N5 (Basic Elementary)</option>
-                    <option value="N4">JLPT N4 (Elementary)</option>
-                    <option value="N3">JLPT N3 (Intermediate)</option>
-                    <option value="N2">JLPT N2 (Upper Intermediate)</option>
-                    <option value="N1">JLPT N1 (Advanced)</option>
+                    <option value="CHUA_HOC">{t('profile.level_none')}</option>
+                    <option value="N5">{t('profile.level_n5')}</option>
+                    <option value="N4">{t('profile.level_n4')}</option>
+                    <option value="N3">{t('profile.level_n3')}</option>
+                    <option value="N2">{t('profile.level_n2')}</option>
+                    <option value="N1">{t('profile.level_n1')}</option>
                   </select>
                 </div>
               </div>
@@ -1247,7 +1247,7 @@ export default function SettingsPage() {
                     maxLength={255}
                     value={learningGoal}
                     onChange={(e) => setLearningGoal(e.target.value)}
-                    placeholder="e.g. Daily conversation, JLPT N2, Work in Japan"
+                    placeholder={t('profile.learning_goal_placeholder')}
                     className="input"
                     style={{ width: '100%' }}
                   />
@@ -1262,7 +1262,7 @@ export default function SettingsPage() {
                     maxLength={255}
                     value={interests}
                     onChange={(e) => setInterests(e.target.value)}
-                    placeholder="e.g. Anime, Manga, Tokyo travel, Technology"
+                    placeholder={t('profile.interests_placeholder')}
                     className="input"
                     style={{ width: '100%' }}
                   />
@@ -1272,14 +1272,14 @@ export default function SettingsPage() {
               {/* Row 5: Bio */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Bio</label>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{t('profile.bio')}</label>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{bio.length}/500</span>
                 </div>
                 <textarea
                   value={bio}
                   maxLength={500}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell us about yourself..."
+                  placeholder={t('profile.bio_placeholder')}
                   rows={4}
                   className="input"
                   style={{ width: '100%', resize: 'vertical' }}
@@ -1291,7 +1291,7 @@ export default function SettingsPage() {
                 disabled={savingProfile}
                 className="btn btn-primary"
               >
-                {savingProfile ? 'Saving...' : 'Save Profile'}
+                {savingProfile ? t('profile.saving_button') : t('profile.save_button')}
               </button>
             </form>
           </div>
@@ -1305,10 +1305,10 @@ export default function SettingsPage() {
             {/* Card 1: Change Email */}
             <div className="card" style={{ padding: '1.75rem' }}>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-                Change Email Address
+                {t('security.change_email_title')}
               </h2>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                Current email: <strong style={{ color: 'var(--text-primary)' }}>{user?.email}</strong>. Current password verification is required.
+                {t('security.change_email_sub')} <strong style={{ color: 'var(--text-primary)' }}>{user?.email}</strong>
               </p>
 
               <form onSubmit={handleChangeEmail}>
@@ -1348,18 +1348,18 @@ export default function SettingsPage() {
                   disabled={savingEmail}
                   className="btn btn-primary"
                 >
-                  {savingEmail ? 'Verifying...' : 'Update Email'}
+                  {savingEmail ? t('common.loading') : t('security.update_email_btn')}
                 </button>
               </form>
             </div>
 
-            {/* Card 2: Change Password */}
+            {/* Card 2: {t('security.change_password_title')} */}
             <div className="card" style={{ padding: '1.75rem' }}>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-                Change Password
+                {t('security.change_password_title')}
               </h2>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                After updating your password, active sessions will receive refreshed security credentials.
+                {t('security.change_password_sub')}
               </p>
 
               <form onSubmit={handleChangePassword}>
@@ -1414,7 +1414,7 @@ export default function SettingsPage() {
                 {newPassword && (
                   <div style={{ marginBottom: '1.25rem', maxWidth: '420px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '4px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Password Strength:</span>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('security.pwd_strength_label')}</span>
                       <span style={{ color: pwdStrength.color, fontWeight: 600 }}>{pwdStrength.label}</span>
                     </div>
                     <div style={{ height: '4px', background: 'var(--bg-hover)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -1433,7 +1433,7 @@ export default function SettingsPage() {
                   disabled={savingPassword}
                   className="btn btn-primary"
                 >
-                  {savingPassword ? 'Updating...' : 'Update Password'}
+                  {savingPassword ? t('common.saving') : t('security.update_password_btn')}
                 </button>
               </form>
             </div>
@@ -1904,10 +1904,10 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  AI Models & Agent Catalog
+                  {t('models.title')}
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>
-                  Manage model lifecycles, provider mappings, latency verification, and dynamic context parameters.
+                  {t('models.sub')}
                 </p>
               </div>
 
@@ -1919,7 +1919,7 @@ export default function SettingsPage() {
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Icon name="plus" size={14} />
-                  <span>Add Model</span>
+                  <span>{t('models.add_model')}</span>
                 </button>
 
                 <button
@@ -1930,7 +1930,7 @@ export default function SettingsPage() {
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Icon name="refresh" size={14} />
-                  <span>{loadingModels ? 'Loading...' : 'Refresh'}</span>
+                  <span>{loadingModels ? t('models.loading') : t('models.refresh')}</span>
                 </button>
               </div>
             </div>
@@ -1951,7 +1951,7 @@ export default function SettingsPage() {
                 type="text"
                 value={modelSearchQuery}
                 onChange={(e) => setModelSearchQuery(e.target.value)}
-                placeholder="Search models by name or identifier (e.g. gemini, claude, gpt)..."
+                placeholder={t('models.search_placeholder')}
                 style={{
                   flex: 1,
                   background: 'transparent',

@@ -6,10 +6,12 @@ import { ResourceService } from '@/services/resourceService';
 import { ResourceSummary, ApiMetricLogItem, SSEMetricEvent } from '@/types';
 import PageHeader from '@/components/ui/PageHeader';
 import Icon from '@/components/ui/Icon';
+import { useApp } from '@/context/AppContext';
 
 type TimeRange = '1h' | '24h' | '7d' | '30d';
 
 export default function ResourceDashboardPage() {
+  const { t } = useApp();
   const [range, setRange] = useState<TimeRange>('24h');
   const [summary, setSummary] = useState<ResourceSummary | null>(null);
   const [history, setHistory] = useState<ApiMetricLogItem[]>([]);
@@ -113,8 +115,8 @@ export default function ResourceDashboardPage() {
       <div className="page-container">
         {/* Page Header */}
         <PageHeader
-          title="Telemetry & Analytics"
-          description="Real-time system telemetry, latency tracking, token usage, and API quota monitoring."
+          title={t('dashboard.title')}
+          description={t('dashboard.sub')}
         >
           {/* SSE Live status indicator */}
           <div

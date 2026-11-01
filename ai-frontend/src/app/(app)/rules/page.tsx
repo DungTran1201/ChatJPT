@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Rule, RuleSummary, ActivationMode, RuleScope, RuleStatus } from '@/types';
 import { RuleService } from '@/services/ruleService';
 import PageHeader from '@/components/ui/PageHeader';
+import { useApp } from '@/context/AppContext';
 import Icon from '@/components/ui/Icon';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Toast, { ToastMessage } from '@/components/ui/Toast';
@@ -14,6 +15,7 @@ import TextFileImportModal from '@/components/common/TextFileImportModal';
 import { formatErrorMessage } from '@/lib/errors';
 
 export default function RulesListPage() {
+  const { t } = useApp();
   const router = useRouter();
   const [rules, setRules] = useState<RuleSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -215,8 +217,8 @@ export default function RulesListPage() {
       <div className="page-container" style={{ maxWidth: '1200px' }}>
         {/* Header */}
         <PageHeader
-          title="Rules Library"
-          description="Quản lý các quy tắc, tiêu chuẩn kiến trúc, ràng buộc an ninh và chỉ dẫn hành vi dài hạn cho Trợ lý ảo AI-Chan."
+          title={t('rules.title')}
+          description={t('rules.sub')}
         >
           <button
             type="button"

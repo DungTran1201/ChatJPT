@@ -17,17 +17,32 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-  const [language, setLanguageState] = useState<Language>('vi');
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('chatjpt_language');
+      if (saved && ['vi', 'en', 'ja'].includes(saved)) {
+        return saved as Language;
+      }
+    }
+    return 'vi';
+  });
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
     if (typeof window !== 'undefined') {
       localStorage.setItem('chatjpt_language', lang);
+      document.documentElement.lang = lang;
     }
   }, []);
 
   const t = useCallback((key: string) => {
     return getTranslation(language, key);
+  }, [language]);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language;
+    }
   }, [language]);
 
   // ── Auth check ───────────────────────────────────────────────────────
@@ -38,7 +53,12 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
       const data = await res.json();
       setCurrentUser(data.user);
       if (data.user?.language_preference && ['vi', 'en', 'ja'].includes(data.user.language_preference)) {
-        setLanguageState(data.user.language_preference as Language);
+        const lang = data.user.language_preference as Language;
+        setLanguageState(lang);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('chatjpt_language', lang);
+          document.documentElement.lang = lang;
+        }
       }
       setAuthChecked(true);
     } catch {

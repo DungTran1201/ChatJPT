@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { SystemPromptSummary } from '@/types';
 import { SystemPromptService } from '@/services/systemPromptService';
 import PageHeader from '@/components/ui/PageHeader';
+import { useApp } from '@/context/AppContext';
 import Icon from '@/components/ui/Icon';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Toast, { ToastMessage } from '@/components/ui/Toast';
@@ -13,6 +14,7 @@ import TextFileImportModal from '@/components/common/TextFileImportModal';
 import { formatErrorMessage } from '@/lib/errors';
 
 export default function SystemPromptsListPage() {
+  const { t } = useApp();
   const [prompts, setPrompts] = useState<SystemPromptSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,8 +132,8 @@ export default function SystemPromptsListPage() {
       <div className="page-container">
         {/* Page Header */}
         <PageHeader
-          title="System Prompts"
-          description="Create, manage, and reuse system instructions across AI models and project workflows."
+          title={t('prompts.title')}
+          description={t('prompts.sub')}
         >
           <button
             type="button"

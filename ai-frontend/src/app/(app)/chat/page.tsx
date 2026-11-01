@@ -15,6 +15,7 @@ export default function ChatPage() {
     setActiveConvId,
     fetchConversations,
     createConversation,
+    t,
   } = useApp();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -269,7 +270,7 @@ return (
         activeModels={activeModels}
         selectedModelId={selectedModelId}
         onSelectModel={setSelectedModelId}
-        placeholder="Message AI-Chan…"
+        placeholder={t("chat.composer_placeholder")}
       />
     </div>
   </>

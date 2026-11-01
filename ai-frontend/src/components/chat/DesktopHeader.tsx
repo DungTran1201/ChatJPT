@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useApp } from '@/context/AppContext';
 
 interface DesktopHeaderProps {
   currentUser?: { username?: string; email?: string; avatar_url?: string } | null;
@@ -12,6 +13,7 @@ interface DesktopHeaderProps {
 }
 
 export default function DesktopHeader({ currentUser, onLogout }: DesktopHeaderProps) {
+  const { t } = useApp();
   const initials = currentUser?.username
     ? currentUser.username.slice(0, 2).toUpperCase()
     : 'AI';
@@ -68,8 +70,8 @@ export default function DesktopHeader({ currentUser, onLogout }: DesktopHeaderPr
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Link
               href="/settings?tab=profile"
-              aria-label="User account settings"
-              title="Account settings"
+              aria-label={t("header.account_settings")}
+              title={t("header.account_settings")}
               style={{
                 width: '32px', height: '32px', borderRadius: '50%',
                 background: currentUser.avatar_url ? 'transparent' : 'var(--bg-elevated)',
@@ -106,7 +108,7 @@ export default function DesktopHeader({ currentUser, onLogout }: DesktopHeaderPr
               <button
                 type="button"
                 onClick={onLogout}
-                aria-label="Sign out"
+                aria-label={t("header.logout")}
                 style={{
                   background: 'transparent', border: 'none', color: 'var(--text-muted)',
                   cursor: 'pointer', padding: '5px', borderRadius: 'var(--radius-sm)',

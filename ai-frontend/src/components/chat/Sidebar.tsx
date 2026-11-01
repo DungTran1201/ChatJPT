@@ -151,7 +151,7 @@ export default function Sidebar({
               type="search"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search chats…"
+              placeholder={appContext.t('chat.search_placeholder')}
               autoComplete="off"
               style={{
                 width: '100%', background: 'transparent', border: 'none',
@@ -294,7 +294,7 @@ export default function Sidebar({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0 4px', marginBottom: '2px' }}>
                 <span style={{ color: 'var(--text-disabled)', display: 'flex' }} aria-hidden="true"><Icon name="pin" size={11} /></span>
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-disabled)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pinned</span>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-disabled)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{appContext.t('chat.pinned') || 'Pinned'}</span>
               </div>
               {pinnedList.map(conv => renderConvItem(conv, true))}
             </div>
@@ -302,11 +302,11 @@ export default function Sidebar({
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {!collapsed && pinnedList.length > 0 && (
-              <div style={{ padding: '0 4px', marginBottom: '2px', fontSize: '0.68rem', color: 'var(--text-disabled)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Recent</div>
+              <div style={{ padding: '0 4px', marginBottom: '2px', fontSize: '0.68rem', color: 'var(--text-disabled)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{appContext.t('chat.recent') || 'Recent'}</div>
             )}
             {regularList.length === 0 && !collapsed && (
               <div style={{ padding: '12px 6px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-disabled)' }}>
-                {searchQuery ? 'No chats found' : 'No conversations yet'}
+                {searchQuery ? appContext.t('chat.no_chats_found') : appContext.t('chat.no_conversations_yet')}
               </div>
             )}
             {regularList.map(conv => renderConvItem(conv, false))}
