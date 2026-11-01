@@ -99,6 +99,8 @@ AI-CHAN CAPABILITIES
 | **FR-064** | Sensei Persona Management | `CAP-PROMPT-MGMT` | **MUST** | `IMPLEMENTED` | Quản lý đội ngũ Sensei với đầy đủ thông tin nhân bản học: tên, tuổi, giới tính, cấp độ N5-N1, tính cách, phong cách sư phạm, câu cửa miệng. |
 | **FR-065** | System Preset Senseis N5-N1 | `CAP-PROMPT-MGMT` | **MUST** | `IMPLEMENTED` | Cung cấp sẵn 5 Sensei đại diện N5-N1 cho mọi người học: Sakura (N5), Kenji (N4), Aoi (N3), Ryu (N2), Yuki (N1). |
 | **FR-066** | Dual-Column Independent Scroll Selector | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Khung chọn kép thời thượng trong khung chat: Cột Sensei (kèm search & filter level) song song Cột Mô hình AI, trượt độc lập khi rê chuột. |
+| **FR-067** | Sensei Responses Settings | `CAP-USER-PREF` | **MUST** | `IMPLEMENTED` | Phân hệ cài đặt form trả lời: Dịch bên dưới, Furigana trên đầu, Tô màu ngữ pháp, Romaji, Audio TTS, và Live Preview. |
+| **FR-068** | Pedagogical Interlinear Display | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Trình diễn câu thoại sư phạm theo cụm từ: Furigana, viền xanh/nền cam ngữ pháp, Romaji và bản dịch đặt ngay dưới mỗi câu. |
 
 ---
 

@@ -235,6 +235,34 @@ async def stream_message_endpoint(
                     f"CHỈ THỊ PERSONA:\n{sensei_row['content']}"
                 )
 
+        # Định dạng cấu trúc câu trả lời sư phạm của Sensei theo cài đặt người dùng (FR-067, FR-068)
+        formatting_rules = []
+        lang_target = "tiếng Việt" if current_user.get("language_preference", "vi") == "vi" else ("English" if current_user.get("language_preference") == "en" else "日本語")
+        
+        if current_user.get("response_show_furigana", 1):
+            formatting_rules.append(
+                "- FURIGANA: BẮT BUỘC gắn Furigana cho chữ Kanji bằng định dạng Ruby: `[漢字](かんじ)` hoặc `<ruby>漢字<rt>かんじ</rt></ruby>`."
+            )
+        if current_user.get("response_highlight_grammar", 1):
+            formatting_rules.append(
+                "- TÔ MÀU NGỮ PHÁP: Với trợ từ hoặc từ ngữ trọng tâm, bọc viền `{từ}[g-green]`; với mẫu câu/ngữ pháp đặc biệt, bọc `{mẫu}[g-orange]`."
+            )
+        if current_user.get("response_show_translation", 1):
+            formatting_rules.append(
+                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu hoặc đoạn thoại tiếng Nhật PHẢI có dòng dịch nghĩa sang {lang_target} đặt ngay bên dưới, định dạng trong ngoặc: `(Bản dịch: ...)` hoặc `(... )`."
+            )
+        if current_user.get("response_grammar_breakdown", 1):
+            formatting_rules.append(
+                "- PHÂN TÍCH TỪ VỰNG & NGỮ PHÁP: Ở cuối lời thoại, hãy giải thích ngắn gọn 1-2 từ mới hoặc cấu trúc ngữ pháp trọng tâm để người học nắm bắt."
+            )
+
+        if formatting_rules:
+            formatting_prompt = "\n".join(formatting_rules)
+            if sensei_instruction:
+                sensei_instruction += f"\n\nQUY CHUẨN ĐỊNH DẠNG CÂU TRẢ LỜI CỦA SENSEI (RESPONSES SPEC):\n{formatting_prompt}"
+            else:
+                sensei_instruction = f"QUY CHUẨN ĐỊNH DẠNG CÂU TRẢ LỜI CỦA SENSEI (RESPONSES SPEC):\n{formatting_prompt}"
+
         try:
             from llm.agent import chat_agent
 

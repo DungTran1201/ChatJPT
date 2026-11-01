@@ -47,6 +47,13 @@ class UpdatePreferencesRequest(BaseModel):
     bg_dim: Optional[int] = Field(None, ge=0, le=100, description="Độ tối của hình nền (0 - 100%)")
     accent_color: Optional[str] = Field(None, max_length=30, description="Màu chủ đạo (emerald, sakura, violet, amber, sky hoặc mã màu HEX #xxxxxx)")
     ui_font_size: Optional[str] = Field(None, description="Cỡ chữ hiển thị (small, medium, large)")
+    response_show_translation: Optional[bool] = Field(None, description="Công tắc dịch sang ngôn ngữ hiển thị")
+    response_show_furigana: Optional[bool] = Field(None, description="Công tắc hiển thị Hiragana trên đầu chữ Kanji (Furigana / Ruby)")
+    response_highlight_grammar: Optional[bool] = Field(None, description="Công tắc tô màu vùng ngữ pháp & trợ từ")
+    response_show_romaji: Optional[bool] = Field(None, description="Công tắc hiển thị Romaji bên dưới từng từ")
+    response_grammar_breakdown: Optional[bool] = Field(None, description="Công tắc phân tích ngữ pháp & từ vựng trọng tâm")
+    response_audio_speech: Optional[bool] = Field(None, description="Công tắc hỗ trợ phát âm câu tiếng Nhật (Text-to-Speech)")
+    response_bilingual_mode: Optional[str] = Field(None, description="Chế độ hiển thị song ngữ: interlinear, parallel, japanese_only")
 
 
 
@@ -97,6 +104,13 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
             "ui_font_size": current_user.get("ui_font_size") or "medium",
             "theme_preference": current_user.get("theme_preference") or "DARK",
             "language_preference": current_user.get("language_preference") or "vi",
+            "response_show_translation": bool(current_user.get("response_show_translation", 1)),
+            "response_show_furigana": bool(current_user.get("response_show_furigana", 1)),
+            "response_highlight_grammar": bool(current_user.get("response_highlight_grammar", 1)),
+            "response_show_romaji": bool(current_user.get("response_show_romaji", 1)),
+            "response_grammar_breakdown": bool(current_user.get("response_grammar_breakdown", 1)),
+            "response_audio_speech": bool(current_user.get("response_audio_speech", 1)),
+            "response_bilingual_mode": current_user.get("response_bilingual_mode") or "interlinear",
             "status": current_user.get("status") or "ACTIVE",
             "created_at": current_user.get("created_at"),
             "last_login_at": current_user.get("last_login_at")
@@ -421,6 +435,40 @@ async def update_preferences(
         updates.append("ui_font_size = ?")
         params.append(fsize)
 
+    if req.response_show_translation is not None:
+        updates.append("response_show_translation = ?")
+        params.append(1 if req.response_show_translation else 0)
+
+    if req.response_show_furigana is not None:
+        updates.append("response_show_furigana = ?")
+        params.append(1 if req.response_show_furigana else 0)
+
+    if req.response_highlight_grammar is not None:
+        updates.append("response_highlight_grammar = ?")
+        params.append(1 if req.response_highlight_grammar else 0)
+
+    if req.response_show_romaji is not None:
+        updates.append("response_show_romaji = ?")
+        params.append(1 if req.response_show_romaji else 0)
+
+    if req.response_grammar_breakdown is not None:
+        updates.append("response_grammar_breakdown = ?")
+        params.append(1 if req.response_grammar_breakdown else 0)
+
+    if req.response_audio_speech is not None:
+        updates.append("response_audio_speech = ?")
+        params.append(1 if req.response_audio_speech else 0)
+
+    if req.response_bilingual_mode is not None:
+        bmode = req.response_bilingual_mode.strip().lower()
+        if bmode not in ["interlinear", "parallel", "japanese_only"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Chế độ hiển thị song ngữ không hợp lệ. Chọn interlinear, parallel hoặc japanese_only."
+            )
+        updates.append("response_bilingual_mode = ?")
+        params.append(bmode)
+
     if updates:
         sql = f"UPDATE users SET {', '.join(updates)} WHERE id = ?"
         params.append(user_id)
@@ -429,7 +477,11 @@ async def update_preferences(
     updated = query_one(
         """
         SELECT theme_preference, language_preference, custom_bg_url,
-               bg_opacity, bg_blur, bg_dim, accent_color, ui_font_size
+               bg_opacity, bg_blur, bg_dim, accent_color, ui_font_size,
+               response_show_translation, response_show_furigana,
+               response_highlight_grammar, response_show_romaji,
+               response_grammar_breakdown, response_audio_speech,
+               response_bilingual_mode
         FROM users WHERE id = ?
         """,
         (user_id,)
@@ -444,7 +496,14 @@ async def update_preferences(
         "bg_blur": updated.get("bg_blur") if updated.get("bg_blur") is not None else 12,
         "bg_dim": updated.get("bg_dim") if updated.get("bg_dim") is not None else 0,
         "accent_color": updated.get("accent_color") or "emerald",
-        "ui_font_size": updated.get("ui_font_size") or "medium"
+        "ui_font_size": updated.get("ui_font_size") or "medium",
+        "response_show_translation": bool(updated.get("response_show_translation", 1)),
+        "response_show_furigana": bool(updated.get("response_show_furigana", 1)),
+        "response_highlight_grammar": bool(updated.get("response_highlight_grammar", 1)),
+        "response_show_romaji": bool(updated.get("response_show_romaji", 1)),
+        "response_grammar_breakdown": bool(updated.get("response_grammar_breakdown", 1)),
+        "response_audio_speech": bool(updated.get("response_audio_speech", 1)),
+        "response_bilingual_mode": updated.get("response_bilingual_mode") or "interlinear",
     }
 
 

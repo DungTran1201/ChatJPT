@@ -93,8 +93,12 @@ async def get_current_user(request: Request) -> Dict:
                age, occupation, interests, japanese_level, learning_goal,
                custom_bg_url, bg_opacity, bg_blur, bg_dim, accent_color, ui_font_size,
                discord_id, discord_username,
-               theme_preference, language_preference, status, created_at,
-               last_login_at, password_changed_at
+               theme_preference, language_preference,
+               response_show_translation, response_show_furigana,
+               response_highlight_grammar, response_show_romaji,
+               response_grammar_breakdown, response_audio_speech,
+               response_bilingual_mode,
+               status, created_at, last_login_at, password_changed_at
         FROM users WHERE id = ?
         """,
         (user_id,)

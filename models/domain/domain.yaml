@@ -24,6 +24,13 @@ entities:
   - ui_font_size: enum(small, medium, large)
   - theme_preference: enum(DARK, LIGHT, SYSTEM)
   - language_preference: enum(vi, en, ja)
+  - response_show_translation: boolean (default true)
+  - response_show_furigana: boolean (default true)
+  - response_highlight_grammar: boolean (default true)
+  - response_show_romaji: boolean (default true)
+  - response_grammar_breakdown: boolean (default true)
+  - response_audio_speech: boolean (default true)
+  - response_bilingual_mode: enum(interlinear, parallel, japanese_only)
   - status: enum(ACTIVE, DISABLED)
   - last_login_at: timestamp
   - password_changed_at: timestamp

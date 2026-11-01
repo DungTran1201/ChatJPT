@@ -8,8 +8,16 @@ import Icon from '@/components/ui/Icon';
 import { useApp } from '@/context/AppContext';
 import ApiKeysTab from '@/components/settings/ApiKeysTab';
 import EmbeddedModelCard from '@/components/settings/EmbeddedModelCard';
+import JapaneseInterlinearView from '@/components/chat/JapaneseInterlinearView';
 
 interface UserProfile {
+  response_show_translation?: boolean;
+  response_show_furigana?: boolean;
+  response_highlight_grammar?: boolean;
+  response_show_romaji?: boolean;
+  response_grammar_breakdown?: boolean;
+  response_audio_speech?: boolean;
+  response_bilingual_mode?: 'interlinear' | 'parallel' | 'japanese_only';
   id: string;
   email: string;
   full_name: string;
@@ -47,13 +55,13 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
   const { refreshUser, language, setLanguage, t } = useApp();
 
-  // Active tab state: 'profile' | 'security' | 'preferences' | 'models' | 'api-keys'
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences' | 'models' | 'api-keys'>('profile');
+  // Active tab state: 'profile' | 'security' | 'preferences' | 'responses' | 'models' | 'api-keys'
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences' | 'responses' | 'models' | 'api-keys'>('profile');
 
   // Sync tab from URL ?tab= param
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile', 'security', 'preferences', 'models', 'api-keys'].includes(tab)) {
+    if (tab && ['profile', 'security', 'preferences', 'responses', 'models', 'api-keys'].includes(tab)) {
       setActiveTab(tab as any);
     }
   }, [searchParams]);
@@ -106,6 +114,16 @@ export default function SettingsPage() {
   const [hueValue, setHueValue] = useState<number>(150);
   const [uiFontSize, setUiFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [savingPreferences, setSavingPreferences] = useState(false);
+
+  // Tab: Responses state (FR-067, FR-068)
+  const [responseShowTranslation, setResponseShowTranslation] = useState(true);
+  const [responseShowFurigana, setResponseShowFurigana] = useState(true);
+  const [responseHighlightGrammar, setResponseHighlightGrammar] = useState(true);
+  const [responseShowRomaji, setResponseShowRomaji] = useState(true);
+  const [responseGrammarBreakdown, setResponseGrammarBreakdown] = useState(true);
+  const [responseAudioSpeech, setResponseAudioSpeech] = useState(true);
+  const [responseBilingualMode, setResponseBilingualMode] = useState<'interlinear' | 'parallel' | 'japanese_only'>('interlinear');
+  const [savingResponses, setSavingResponses] = useState(false);
 
   // Helper HSL to Hex
   const hslToHex = (h: number, s: number, l: number): string => {
@@ -226,6 +244,13 @@ export default function SettingsPage() {
           setCustomHex(u.accent_color);
         }
         setUiFontSize((u.ui_font_size as any) || 'medium');
+        setResponseShowTranslation(u.response_show_translation !== false);
+        setResponseShowFurigana(u.response_show_furigana !== false);
+        setResponseHighlightGrammar(u.response_highlight_grammar !== false);
+        setResponseShowRomaji(u.response_show_romaji !== false);
+        setResponseGrammarBreakdown(u.response_grammar_breakdown !== false);
+        setResponseAudioSpeech(u.response_audio_speech !== false);
+        setResponseBilingualMode(u.response_bilingual_mode || 'interlinear');
 
         // Apply theme
         applyTheme(u.theme_preference || 'DARK');
@@ -247,7 +272,7 @@ export default function SettingsPage() {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
 
-      if (tabParam === 'models' || tabParam === 'security' || tabParam === 'preferences' || tabParam === 'profile' || tabParam === 'api-keys') {
+      if (tabParam === 'models' || tabParam === 'security' || tabParam === 'preferences' || tabParam === 'responses' || tabParam === 'profile' || tabParam === 'api-keys') {
         setActiveTab(tabParam as any);
       }
     }
@@ -872,6 +897,33 @@ export default function SettingsPage() {
     );
   }
 
+  const handleSaveResponses = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSavingResponses(true);
+    try {
+      const res = await fetch('/api/v1/users/me/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          response_show_translation: responseShowTranslation,
+          response_show_furigana: responseShowFurigana,
+          response_highlight_grammar: responseHighlightGrammar,
+          response_show_romaji: responseShowRomaji,
+          response_grammar_breakdown: responseGrammarBreakdown,
+          response_audio_speech: responseAudioSpeech,
+          response_bilingual_mode: responseBilingualMode,
+        }),
+      });
+      if (!res.ok) throw new Error('Không thể lưu cài đặt phản hồi');
+      await refreshUser();
+      showToast('success', t('settings.responses_saved_success'));
+    } catch (err: any) {
+      showToast('error', err.message || 'Lỗi khi lưu cài đặt form trả lời');
+    } finally {
+      setSavingResponses(false);
+    }
+  };
+
   const pwdStrength = getPasswordStrength(newPassword);
 
   return (
@@ -1046,6 +1098,16 @@ export default function SettingsPage() {
           >
             <Icon name="settings" size={14} />
             <span>{t('settings.tab_preferences')}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`segmented-item ${activeTab === 'responses' ? 'active' : ''}`}
+            onClick={() => setActiveTab('responses')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Icon name="chat" size={14} />
+            <span>{t('settings.tab_responses')}</span>
           </button>
 
           
@@ -1893,6 +1955,303 @@ export default function SettingsPage() {
                 {savingPreferences ? t('settings.saving_prefs') : t('settings.save_prefs')}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 4: SENSEI RESPONSES & PEDAGOGY FORMAT (FR-067, FR-068)    */}
+        {/* ============================================================ */}
+        {activeTab === 'responses' && (
+          <div className="card" style={{ padding: '1.75rem' }}>
+            {/* Header */}
+            <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.4rem' }}>🎓</span>
+                {t('settings.responses_title')}
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '6px', lineHeight: 1.5 }}>
+                {t('settings.responses_subtitle')}
+              </p>
+            </div>
+
+            {/* Live Interactive Preview Box (Matches Image 3) */}
+            <div
+              style={{
+                marginBottom: '2rem',
+                padding: '1.25rem 1.5rem',
+                borderRadius: 'var(--radius-lg)',
+                background: 'var(--bg-base)',
+                border: '1.5px solid var(--accent)',
+                boxShadow: 'var(--glow)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  👁️ {t('settings.responses_preview_title')}
+                </span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Minh họa trực tiếp mẫu câu từ tài liệu học tập
+                </span>
+              </div>
+
+              {/* Interlinear Preview Component */}
+              <JapaneseInterlinearView
+                content={`{はい}[g-green] {どうぞ}[g-orange]\n(Của bạn đây)\n\nもっと たくさん [欲しい](ほしい) ん です けど\n(Tôi muốn nhiều hơn cơ)\n\nこれ だけ いただく わ\n(Tôi chỉ xin thế này thôi)`}
+                showTranslation={responseShowTranslation}
+                showFurigana={responseShowFurigana}
+                highlightGrammar={responseHighlightGrammar}
+                showRomaji={responseShowRomaji}
+                showAudio={responseAudioSpeech}
+              />
+            </div>
+
+            {/* Form Controls */}
+            <form onSubmit={handleSaveResponses}>
+              {/* Section 1: Pedagogical Interlinear Structure */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <h4 style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.4rem' }}>
+                  1. Cấu Trúc Hiển Thị Sư Phạm (Interlinear Layout)
+                </h4>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '0.85rem' }}>
+                  {/* Switch 1: Translation Below */}
+                  <div
+                    onClick={() => setResponseShowTranslation(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)',
+                      border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ paddingRight: '12px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {t('settings.responses_trans_title')}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {t('settings.responses_trans_desc')}
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '40px', height: '22px', borderRadius: '11px',
+                      backgroundColor: responseShowTranslation ? 'var(--accent)' : 'var(--bg-overlay)',
+                      position: 'relative', transition: 'background-color 0.2s', flexShrink: 0
+                    }}>
+                      <div style={{
+                        width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#fff',
+                        position: 'absolute', top: '3px', left: responseShowTranslation ? '21px' : '3px',
+                        transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* Switch 2: Furigana / Ruby */}
+                  <div
+                    onClick={() => setResponseShowFurigana(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)',
+                      border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ paddingRight: '12px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {t('settings.responses_furi_title')}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {t('settings.responses_furi_desc')}
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '40px', height: '22px', borderRadius: '11px',
+                      backgroundColor: responseShowFurigana ? 'var(--accent)' : 'var(--bg-overlay)',
+                      position: 'relative', transition: 'background-color 0.2s', flexShrink: 0
+                    }}>
+                      <div style={{
+                        width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#fff',
+                        position: 'absolute', top: '3px', left: responseShowFurigana ? '21px' : '3px',
+                        transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* Switch 3: Grammar Highlight */}
+                  <div
+                    onClick={() => setResponseHighlightGrammar(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)',
+                      border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ paddingRight: '12px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {t('settings.responses_grammar_title')}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {t('settings.responses_grammar_desc')}
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '40px', height: '22px', borderRadius: '11px',
+                      backgroundColor: responseHighlightGrammar ? 'var(--accent)' : 'var(--bg-overlay)',
+                      position: 'relative', transition: 'background-color 0.2s', flexShrink: 0
+                    }}>
+                      <div style={{
+                        width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#fff',
+                        position: 'absolute', top: '3px', left: responseHighlightGrammar ? '21px' : '3px',
+                        transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* Switch 4: Romaji */}
+                  <div
+                    onClick={() => setResponseShowRomaji(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)',
+                      border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ paddingRight: '12px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {t('settings.responses_romaji_title')}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {t('settings.responses_romaji_desc')}
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '40px', height: '22px', borderRadius: '11px',
+                      backgroundColor: responseShowRomaji ? 'var(--accent)' : 'var(--bg-overlay)',
+                      position: 'relative', transition: 'background-color 0.2s', flexShrink: 0
+                    }}>
+                      <div style={{
+                        width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#fff',
+                        position: 'absolute', top: '3px', left: responseShowRomaji ? '21px' : '3px',
+                        transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Learning Assistance & Audio */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h4 style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.4rem' }}>
+                  2. Trợ Năng Học Tập & Tương Tác Chatbot (Learning & Audio)
+                </h4>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '0.85rem', marginBottom: '1.25rem' }}>
+                  {/* Switch 5: Audio TTS */}
+                  <div
+                    onClick={() => setResponseAudioSpeech(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)',
+                      border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ paddingRight: '12px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🔊</span>
+                        {t('settings.responses_audio_title')}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {t('settings.responses_audio_desc')}
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '40px', height: '22px', borderRadius: '11px',
+                      backgroundColor: responseAudioSpeech ? 'var(--accent)' : 'var(--bg-overlay)',
+                      position: 'relative', transition: 'background-color 0.2s', flexShrink: 0
+                    }}>
+                      <div style={{
+                        width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#fff',
+                        position: 'absolute', top: '3px', left: responseAudioSpeech ? '21px' : '3px',
+                        transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* Switch 6: Grammar Breakdown */}
+                  <div
+                    onClick={() => setResponseGrammarBreakdown(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)',
+                      border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ paddingRight: '12px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>📝</span>
+                        {t('settings.responses_breakdown_title')}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {t('settings.responses_breakdown_desc')}
+                      </div>
+                    </div>
+                    <div style={{
+                      width: '40px', height: '22px', borderRadius: '11px',
+                      backgroundColor: responseGrammarBreakdown ? 'var(--accent)' : 'var(--bg-overlay)',
+                      position: 'relative', transition: 'background-color 0.2s', flexShrink: 0
+                    }}>
+                      <div style={{
+                        width: '16px', height: '16px', borderRadius: '50%', backgroundColor: '#fff',
+                        position: 'absolute', top: '3px', left: responseGrammarBreakdown ? '21px' : '3px',
+                        transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                      }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bilingual Mode Selection */}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  {t('settings.responses_mode_title')}
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+                  {[
+                    { id: 'interlinear', label: t('settings.responses_mode_interlinear'), desc: 'Furigana + Romaji + Dịch dưới' },
+                    { id: 'parallel', label: t('settings.responses_mode_parallel'), desc: 'Khối tiếng Nhật rồi đến dịch' },
+                    { id: 'japanese_only', label: t('settings.responses_mode_jp_only'), desc: 'Không hiện dịch (Luyện N1/N2)' },
+                  ].map(mode => (
+                    <div
+                      key={mode.id}
+                      onClick={() => setResponseBilingualMode(mode.id as any)}
+                      style={{
+                        padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)',
+                        border: responseBilingualMode === mode.id ? '2px solid var(--accent)' : '1px solid var(--border-subtle)',
+                        cursor: 'pointer', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {mode.label}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {mode.desc}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.25rem' }}>
+                <button
+                  type="submit"
+                  disabled={savingResponses}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '8px 24px', fontSize: '0.85rem', fontWeight: 600,
+                    borderRadius: 'var(--radius-md)', background: 'var(--accent)',
+                    color: 'var(--accent-fg)', border: 'none', cursor: savingResponses ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {savingResponses ? 'Đang lưu...' : t('settings.responses_save_btn')}
+                </button>
+              </div>
+            </form>
           </div>
         )}
 

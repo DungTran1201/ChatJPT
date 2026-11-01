@@ -282,10 +282,11 @@ apis:
   - id: OP-028
     method: PATCH
     path: /users/me/preferences
-    summary: Update user appearance preferences, wallpaper, layer opacity, blur, background darkness dimming, RGB accent color, font size, and trilingual preference (vi, en, ja)
+    summary: Update user appearance preferences, wallpaper, layer opacity, blur, background darkness dimming, RGB accent color, font size, trilingual preference, and Sensei response form settings (translation, furigana, grammar highlights, romaji, audio TTS)
     use_case: UC-015
     source_refs:
     - FR-020
+    - FR-067
     - CAP-USER
   - id: OP-042
     method: GET

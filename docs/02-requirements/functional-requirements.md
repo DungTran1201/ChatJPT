@@ -1394,3 +1394,36 @@
 - **Độ Ưu Tiên**: `MUST`.
 - **Trạng Thái**: `IMPLEMENTED`.
 - **Phụ Thuộc (Dependencies)**: `FR-064`, `FR-065`, `FR-021`.
+
+---
+
+### FR-067: Cài Đặt Định Dạng Form Trả Lời Của Sensei (Sensei Responses Settings)
+- **Mã Yêu Cầu**: `FR-067`
+- **Tên Yêu Cầu**: Cài Đặt Định Dạng Form Trả Lời Của Sensei (Sensei Responses Settings).
+- **Mô Tả**: Cung cấp phân hệ cài đặt cấu trúc phản hồi sư phạm (Responses Tab) trong Cài đặt hệ thống:
+  - Công tắc dịch sang ngôn ngữ hiển thị (Bản dịch bên dưới câu tiếng Nhật).
+  - Công tắc hiển thị Hiragana trên đầu chữ Kanji (Furigana / Ruby).
+  - Công tắc tô màu vùng ngữ pháp & trợ từ (Viền xanh lá và nền cam đào).
+  - Công tắc phiên âm Romaji bên dưới từng từ.
+  - Công tắc phân tích từ vựng & cấu trúc ngữ pháp trọng tâm.
+  - Công tắc phát âm giọng đọc AI chuẩn Tokyo cho từng câu.
+  - Chế độ hiển thị song ngữ: Đan xen từng dòng (Interlinear), Song song (Parallel), Thuần tiếng Nhật (Japanese Only).
+  - Khung xem trước trực quan thời gian thực (Live Preview) phản ánh tức thì các tùy chỉnh.
+- **Tác Nhân (Actor)**: `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-020`, `FR-064`.
+
+---
+
+### FR-068: Hiển Thị Đan Xen Sư Phạm & Trợ Năng Học Tiếng Nhật (Pedagogical Interlinear Display)
+- **Mã Yêu Cầu**: `FR-068`
+- **Tên Yêu Cầu**: Hiển Thị Đan Xen Sư Phạm & Trợ Năng Học Tiếng Nhật (Pedagogical Interlinear Display).
+- **Mô Tả**: Triển khai bộ phân giải và trình diễn câu trả lời của Sensei theo chuẩn sư phạm Nhật ngữ:
+  - Hàng từ vựng chia theo token: Trên là Furigana (nếu có Kanji), giữa là chữ Nhật chính kèm viền xanh hoặc nền cam đào, dưới là phiên âm Romaji.
+  - Hàng bên dưới là bản dịch tương ứng theo ngôn ngữ hiển thị của người học.
+  - Nút loa 🔊 phát âm giọng bản xứ Tokyo tích hợp Web Speech API không phụ thuộc bên ngoài.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-067`, `FR-013`.

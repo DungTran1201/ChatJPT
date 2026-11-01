@@ -223,3 +223,10 @@
 - **Mục Tiêu Của Actor**: Quản lý danh sách các giáo viên ảo Sensei với thông tin cá nhân hóa (Tên, tuổi, tính cách, cấp độ N5-N1, phong cách sư phạm, câu cửa miệng) và lựa chọn Sensei cùng Mô hình AI trong thanh chat qua giao diện popover trượt độc lập.
 - **Sự Kiện Kích Hoạt**: Người dùng truy cập trang Sensei Guidance (`/prompts`), tạo/sửa thông tin Sensei, hoặc click bộ chọn Sensei & Model trên thanh chat composer (`MessageComposer`).
 - **Phụ Thuộc**: Phụ thuộc vào `FR-064`, `FR-065`, `FR-066`, `OP-038`.
+
+---
+
+### 2.31 UC-PREF-003 [UC-043]: Tùy Chỉnh Form Trả Lời & Học Đàm Thoại Tiếng Nhật (Sensei Pedagogical Responses)
+- **Mục Tiêu Của Actor**: Tùy chỉnh định dạng trả lời của Sensei (Furigana trên đầu Kanji, bản dịch bên dưới câu, tô màu vùng ngữ pháp viền xanh/nền cam, phiên âm Romaji và phát âm giọng bản xứ Tokyo), xem trước thời gian thực và trải nghiệm học trực quan trong các phiên chat.
+- **Sự Kiện Kích Hoạt**: Người dùng truy cập tab Form Trả Lời tại Cài đặt hệ thống (`/settings?tab=responses`), thay đổi công tắc tùy chỉnh và nhấn Lưu cài đặt; hoặc người dùng đọc tin nhắn đàm thoại với Sensei tại màn hình Chat (`/chat`).
+- **Phụ Thuộc**: Phụ thuộc vào `FR-067`, `FR-068`, `FR-020`, `UC-015`.

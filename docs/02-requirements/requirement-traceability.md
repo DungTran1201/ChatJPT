@@ -92,6 +92,8 @@
 | **BO-01** | `CAP-PROMPT-MGMT` | **FR-064** | Sensei Persona Management | `TC-046` | `PROC-026` (Quản lý hồ sơ sư phạm Sensei) | `UC-042` (Quản lý hồ sơ & persona Sensei) |
 | **BO-01** | `CAP-PROMPT-MGMT` | **FR-065** | System Preset Senseis N5-N1 | `TC-047` | `PROC-026` (Khởi tạo Sensei mẫu hệ thống) | `UC-042` (Sử dụng Sensei N5-N1 mặc định) |
 | **BO-01** | `CAP-CHAT-AI` | **FR-066** | Dual-Column Independent Scroll Selector | `TC-048` | `PROC-CHAT-01` (Lựa chọn Sensei & Động cơ AI) | `UC-CHAT-01` (Tương tác chọn Sensei & Model kép) |
+| **BO-01** | `CAP-USER-PREF` | **FR-067** | Sensei Responses Settings | `TC-049` | `PROC-PREF-01` (Cấu hình tùy chọn phản hồi Sensei) | `UC-043` (Tùy chỉnh định dạng phản hồi sư phạm) |
+| **BO-01** | `CAP-CHAT-AI` | **FR-068** | Pedagogical Interlinear Display | `TC-050` | `PROC-CHAT-02` (Kết xuất hiển thị song ngữ đan xen) | `UC-043` (Trải nghiệm học tương tác đan xen) |
 
 ---
 

@@ -149,6 +149,13 @@ async def login(req: LoginRequest, response: Response):
             "ui_font_size": user.get("ui_font_size") or "medium",
             "theme_preference": user["theme_preference"] or "DARK",
             "language_preference": user["language_preference"] or "vi",
+            "response_show_translation": bool(user.get("response_show_translation", 1)),
+            "response_show_furigana": bool(user.get("response_show_furigana", 1)),
+            "response_highlight_grammar": bool(user.get("response_highlight_grammar", 1)),
+            "response_show_romaji": bool(user.get("response_show_romaji", 1)),
+            "response_grammar_breakdown": bool(user.get("response_grammar_breakdown", 1)),
+            "response_audio_speech": bool(user.get("response_audio_speech", 1)),
+            "response_bilingual_mode": user.get("response_bilingual_mode") or "interlinear",
             "status": user["status"],
             "created_at": user["created_at"],
             "last_login_at": user["last_login_at"]

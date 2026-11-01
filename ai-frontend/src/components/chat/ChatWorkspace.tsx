@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import JapaneseInterlinearView from '@/components/chat/JapaneseInterlinearView';
+import { hasJapaneseText } from '@/utils/japaneseParser';
 
 import { AttachmentItem } from '@/services/attachmentService';
 import { MessageAttachments } from '@/components/ui/AttachmentUploader';
@@ -53,7 +55,14 @@ function getModelDisplayName(modelId?: string) {
 
 // ── Markdown & Code Block renderer ──────────────────────────────────
 function FormattedMessage({ content, isStreaming }: { content: string; isStreaming?: boolean }) {
+  const { currentUser } = useApp();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const showTranslation = currentUser?.response_show_translation !== false;
+  const showFurigana = currentUser?.response_show_furigana !== false;
+  const highlightGrammar = currentUser?.response_highlight_grammar !== false;
+  const showRomaji = currentUser?.response_show_romaji !== false;
+  const showAudio = currentUser?.response_audio_speech !== false;
 
   const copyToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -96,12 +105,45 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                 const items = para.split('\n').filter(l => l.trim().startsWith('- '));
                 return (
                   <ul key={pIdx}>
-                    {items.map((item, itemIdx) => (
-                      <li key={itemIdx}>{renderInline(item.replace(/^- /, ''))}</li>
-                    ))}
+                    {items.map((item, itemIdx) => {
+                      const lineContent = item.replace(/^- /, '');
+                      return (
+                        <li key={itemIdx}>
+                          {hasJapaneseText(lineContent) ? (
+                            <JapaneseInterlinearView
+                              content={lineContent}
+                              showTranslation={showTranslation}
+                              showFurigana={showFurigana}
+                              highlightGrammar={highlightGrammar}
+                              showRomaji={showRomaji}
+                              showAudio={showAudio}
+                            />
+                          ) : (
+                            renderInline(lineContent)
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 );
               }
+
+              if (hasJapaneseText(para)) {
+                return (
+                  <div key={pIdx} style={{ margin: '0.6rem 0' }}>
+                    <JapaneseInterlinearView
+                      content={para}
+                      showTranslation={showTranslation}
+                      showFurigana={showFurigana}
+                      highlightGrammar={highlightGrammar}
+                      showRomaji={showRomaji}
+                      showAudio={showAudio}
+                      isStreaming={isStreaming && index === parts.length - 1 && pIdx === paragraphs.length - 1}
+                    />
+                  </div>
+                );
+              }
+
               return <p key={pIdx}>{renderInline(para)}</p>;
             })}
           </React.Fragment>
