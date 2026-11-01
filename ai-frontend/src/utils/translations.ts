@@ -47,6 +47,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'chat.composer_placeholder': 'Gửi tin nhắn tới Ai-Chan Sensei... (Shift+Enter để xuống dòng)',
     'chat.send': 'Gửi tin nhắn',
     'chat.attach_file': 'Đính kèm tệp',
+    'chat.failover_alert': 'Mô hình đã hết hạn ngạch. Hệ thống tự động chuyển tiếp sang mô hình khác và giữ nguyên toàn bộ lịch sử trò chuyện.',
+    'chat.offline_semantic_cache': 'Bộ Nhớ Đệm Ngữ Nghĩa (Offline)',
 
     // Chat Starter Cards
     'chat.card_kaiwa_title': 'Luyện hội thoại (Kaiwa)',
@@ -256,6 +258,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'chat.composer_placeholder': 'Message Ai-Chan Sensei... (Shift+Enter for new line)',
     'chat.send': 'Send Message',
     'chat.attach_file': 'Attach file',
+    'chat.failover_alert': 'Model quota exhausted. System automatically switched models while preserving full conversation context.',
+    'chat.offline_semantic_cache': 'Semantic Cache (Offline)',
 
     // Chat Starter Cards
     'chat.card_kaiwa_title': 'Kaiwa Conversation',
@@ -465,6 +469,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'chat.composer_placeholder': 'Ai-Chan先生にメッセージを送信... (Shift+Enterで改行)',
     'chat.send': '送信',
     'chat.attach_file': 'ファイルを添付',
+    'chat.failover_alert': 'モデルの利用枠が上限に達しました。会話の文脈を完全に保持したまま別モデルに自動切り替えしました。',
+    'chat.offline_semantic_cache': 'オフライン意味論キャッシュ',
 
     // Chat Starter Cards
     'chat.card_kaiwa_title': '会話練習 (カイワ)',

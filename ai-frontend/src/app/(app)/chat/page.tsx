@@ -61,6 +61,8 @@ export default function ChatPage() {
             const isRunning = m.status === 'RUNNING' || m.status === 'QUEUED';
             return {
               ...m,
+              model: m.model_used || m.model,
+              model_used: m.model_used || m.model,
               isStreaming: isRunning,
             };
           });
@@ -201,6 +203,35 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
                   accumulatedText += obj.token;
                   setMessages(prev => prev.map(msg =>
                     msg.id === assistantPlaceholderId ? { ...msg, content: accumulatedText } : msg
+                  ));
+                }
+              } catch { /* parse error */ }
+            }
+          } else if (line.includes('event: failover')) {
+            const m = line.match(/data:\s*(.*)/);
+            if (m) {
+              try {
+                const obj = JSON.parse(m[1]);
+                const newModel = obj.to_model || 'offline-semantic-cache';
+                const reason = obj.reason || obj.message || 'Mô hình tự động chuyển tiếp';
+                setMessages(prev => prev.map(msg =>
+                  msg.id === assistantPlaceholderId
+                    ? { ...msg, model: newModel, model_used: newModel, failoverNotice: reason }
+                    : msg
+                ));
+                setSelectedModelId(newModel);
+              } catch { /* parse error */ }
+            }
+          } else if (line.includes('event: done')) {
+            const m = line.match(/data:\s*(.*)/);
+            if (m) {
+              try {
+                const obj = JSON.parse(m[1]);
+                if (obj.model) {
+                  setMessages(prev => prev.map(msg =>
+                    msg.id === assistantPlaceholderId
+                      ? { ...msg, model: obj.model, model_used: obj.model }
+                      : msg
                   ));
                 }
               } catch { /* parse error */ }

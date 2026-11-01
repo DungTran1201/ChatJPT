@@ -79,7 +79,7 @@ apis:
   - id: OP-009
     method: POST
     path: /conversations/{conv_id}/messages/stream
-    summary: Stream Kaiwa and grammar explanations via SSE
+    summary: Stream Kaiwa and grammar explanations via SSE with multi-model continuity, quota failover, and offline semantic cache
     use_case: UC-008
     source_refs:
     - FR-008
@@ -88,6 +88,9 @@ apis:
     - FR-011
     - FR-013
     - FR-014
+    - FR-042
+    - FR-043
+    - FR-044
     - BR-003
     - BR-005
   - id: OP-010

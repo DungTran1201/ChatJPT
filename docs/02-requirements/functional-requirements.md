@@ -1252,3 +1252,48 @@
 - **Độ Ưu Tiên**: `MUST`.
 - **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-044`, `FR-045`, `BR-036`, `BR-037`, `BR-038`, `BR-039`, `SEC-013`, `SEC-014`, `ADR-014`.
+
+---
+
+### FR-058: Tự Động Chuyển Vùng Mô Hình & Quota Circuit Breaker (Automatic Model Failover & Quota Circuit Breaker)
+- **Mã Yêu Cầu**: `FR-058`
+- **Tên Yêu Cầu**: Tự Động Chuyển Vùng Mô Hình & Quota Circuit Breaker (Automatic Model Failover & Quota Circuit Breaker).
+- **Mô Tả**: Khi một mô hình LLM gặp lỗi cạn kiệt hạn ngạch truy cập (`HTTP 429 RESOURCE_EXHAUSTED`, Rate Limit, hoặc lỗi kết nối nhà cung cấp), hệ thống tự động:
+  - Ghi nhận trạng thái hồi chiêu (Cooldown Circuit Breaker) tạm ngưng mô hình đó để tránh gửi request dư thừa.
+  - Phát sự kiện SSE `event: failover` kèm payload `{status: "failover", from_model, to_model, reason, message}` về client để hiển thị thông báo alert/toast minh bạch cho người dùng.
+  - Tự động chuyển tiếp luồng suy luận sang mô hình dự phòng tiếp theo trong chuỗi ưu tiên (Gemini 3.8 Flash -> Groq Llama 3.3 70B -> GPT-4o Mini -> Claude 3.5 Haiku -> Qwen 2.5 CPU -> Offline Semantic Cache).
+  - Đảm bảo toàn bộ ngữ cảnh lịch sử hội thoại trước đó được nạp nguyên vẹn cho mô hình mới để sinh câu trả lời liền mạch, không ngắt quãng.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-021`, `BR-005`, `ADR-003`, `ADR-005`.
+
+---
+
+### FR-059: Tính Liên Tục Ngữ Cảnh Khi Đổi Đa Mô Hình Trong Một Hội Thoại (Multi-Model Thread Context Continuity)
+- **Mã Yêu Cầu**: `FR-059`
+- **Tên Yêu Cầu**: Tính Liên Tục Ngữ Cảnh Khi Đổi Đa Mô Hình Trong Một Hội Thoại (Multi-Model Thread Context Continuity).
+- **Mô Tả**: Cho phép người dùng linh hoạt thay đổi mô hình trả lời (Model Selector) tại bất kỳ thời điểm nào ngay trong cùng một luồng hội thoại (ví dụ: câu 1 dùng Gemini, câu 2 đổi sang Groq, câu 3 dùng Claude) mà không bị tạo thành cuộc trò chuyện mới:
+  - Backend nạp toàn bộ lịch sử hội thoại trượt (20 tin nhắn gần nhất) truyền cho mô hình mới được chọn.
+  - Mô hình mới nắm bắt trọn vẹn ngữ cảnh người dùng đã hỏi và trợ lý đã trả lời ở các lượt trước.
+  - Bảng tin nhắn (`messages`) lưu chính xác định danh mô hình đã sinh phản hồi (`model_used`) cho từng bong bóng tin nhắn.
+  - Giao diện hiển thị huy hiệu (Badge) định danh mô hình trực quan cho từng phản hồi của trợ lý ảo AI-Chan.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-012`, `FR-021`, `BR-004`.
+
+---
+
+### FR-060: Động Cơ Trò Chuyện Ngoại Tuyến & Bộ Nhớ Đệm Ngữ Nghĩa (Offline Chat & Semantic Caching Engine)
+- **Mã Yêu Cầu**: `FR-060`
+- **Tên Yêu Cầu**: Động Cơ Trò Chuyện Ngoại Tuyến & Bộ Nhớ Đệm Ngữ Nghĩa (Offline Chat & Semantic Caching Engine).
+- **Mô Tả**: Trong trường hợp người dùng chưa cấu hình API Key, không có kết nối đám mây, hoặc thiết bị không đủ năng lực CPU/GPU để chạy mô hình cục bộ:
+  - Hệ thống tự động chuyển tiếp sang chế độ **Offline Semantic Cache**.
+  - So khớp ngữ nghĩa câu hỏi người dùng với cơ sở dữ liệu `semantic_cache` thông qua thuật toán chuẩn hóa Unicode NFKC, Jaccard Token/Character Bi-gram, và đối sánh trọng số từ khóa học thuật tiếng Nhật (ngưỡng tương đồng >= 0.48).
+  - Nếu tìm thấy cặp câu hỏi tương đồng trong cache, trả về câu trả lời sư phạm ngay lập tức (độ trễ < 15ms) và tăng chỉ số `hit_count`.
+  - Nếu chưa có trong cache, tự động tổng hợp câu trả lời sư phạm tiếng Nhật chuẩn xác dựa trên các mẫu quy tắc ngữ pháp SOV/trợ từ/kaiwa và tự động lưu vào bộ nhớ đệm để phục vụ cho các truy vấn tương lai.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-058`, `BR-005`.

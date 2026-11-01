@@ -203,6 +203,26 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
             Hệ thống không bao giờ trả về khóa API dạng plaintext về trình duyệt sau khi đã lưu. Chỉ trạng thái cấu hình và ký tự gợi ý đã che giấu được hiển thị.
           </div>
         </div>
+
+        {/* Offline & Failover Continuity Architecture Notice */}
+        <div style={{
+          marginTop: '0.75rem',
+          padding: '0.85rem 1rem',
+          borderRadius: '8px',
+          background: 'rgba(16, 185, 129, 0.08)',
+          border: '1px solid rgba(16, 185, 129, 0.25)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px',
+          fontSize: '0.82rem',
+          color: 'var(--text-secondary)'
+        }}>
+          <Icon name="cpu" size={18} style={{ color: '#10b981', flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <strong style={{ color: 'var(--text-primary)' }}>Chế độ Tự Động Chuyển Vùng & Ngoại Tuyến (Offline Semantic Cache): </strong>
+            Khi mô hình đang chat hết hạn ngạch (HTTP 429), hệ thống tự động chuyển tiếp sang mô hình khả dụng khác với trọn vẹn ngữ cảnh hội thoại. Trường hợp không cấu hình khóa API hoặc thiết bị không có GPU/CPU để chạy mô hình cục bộ, website tức thì chuyển sang <strong>Offline Semantic Cache</strong> để phục vụ học tập tiếng Nhật tốc độ cao.
+          </div>
+        </div>
       </div>
 
       {/* Category Tabs */}

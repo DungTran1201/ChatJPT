@@ -121,6 +121,8 @@ class TestModelsAPI(unittest.TestCase):
         self.assertEqual(m35["is_default"], 1)
         self.assertEqual(m38["is_default"], 0)
 
+        # Ensure claude-3-7-sonnet is INACTIVE first
+        self.client.patch("/api/v1/models/claude-3-7-sonnet/deactivate", cookies=self.cookies)
         # Attempt to set INACTIVE model (claude-3-7-sonnet) as default should fail
         res_fail = self.client.patch("/api/v1/models/default", json={"model_id": "claude-3-7-sonnet"}, cookies=self.cookies)
         self.assertEqual(res_fail.status_code, 400)

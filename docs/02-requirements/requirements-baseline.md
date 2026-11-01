@@ -90,6 +90,9 @@ AI-CHAN CAPABILITIES
 | **FR-012** | Conversation Data Isolation | `CAP-CONV` | **MUST** | `BASELINED` | Chống IDOR: Nghiêm cấm truy cập chéo cuộc trò chuyện của người khác (HTTP 403). |
 | **FR-013** | Streaming Response Delivery | `CAP-CHAT-AI` | **MUST** | `BASELINED` | Truyền luồng dữ liệu chunk-by-chunk qua ReadableStream/SSE để giảm TTFT. |
 | **FR-014** | Message Token Accounting | `CAP-CHAT-AI` | **MUST** | `BASELINED` | Ghi nhận số lượng token tiêu thụ trên mỗi lượt sinh câu trả lời. |
+| **FR-058** | Automatic Model Failover & Quota Circuit Breaker | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Tự động chuyển tiếp mô hình khi cạn kiệt hạn ngạch truy cập HTTP 429 và thông báo SSE. |
+| **FR-059** | Multi-Model Thread Context Continuity | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Cho phép đổi mô hình giữa chừng trong cùng một luồng hội thoại mà không mất ngữ cảnh lịch sử. |
+| **FR-060** | Offline Chat & Semantic Caching Engine | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Chế độ ngoại tuyến độc lập không cần GPU/CPU/API Key, phục vụ câu trả lời qua bộ nhớ đệm ngữ nghĩa. |
 
 ---
 

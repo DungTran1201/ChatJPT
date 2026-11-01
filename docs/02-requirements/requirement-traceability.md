@@ -83,6 +83,9 @@
 | **BO-02** | `CAP-BOT-MGMT` | **FR-045** | Dynamic Model Routing & Persona Prompting | `TC-040` | `PROC-022` (Quản lý cấu hình Bot Discord) | `UC-032` (Cấu hình Model & Persona Bot) |
 | **BO-04** | `CAP-BOT-MGMT` | **FR-046** | Shared Quota Accounting & Discord Token Ceiling | `TC-041` | `PROC-023` (Điều phối tương tác Bot & Hạn ngạch) | `UC-033` (Kiểm soát hạn ngạch đàm thoại Discord) |
 | **BO-01** | `CAP-BOT-MGMT` | **FR-047** | Discord-to-Web Interaction History Synchronization | `TC-042` | `PROC-023` (Điều phối tương tác Bot & Hạn ngạch) | `UC-034` (Đồng bộ lịch sử trò chuyện Discord & Web) |
+| **BO-02** | `CAP-CHAT-AI` | **FR-058** | Automatic Model Failover & Quota Circuit Breaker | `AC-004-A` | `PROC-AI-01` (Quy trình Chuyển vùng dự phòng tự động) | `UC-CHAT-04` (Tự động phục hồi lỗi AI Provider) |
+| **BO-01** | `CAP-CHAT-AI` | **FR-059** | Multi-Model Thread Context Continuity | `AC-003-E` | `PROC-CHAT-03` (Quy trình Tùy biến mô hình AI) | `UC-CHAT-03` (Chọn mô hình AI đàm thoại) |
+| **BO-01** | `CAP-CHAT-AI` | **FR-060** | Offline Chat & Semantic Caching Engine | `AC-003-C` | `PROC-CHAT-02` (Quy trình Xử lý & Hiển thị kết quả AI) | `UC-CHAT-02` (Nhận câu trả lời từ AI) |
 
 ---
 
@@ -105,6 +108,7 @@
 | | `NFR-013` | Tách biệt lưu trữ Postgres & Redis | `CAP-FOUNDATION` | `AC-002` | Hai service container với named volume riêng |
 | **Bảo Trì** | `NFR-014` | Cấu trúc module chuẩn 3 tầng | `CAP-FOUNDATION` | `AC-001..005` | Phân tách ranh giới Frontend / Backend / Infra |
 | **Trải Nghiệm** | `NFR-016` | Responsive Mobile (360px) -> Desktop | `CAP-CHAT-AI` | `AC-003-D` | Thiết kế giao diện CSS linh hoạt |
+| **Hiệu Năng** | NFR-024 | Model Permanent Removal Latency <= 300ms | CAP-AGENT-MGMT | TC-030 | Xử lý xóa vĩnh viễn mô hình tức thời |
 | **Hiệu Năng** | `NFR-025` | Discord Bot Interaction Latency <= 300ms | `CAP-BOT-MGMT` | `TC-040` | Xử lý Ack Interaction tức thời < 3s, async worker routing |
 
 ---

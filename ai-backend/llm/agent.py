@@ -132,38 +132,81 @@ class ModelQuotaTracker:
 
 class LangChainModelFactory:
     """Factory creating LangChain Chat Model instances based on .env configuration."""
-    
+
+    @staticmethod
+    def detect_provider_for_model(model_name: Optional[str]) -> str:
+        """Determines the provider ID based on model identifier prefix or name."""
+        if not model_name:
+            return "gemini"
+        m = model_name.lower().strip()
+        if "offline" in m or "cache" in m:
+            return "offline"
+        if "qwen" in m or "llama3" in m or "ollama" in m:
+            return "ollama"
+        if "llama-3.3" in m or "mixtral" in m or "groq" in m:
+            return "groq"
+        if "claude" in m or "anthropic" in m:
+            return "anthropic"
+        if "gpt" in m or "o1" in m or "o3" in m:
+            return "openai"
+        if "gemini" in m:
+            return "gemini"
+        return "gemini"
+
     @staticmethod
     def get_candidate_models(provider: str, target_model: Optional[str] = None) -> List[str]:
         provider = provider.lower().strip()
-        if provider == "gemini":
+        if provider in ("gemini", "google"):
             pool = [
                 target_model,
+                "gemini-3.8-flash",
                 "gemini-3.5-flash-lite",
-                "gemini-flash-lite-latest",
                 "gemini-3.5-flash",
-                "gemini-3.8-flash"
+                "gemini-flash-lite-latest"
             ]
-            candidates = []
-            for m in pool:
-                if m and m not in candidates and ModelQuotaTracker.is_available(m):
-                    candidates.append(m)
-            if not candidates and target_model:
-                candidates.append(target_model)
-            return candidates
+        elif provider == "groq":
+            pool = [
+                target_model,
+                "llama-3.3-70b-versatile",
+                "mixtral-8x7b-32768"
+            ]
         elif provider == "openai":
-            pool = [target_model, "gpt-4o-mini", "gpt-4o"]
-            candidates = []
-            for m in pool:
-                if m and m not in candidates and ModelQuotaTracker.is_available(m):
-                    candidates.append(m)
-            return candidates
-        return [target_model] if target_model else []
+            pool = [
+                target_model,
+                "gpt-4o-mini",
+                "gpt-4o"
+            ]
+        elif provider == "anthropic":
+            pool = [
+                target_model,
+                "claude-3-5-haiku",
+                "claude-3-7-sonnet"
+            ]
+        elif provider == "ollama":
+            pool = [
+                target_model,
+                "qwen2.5-0.5b-cpu",
+                "qwen2.5-1.5b-cpu",
+                "llama3"
+            ]
+        elif provider == "offline":
+            return ["offline-semantic-cache"]
+        else:
+            pool = [target_model] if target_model else []
+
+        candidates = []
+        for m in pool:
+            if m and m not in candidates and ModelQuotaTracker.is_available(m):
+                candidates.append(m)
+
+        if not candidates and target_model:
+            candidates.append(target_model)
+        return candidates
 
     @staticmethod
     def create_model(provider: str, model_name: Optional[str] = None, user_id: Optional[str] = None):
         cfg = EnvKeyLoader.get_config()
-        provider = provider.lower()
+        provider = provider.lower().strip()
         if provider == "google":
             provider = "gemini"
 
@@ -174,46 +217,21 @@ class LangChainModelFactory:
             effective_key = CredentialService.get_effective_key(user_id, provider)
         except Exception:
             pass
-        
+
         if provider == "gemini":
             key = effective_key or cfg["gemini_api_key"]
             if key:
                 from langchain_google_genai import ChatGoogleGenerativeAI
-                target = model_name or cfg["default_model"] or "gemini-3.5-flash-lite"
+                target = model_name or cfg["default_model"] or "gemini-3.8-flash"
                 if target in ["gemini-1.5-flash", "gemini-2.5-flash"]:
                     target = "gemini-3.5-flash-lite"
                 return ChatGoogleGenerativeAI(
                     model=target,
                     google_api_key=key,
                     temperature=0.7,
-                    timeout=12.0,
+                    timeout=15.0,
                     max_retries=1
                 )
-        elif provider == "openai":
-            key = effective_key or cfg["openai_api_key"]
-            if key:
-                from langchain_openai import ChatOpenAI
-                target = model_name or "gpt-4o-mini"
-                return ChatOpenAI(
-                    model=target,
-                    api_key=key,
-                    temperature=0.7,
-                    timeout=30.0
-                )
-        elif provider == "anthropic":
-            key = effective_key or cfg["anthropic_api_key"]
-            if key:
-                try:
-                    from langchain_anthropic import ChatAnthropic
-                    target = model_name or "claude-3-7-sonnet"
-                    return ChatAnthropic(
-                        model=target,
-                        api_key=key,
-                        temperature=0.7,
-                        timeout=30.0
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to initialize ChatAnthropic: {e}")
         elif provider == "groq":
             key = effective_key or cfg["groq_api_key"]
             if key:
@@ -224,10 +242,51 @@ class LangChainModelFactory:
                         model=target,
                         api_key=key,
                         temperature=0.7,
-                        timeout=30.0
+                        timeout=20.0
                     )
                 except Exception as e:
                     logger.warning(f"Failed to initialize ChatGroq: {e}")
+        elif provider == "openai":
+            key = effective_key or cfg["openai_api_key"]
+            if key:
+                from langchain_openai import ChatOpenAI
+                target = model_name or "gpt-4o-mini"
+                return ChatOpenAI(
+                    model=target,
+                    api_key=key,
+                    temperature=0.7,
+                    timeout=25.0
+                )
+        elif provider == "anthropic":
+            key = effective_key or cfg["anthropic_api_key"]
+            if key:
+                try:
+                    from langchain_anthropic import ChatAnthropic
+                    target = model_name or "claude-3-5-haiku"
+                    return ChatAnthropic(
+                        model=target,
+                        api_key=key,
+                        temperature=0.7,
+                        timeout=25.0
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to initialize ChatAnthropic: {e}")
+        elif provider == "ollama":
+            ollama_url = cfg["ollama_base_url"] or "http://localhost:11434"
+            target = model_name or "qwen2.5-0.5b-cpu"
+            ollama_model_tag = "qwen2.5:0.5b" if "qwen2.5-0.5b" in target else ("qwen2.5:1.5b" if "qwen2.5-1.5b" in target else target)
+            try:
+                from langchain_openai import ChatOpenAI
+                return ChatOpenAI(
+                    base_url=f"{ollama_url.rstrip('/')}/v1",
+                    api_key="ollama",
+                    model=ollama_model_tag,
+                    temperature=0.7,
+                    timeout=6.0,
+                    max_retries=0
+                )
+            except Exception as e:
+                logger.warning(f"Could not connect to Ollama ({ollama_url}): {e}")
         return None
 
 def build_langchain_messages(
@@ -459,14 +518,40 @@ class ChatAgentOrchestrator:
         user_id: Optional[str] = None,
         conversation_id: Optional[str] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
-        """Asynchronously streams token chunks with automatic failover (SSE compatible), custom system instruction, multimodal attachments, and dynamic tool calling."""
+        """Asynchronously streams token chunks with automatic failover (SSE compatible), multi-model continuity, and offline semantic cache."""
         cfg = EnvKeyLoader.get_config()
         messages = build_langchain_messages(prompt, history, system_instruction=system_instruction, attachments=attachments)
         
-        primary_prov = cfg["default_provider"] if cfg["default_provider"] in ["gemini", "openai"] else "gemini"
-        target_model = model_override or cfg["default_model"]
+        target_model = model_override or cfg["default_model"] or "gemini-3.8-flash"
+        initial_prov = LangChainModelFactory.detect_provider_for_model(target_model)
 
-        # Format tools for LangChain function calling if provided
+        # 0. DIRECT OFFLINE SEMANTIC CACHE ROUTING
+        if target_model == "offline-semantic-cache" or initial_prov == "offline":
+            logger.info("Yêu cầu chế độ Offline Semantic Cache trực tiếp.")
+            from src.services.semantic_cache_service import SemanticCacheService
+            match = SemanticCacheService.lookup(prompt, threshold=0.48)
+            if match:
+                full_text = match["response_text"]
+                is_cached = True
+            else:
+                full_text = SemanticCacheService.synthesize_offline_response(prompt)
+                is_cached = False
+
+            words = full_text.split(" ")
+            for idx, word in enumerate(words):
+                chunk_word = word + (" " if idx < len(words) - 1 else "")
+                yield {"token": chunk_word, "status": "streaming"}
+                await asyncio.sleep(0.015)
+
+            yield {
+                "status": "done",
+                "model": "offline-semantic-cache",
+                "provider": "ollama",
+                "cached": is_cached
+            }
+            return
+
+        # Format tools if provided
         formatted_tools = []
         if tools:
             for t in tools:
@@ -479,148 +564,101 @@ class ChatAgentOrchestrator:
                     }
                 })
 
-        # 1. Thử truyền luồng từ Primary Provider với intra-provider model failover (BR-005)
-        primary_candidates = LangChainModelFactory.get_candidate_models(primary_prov, target_model)
-        for cand_model in primary_candidates:
-            primary_model = LangChainModelFactory.create_model(primary_prov, cand_model, user_id=user_id)
-            if not primary_model:
-                continue
-            if formatted_tools and hasattr(primary_model, "bind_tools"):
-                try:
-                    primary_model = primary_model.bind_tools(formatted_tools)
-                except Exception as b_err:
-                    logger.warning(f"Could not bind tools to {cand_model}: {b_err}")
-            stream_started = False
-            tool_calls_requested = []
-            try:
-                final_model_name = getattr(primary_model, "model_name", cand_model)
-                async for chunk in primary_model.astream(messages):
-                    raw_content = chunk.content if hasattr(chunk, "content") else str(chunk)
-                    token_str = extract_text_content(raw_content)
-                    if token_str:
-                        stream_started = True
-                        yield {"token": token_str, "status": "streaming"}
+        # 1. BUILD ORDERED PROVIDER CHAIN FOR AUTO-FAILOVER
+        provider_chain = [initial_prov]
+        for p in ["groq", "gemini", "openai", "anthropic", "ollama"]:
+            if p not in provider_chain:
+                provider_chain.append(p)
 
-                if stream_started:
+        stream_started = False
+        last_failed_model = None
+        has_switched_model = False
+
+        for prov in provider_chain:
+            candidates = LangChainModelFactory.get_candidate_models(prov, target_model=target_model if prov == initial_prov else None)
+            for cand_model in candidates:
+                # If we had a previous failure and are now switching models, notify the user via failover event
+                if last_failed_model and cand_model != last_failed_model and not stream_started:
                     yield {
-                        "status": "done",
-                        "model": final_model_name,
-                        "provider": primary_prov
+                        "status": "failover",
+                        "from_model": last_failed_model,
+                        "to_model": cand_model,
+                        "reason": f"Mô hình '{last_failed_model}' không khả dụng hoặc đã hết hạn ngạch truy cập (HTTP 429). Hệ thống tự động chuyển tiếp sang '{cand_model}' mà không mất ngữ cảnh.",
+                        "message": f"Chuyển tiếp mô hình: {cand_model}"
                     }
-                    return
-            except Exception as primary_exc:
-                err_str = str(primary_exc)
-                logger.warning(f"LangChain primary model '{cand_model}' failed ({primary_prov}): {primary_exc}")
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "Too Many Requests" in err_str:
-                    delay = ModelQuotaTracker.parse_retry_delay(err_str)
-                    ModelQuotaTracker.record_quota_exhausted(cand_model, delay)
-                if stream_started:
-                    yield {"status": "error", "message": f"Stream gián đoạn: {primary_exc}"}
-                    return
-                # Thử model tiếp theo trong cùng provider
+                    has_switched_model = True
 
-        # 2. Kích hoạt Fallback Provider nếu Primary provider không khả dụng (BR-005, ADR-003, ADR-005)
-        fallback_prov = "openai" if primary_prov == "gemini" else "gemini"
-        fallback_candidates = LangChainModelFactory.get_candidate_models(fallback_prov)
-        for fb_cand in fallback_candidates:
-            fallback_model = LangChainModelFactory.create_model(fallback_prov, fb_cand, user_id=user_id)
-            if not fallback_model:
-                continue
-            if formatted_tools and hasattr(fallback_model, "bind_tools"):
+                model = LangChainModelFactory.create_model(prov, cand_model, user_id=user_id)
+                if not model:
+                    last_failed_model = cand_model
+                    continue
+
+                if formatted_tools and hasattr(model, "bind_tools"):
+                    try:
+                        model = model.bind_tools(formatted_tools)
+                    except Exception as b_err:
+                        logger.warning(f"Could not bind tools to {cand_model}: {b_err}")
+
                 try:
-                    fallback_model = fallback_model.bind_tools(formatted_tools)
-                except Exception as b_err:
-                    logger.warning(f"Could not bind tools to fallback {fb_cand}: {b_err}")
-            stream_started = False
-            tool_calls_requested = []
-            try:
-                fallback_model_name = getattr(fallback_model, "model_name", fb_cand)
-                logger.info(f"Kích hoạt chuyển vùng dự phòng LangGraph sang {fallback_prov} ({fallback_model_name})")
-                async for chunk in fallback_model.astream(messages):
-                    raw_content = chunk.content if hasattr(chunk, "content") else str(chunk)
-                    token_str = extract_text_content(raw_content)
-                    if token_str:
-                        stream_started = True
-                        yield {"token": token_str, "status": "streaming"}
+                    final_model_name = getattr(model, "model_name", cand_model)
+                    async for chunk in model.astream(messages):
+                        raw_content = chunk.content if hasattr(chunk, "content") else str(chunk)
+                        token_str = extract_text_content(raw_content)
+                        if token_str:
+                            stream_started = True
+                            yield {"token": token_str, "status": "streaming"}
 
+                    if stream_started:
+                        yield {
+                            "status": "done",
+                            "model": final_model_name,
+                            "provider": prov,
+                            "failover": has_switched_model
+                        }
+                        return
+                except Exception as exc:
+                    err_str = str(exc)
+                    logger.warning(f"Mô hình '{cand_model}' ({prov}) thất bại: {exc}")
+                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "Too Many Requests" in err_str or "rate_limit" in err_str.lower():
+                        delay = ModelQuotaTracker.parse_retry_delay(err_str)
+                        ModelQuotaTracker.record_quota_exhausted(cand_model, delay)
+                    if stream_started:
+                        yield {"status": "error", "message": f"Stream gián đoạn: {exc}"}
+                        return
+                    last_failed_model = cand_model
+                    continue
 
+        # 2. EXTREME FALLBACK: OFFLINE SEMANTIC CACHE
+        logger.info("Tất cả nhà cung cấp đám mây/cục bộ không khả dụng -> Kích hoạt Bộ Nhớ Đệm Ngữ Nghĩa (Offline Semantic Cache).")
+        yield {
+            "status": "failover",
+            "from_model": last_failed_model or target_model,
+            "to_model": "offline-semantic-cache",
+            "reason": "Các mô hình trực tuyến chưa được cấu hình khóa hoặc đã hết hạn ngạch. Hệ thống chuyển sang Bộ Nhớ Đệm Ngữ Nghĩa Ngoại Tuyến (Offline Semantic Cache).",
+            "message": "Chuyển tiếp sang Offline Semantic Cache"
+        }
 
-                if stream_started:
-                    yield {
-                        "status": "done",
-                        "model": fallback_model_name,
-                        "provider": fallback_prov,
-                        "failover": True
-                    }
-                    return
-            except Exception as fb_exc:
-                err_str = str(fb_exc)
-                logger.error(f"Fallback model '{fb_cand}' ({fallback_prov}) thất bại: {fb_exc}")
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "Too Many Requests" in err_str:
-                    delay = ModelQuotaTracker.parse_retry_delay(err_str)
-                    ModelQuotaTracker.record_quota_exhausted(fb_cand, delay)
-                if stream_started:
-                    yield {"status": "error", "message": f"Stream gián đoạn: {fb_exc}"}
-                    return
-
-        # 3. Fallback High-Quality Local/Mock Generator (khi chưa cấu hình API Key trong .env hoặc toàn bộ Cloud Provider bị sự cố)
-        logger.info("Toàn bộ Cloud Provider không khả dụng -> Kích hoạt Local Agent Simulator thích ứng ngữ cảnh.")
-        
-        # Phân tích System Prompt để xác định vai trò chuyên môn (Persona)
-        persona_role = "Trợ lý Trí tuệ Nhân tạo AI-Chan"
-        if system_instruction and system_instruction.strip():
-            si_clean = system_instruction.strip()
-            first_line = si_clean.split("\n")[0]
-            for prefix in ["Bạn là một", "Bạn là", "You are a", "You are"]:
-                if first_line.startswith(prefix):
-                    first_line = first_line[len(prefix):].strip()
-                    break
-            first_line = first_line.strip(".:;\"'")
-            if first_line:
-                persona_role = first_line[:80]
-
-        p_lower = prompt.lower()
-        if 'chào' in p_lower or 'hello' in p_lower or 'konnichiwa' in p_lower or 'chao' in p_lower:
-            body = (
-                'Konnichiwa! (こんにちは!)\n\n'
-                'Tôi là **AI-Chan Sensei**, trợ lý học tiếng Nhật thông minh của bạn tại **ChatJPT**.\n\n'
-                'Tôi có thể đồng hành cùng bạn qua:\n'
-                '- **Luyện Kaiwa phản xạ**: Giao tiếp hội thoại theo trình độ JLPT (N5 - N1).\n'
-                '- **AI Grammar Doctor**: Soát lỗi ngữ pháp, giải thích trợ từ và sắc thái từ vựng.\n'
-                '- **Hán tự & Từ vựng**: Hỗ trợ phiên âm Furigana, Onyomi, Kunyomi.\n\n'
-                'Hôm nay bạn muốn cùng Sensei luyện tập chủ đề gì nào? (お元気ですか?)'
-            )
-        elif 'ngữ pháp' in p_lower or 'grammar' in p_lower:
-            body = (
-                f'Về cấu trúc ngữ pháp bạn quan tâm trong câu: *"{prompt}"*:\n\n'
-                '1. **Giải thích cấu trúc**: Hệ thống ngữ pháp tiếng Nhật tuân theo trật tự SOV (Chủ ngữ - Bổ ngữ - Vị ngữ).\n'
-                '2. **Phân tích trợ từ**: Cần lưu ý sự khác biệt giữa trợ từ chủ đề `は (wa)` và trợ từ chủ ngữ `が (ga)`.\n'
-                '3. **Ví dụ ứng dụng**:\n'
-                '   - 私は日本語を勉強しています。(Watashi wa nihongo o benkyou shite imasu - Tôi đang học tiếng Nhật).\n\n'
-                'Bạn có muốn Sensei đặt thêm bài tập luyện tập cho mẫu câu này không?'
-            )
-        elif attachments:
-            att_names = ', '.join(f'`{a.get("filename") or a.get("original_name") or "tệp"}`' for a in attachments)
-            body = f'Sensei đã nhận và phân tích tài liệu học tập của bạn ({att_names}). Nội dung sẵn sàng để cùng bạn luyện tập!'
+        from src.services.semantic_cache_service import SemanticCacheService
+        match = SemanticCacheService.lookup(prompt, threshold=0.48)
+        if match:
+            full_text = match["response_text"]
+            is_cached = True
         else:
-            body = (
-                f'Sensei đã tiếp nhận câu hỏi của bạn: *"{prompt}"*\n\n'
-                f'- **Nhận diện ngữ cảnh**: Thao tác học tập tiếng Nhật tương tác thời gian thực qua ChatJPT.\n'
-                f'- **Phản hồi sư phạm**: Nội dung được tối ưu hóa cho người học tiếng Nhật với hỗ trợ ngữ pháp và từ vựng chuẩn xác.\n\n'
-                f'Nếu cần phiên âm Furigana hoặc dịch nghĩa chi tiết, hãy nói với Sensei nhé!'
-            )
+            full_text = SemanticCacheService.synthesize_offline_response(prompt)
+            is_cached = False
 
-        full_text = body
         words = full_text.split(" ")
         for idx, word in enumerate(words):
             chunk_word = word + (" " if idx < len(words) - 1 else "")
             yield {"token": chunk_word, "status": "streaming"}
-            await asyncio.sleep(0.025)
+            await asyncio.sleep(0.015)
 
         yield {
             "status": "done",
-            "model": "agent-simulator",
-            "provider": "langgraph-local"
+            "model": "offline-semantic-cache",
+            "provider": "ollama",
+            "cached": is_cached,
+            "failover": True
         }
 
 # Global singleton instance

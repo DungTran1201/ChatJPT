@@ -242,6 +242,10 @@ async def stream_message_endpoint(
 
                     data_payload = json.dumps({"token": token_str, "status": "streaming"}, ensure_ascii=False)
                     yield f"event: chunk\ndata: {data_payload}\n\n"
+                elif event.get("status") == "failover":
+                    final_model_used = event.get("to_model", final_model_used)
+                    failover_payload = json.dumps(event, ensure_ascii=False)
+                    yield f"event: failover\ndata: {failover_payload}\n\n"
                 elif event.get("status") == "done":
                     final_model_used = event.get("model", final_model_used)
                 elif event.get("status") == "error":

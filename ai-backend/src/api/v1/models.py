@@ -46,7 +46,7 @@ def format_model_record(row: Dict[str, Any], user_id: Optional[str] = None) -> D
         "context_window": row["context_window"],
         "max_tokens": row["max_tokens"],
         "supports_streaming": bool(row["supports_streaming"]),
-        "has_api_key": check_provider_api_key(row["provider"], user_id=user_id),
+        "has_api_key": True if row["id"] == "offline-semantic-cache" else check_provider_api_key(row["provider"], user_id=user_id),
         "latency_ms": row["latency_ms"],
         "last_checked_at": row["last_checked_at"],
         "created_at": row.get("created_at"),

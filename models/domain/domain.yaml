@@ -129,6 +129,19 @@ entities:
   - status: enum(STAGED, ATTACHED, ARCHIVED, DELETED)
   - created_at: timestamp
   - updated_at: timestamp
+- name: SemanticCache
+  aggregate_root: true
+  attributes:
+  - id: UUID (PK)
+  - prompt_raw: string
+  - prompt_normalized: string (indexed)
+  - category: string (indexed)
+  - response_text: string (TEXT)
+  - keywords: string (comma-separated, nullable)
+  - similarity_score: float (default 1.0)
+  - hit_count: integer (default 1)
+  - created_at: timestamp
+  - updated_at: timestamp
 relationships:
 - from: User
   to: Conversation

@@ -11,6 +11,8 @@ export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   model?: string;
+  model_used?: string;
+  failoverNotice?: string;
   created_at?: string;
   isStreaming?: boolean;
   attachments?: AttachmentItem[];
@@ -28,6 +30,25 @@ interface ChatWorkspaceProps {
   onScroll: () => void;
   showScrollBottom: boolean;
   scrollToBottom: () => void;
+}
+
+function getModelDisplayName(modelId?: string) {
+  if (!modelId) return '';
+  const m = modelId.toLowerCase();
+  if (m === 'offline-semantic-cache') return '⚡ Semantic Cache (Offline)';
+  if (m.includes('llama-3.3') || m.includes('groq')) return 'Groq Llama 3.3 70B';
+  if (m.includes('mixtral')) return 'Groq Mixtral 8x7B';
+  if (m.includes('gemini-3.8-flash')) return 'Gemini 3.8 Flash';
+  if (m.includes('gemini-3.5-flash-lite')) return 'Gemini 3.5 Flash Lite';
+  if (m.includes('gemini-3.5-flash')) return 'Gemini 3.5 Flash';
+  if (m.includes('gemini')) return 'Google Gemini';
+  if (m.includes('gpt-4o-mini')) return 'GPT-4o mini';
+  if (m.includes('gpt-4o')) return 'GPT-4o';
+  if (m.includes('claude-3-5-haiku')) return 'Claude 3.5 Haiku';
+  if (m.includes('claude-3-7-sonnet')) return 'Claude 3.7 Sonnet';
+  if (m.includes('qwen2.5-0.5b')) return 'Qwen 2.5 0.5B (CPU)';
+  if (m.includes('qwen2.5-1.5b')) return 'Qwen 2.5 1.5B (CPU/GPU)';
+  return modelId;
 }
 
 // ── Markdown & Code Block renderer ──────────────────────────────────
@@ -400,11 +421,37 @@ export default function ChatWorkspace({
               >
                 {/* Assistant header */}
                 {!isUser && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <AvatarMark size={22} />
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       AI-Chan
                     </span>
+                    {(msg.model || msg.model_used) && (
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          padding: '1px 7px',
+                          borderRadius: '10px',
+                          background: (msg.model || msg.model_used) === 'offline-semantic-cache'
+                            ? 'rgba(168, 85, 247, 0.15)'
+                            : (msg.model || msg.model_used)?.includes('groq') || (msg.model || msg.model_used)?.includes('llama')
+                            ? 'rgba(249, 115, 22, 0.15)'
+                            : 'var(--bg-elevated)',
+                          color: (msg.model || msg.model_used) === 'offline-semantic-cache'
+                            ? '#c084fc'
+                            : (msg.model || msg.model_used)?.includes('groq') || (msg.model || msg.model_used)?.includes('llama')
+                            ? '#fb923c'
+                            : 'var(--text-muted)',
+                          border: '1px solid var(--border-subtle)',
+                          fontFamily: 'var(--font-mono)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                        }}
+                      >
+                        {getModelDisplayName(msg.model || msg.model_used)}
+                      </span>
+                    )}
                     {timeStr && (
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{timeStr}</span>
                     )}
@@ -440,6 +487,28 @@ export default function ChatWorkspace({
                     </>
                   ) : (
                     <>
+                      {msg.failoverNotice && (
+                        <div
+                          style={{
+                            marginBottom: '10px',
+                            padding: '6px 10px',
+                            borderRadius: 'var(--radius-sm)',
+                            background: 'rgba(245, 158, 11, 0.12)',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            color: '#f59e0b',
+                            fontSize: '0.75rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                          </svg>
+                          <span>{msg.failoverNotice}</span>
+                        </div>
+                      )}
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div style={{ marginBottom: '8px' }}>
                           <MessageAttachments attachments={msg.attachments} />

@@ -245,3 +245,24 @@ CREATE TABLE IF NOT EXISTS user_api_keys (
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_api_keys_user_id ON user_api_keys(user_id);
+
+
+-- ------------------------------------------------------------------------------
+-- 11. BẢNG BỘ NHỚ ĐỆM NGỮ NGHĨA (SEMANTIC_CACHE)
+-- Bounded Context: Offline Chat & Semantic Caching Context (FR-044, ADR-007)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS semantic_cache (
+    id VARCHAR(36) PRIMARY KEY,
+    prompt_raw TEXT NOT NULL,
+    prompt_normalized TEXT NOT NULL,
+    category VARCHAR(50) NOT NULL DEFAULT 'general',
+    response_text TEXT NOT NULL,
+    keywords TEXT,
+    similarity_score REAL DEFAULT 1.0,
+    hit_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_semantic_cache_category ON semantic_cache(category);
+CREATE INDEX IF NOT EXISTS idx_semantic_cache_normalized ON semantic_cache(prompt_normalized);
