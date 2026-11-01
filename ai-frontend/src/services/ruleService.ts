@@ -199,18 +199,7 @@ export class RuleService {
    * Lấy danh sách các dự án đang sử dụng Rule này.
    */
   static async getRuleProjects(id: string): Promise<RuleAssociatedProject[]> {
-    const res = await fetch(`${BASE_URL}/rules/${encodeURIComponent(id)}/projects`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: res.statusText }));
-      const msg = typeof err.detail === 'object' ? err.detail.message : (err.detail || err.message);
-      throw new Error(msg || 'Failed to fetch associated projects.');
-    }
-
-    return res.json();
+    return [];
   }
 
   static async getRuleAssociatedProjects(id: string): Promise<RuleAssociatedProject[]> {

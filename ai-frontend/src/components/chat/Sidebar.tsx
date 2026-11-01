@@ -20,8 +20,7 @@ interface SidebarProps {
   onDeleteConversation: (conv: Conversation) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
-  isDiscordLinked?: boolean;
-  // Legacy compat – no longer needed but kept so old consumers don't break
+    // Legacy compat – no longer needed but kept so old consumers don't break
   activeTab?: string;
   onTabChange?: (tab: any) => void;
 }
@@ -31,22 +30,17 @@ import { useApp } from '@/context/AppContext';
 
 // ── Nav items – driven by pathname ─────────────────────────────────────
 export const NAV_ITEMS: { key: string; label: string; icon: IconName; href: string }[] = [
-  { key: 'chat',        label: 'Chat',            icon: 'chat',      href: '/chat' },
-  { key: 'projects',    label: 'Projects',        icon: 'projects',  href: '/projects' },
-  { key: 'bot',         label: 'Bot',             icon: 'bot',       href: '/bot/discord' },
-  { key: 'prompts',     label: 'System Prompts',  icon: 'prompts',   href: '/prompts' },
-  { key: 'skills',      label: 'Skills',          icon: 'skills',    href: '/skills' },
-  { key: 'tools',       label: 'Tools',           icon: 'tools',     href: '/tools' },
-  { key: 'rules',       label: 'Rules',           icon: 'rules',     href: '/rules' },
-  { key: 'dashboard',   label: 'Dashboard',       icon: 'dashboard', href: '/dashboard' },
-  { key: 'settings',    label: 'Settings',        icon: 'settings',  href: '/settings' },
+  { key: 'chat',        label: 'Luyện Kaiwa (Chat)', icon: 'chat',      href: '/chat' },
+  { key: 'prompts',     label: 'Chỉ Dẫn Sensei',     icon: 'prompts',   href: '/prompts' },
+  { key: 'rules',       label: 'Quy Tắc Ngữ Pháp',   icon: 'rules',     href: '/rules' },
+  { key: 'dashboard',   label: 'Tổng Quan Học Tập',  icon: 'dashboard', href: '/dashboard' },
+  { key: 'settings',    label: 'Cài Đặt Hệ Thống',   icon: 'settings',  href: '/settings' },
 ];
 
 
 export function navIsActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
-  if (href.startsWith('/bot') && (pathname === '/bot' || pathname.startsWith('/bot/'))) return true;
-  return pathname === href || pathname.startsWith(href + '/');
+    return pathname === href || pathname.startsWith(href + '/');
 }
 
 export default function Sidebar({
@@ -58,12 +52,10 @@ export default function Sidebar({
   onDeleteConversation,
   collapsed,
   onToggleCollapse,
-  isDiscordLinked: propDiscordLinked,
-}: SidebarProps) {
+  }: SidebarProps) {
   const pathname = usePathname();
   const appContext = useApp();
-  const isDiscordLinked = propDiscordLinked !== undefined ? propDiscordLinked : appContext?.isDiscordLinked ?? false;
-  const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
   const [pinnedIds, setPinnedIds] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -180,8 +172,7 @@ export default function Sidebar({
       {/* Primary nav */}
       <nav aria-label="Primary" style={{ padding: '0 8px 6px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
         {NAV_ITEMS.map(item => {
-          const isBot = item.key === 'bot';
-          const isLocked = isBot && !isDiscordLinked;
+                    const isLocked = false;
           const isActive = navIsActive(pathname, item.href);
           const href = isLocked ? '/settings?tab=connections' : item.href;
           const tooltip = isLocked

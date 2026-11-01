@@ -192,13 +192,8 @@ class RuleService:
         user_id = row.get("user_id")
         is_editable = (scope != "system") and (user_id == current_user_id)
         
-        # Count project associations
-        rule_id = row["id"]
-        count_row = query_one(
-            "SELECT COUNT(*) as cnt FROM project_rules WHERE rule_id = ? AND is_enabled = 1",
-            (rule_id,)
-        )
-        associated_count = count_row["cnt"] if count_row else 0
+        # Projects removed from scope
+        associated_count = 0
 
         return RuleResponse(
             id=row["id"],
@@ -552,9 +547,6 @@ class RuleService:
 
     @classmethod
     def delete_rule(cls, user_id: str, rule_id: str, force: bool = False) -> Dict[str, Any]:
-        """
-        Xóa mềm Rule kèm kiểm tra tham chiếu dự án (RUL-FR-005, RUL-BR-006, RUL-BR-007).
-        """
         existing = query_one(
             "SELECT * FROM rules WHERE id = ? AND deleted_at IS NULL",
             (rule_id,)
@@ -577,124 +569,16 @@ class RuleService:
                 detail=f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa."
             )
 
-        # Check project bindings
-        active_bindings = query_all(
-            """
-            SELECT p.id, p.name 
-            FROM project_rules pr
-            JOIN projects p ON pr.project_id = p.id
-            WHERE pr.rule_id = ? AND pr.is_enabled = 1
-            """,
-            (rule_id,)
-        )
-
-        if active_bindings and not force:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "code": "RULE_IN_USE_BY_PROJECTS",
-                    "message": f"Quy tắc này đang được liên kết trong {len(active_bindings)} dự án. Cần xác nhận force=true để gỡ liên kết và xóa.",
-                    "projects": active_bindings
-                }
-            )
-
         now = datetime.now(timezone.utc).isoformat()
-        # Soft delete rule
         execute_commit(
             "UPDATE rules SET deleted_at = ?, status = 'archived' WHERE id = ?",
             (now, rule_id)
-        )
-
-        # Detach/disable project bindings
-        detached_count = execute_commit(
-            "UPDATE project_rules SET is_enabled = 0 WHERE rule_id = ?",
-            (rule_id,)
         )
 
         return {
             "message": "Đã xóa mềm quy tắc thành công.",
             "id": rule_id,
             "deleted_at": now,
-            "detached_projects_count": detached_count
+            "detached_projects_count": 0
         }
 
-    @classmethod
-    def get_associated_projects(cls, user_id: str, rule_id: str) -> List[Dict[str, Any]]:
-        """
-        Lấy danh sách các Project mà người dùng sở hữu đang sử dụng Rule này (RUL-FR-011).
-        """
-        # Ensure rule exists
-        cls.get_rule(user_id, rule_id)
-
-        rows = query_all(
-            """
-            SELECT p.id, p.name, p.status, pr.is_enabled, pr.bound_at
-            FROM project_rules pr
-            JOIN projects p ON pr.project_id = p.id
-            WHERE pr.rule_id = ? AND p.user_id = ?
-            ORDER BY pr.bound_at DESC
-            """,
-            (rule_id, user_id)
-        )
-        return rows
-
-    @classmethod
-    def get_project_rules(cls, user_id: str, project_id: str) -> List[Dict[str, Any]]:
-        """
-        Lấy danh sách các rules được gán cho một project cụ thể.
-        """
-        # Check project ownership
-        project = query_one("SELECT id, user_id FROM projects WHERE id = ?", (project_id,))
-        if not project:
-            raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
-        if project["user_id"] != user_id:
-            raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
-
-        rows = query_all(
-            """
-            SELECT r.*, pr.is_enabled as binding_enabled, pr.custom_priority, pr.bound_at
-            FROM project_rules pr
-            JOIN rules r ON pr.rule_id = r.id
-            WHERE pr.project_id = ? AND r.deleted_at IS NULL
-            ORDER BY pr.bound_at ASC
-            """,
-            (project_id,)
-        )
-        return rows
-
-    @classmethod
-    def sync_project_rules(cls, user_id: str, project_id: str, rule_ids: List[str]) -> Dict[str, Any]:
-        """
-        Đồng bộ danh sách rules gán cho một project.
-        """
-        project = query_one("SELECT id, user_id FROM projects WHERE id = ?", (project_id,))
-        if not project:
-            raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
-        if project["user_id"] != user_id:
-            raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
-
-        # Delete existing bindings
-        execute_commit("DELETE FROM project_rules WHERE project_id = ?", (project_id,))
-
-        # Insert new bindings
-        now = datetime.now(timezone.utc).isoformat()
-        bound_count = 0
-        for rid in rule_ids:
-            # Verify rule exists and is accessible
-            rule = query_one(
-                "SELECT id FROM rules WHERE id = ? AND (user_id = ? OR scope = 'system') AND deleted_at IS NULL",
-                (rid, user_id)
-            )
-            if rule:
-                bid = f"pr_{uuid.uuid4().hex[:12]}"
-                execute_commit(
-                    "INSERT INTO project_rules (id, project_id, rule_id, is_enabled, bound_at) VALUES (?, ?, ?, 1, ?)",
-                    (bid, project_id, rid, now)
-                )
-                bound_count += 1
-
-        return {
-            "message": "Đồng bộ liên kết quy tắc dự án thành công.",
-            "project_id": project_id,
-            "bound_rules_count": bound_count
-        }

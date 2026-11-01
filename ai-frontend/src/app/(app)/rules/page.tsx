@@ -588,7 +588,7 @@ export default function RulesListPage() {
                   {/* Tags */}
                   {rule.tags && rule.tags.length > 0 && (
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px' }}>
-                      {rule.tags.slice(0, 3).map((tag, idx) => (
+                      {rule.tags.slice(0, 3).map((tag: string, idx: number) => (
                         <span
                           key={idx}
                           style={{

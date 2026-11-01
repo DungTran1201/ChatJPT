@@ -49,7 +49,6 @@ def setup_test_users():
     execute_commit("DELETE FROM attachments WHERE user_id IN ('user_att_a', 'user_att_b')")
     execute_commit("DELETE FROM messages WHERE conversation_id IN (SELECT id FROM conversations WHERE user_id IN ('user_att_a', 'user_att_b'))")
     execute_commit("DELETE FROM conversations WHERE user_id IN ('user_att_a', 'user_att_b')")
-    execute_commit("DELETE FROM skills WHERE user_id IN ('user_att_a', 'user_att_b')")
     execute_commit("DELETE FROM system_prompts WHERE user_id IN ('user_att_a', 'user_att_b')")
 
 
@@ -201,40 +200,6 @@ class TestAttachmentsSystem:
         assert "attachments" in user_msgs[0]
         assert len(user_msgs[0]["attachments"]) == 1
         assert user_msgs[0]["attachments"][0]["id"] == att_id
-
-    def test_08_skills_library_resource_attachment(self, client, auth_headers_user_a):
-        # 1. Create a test skill
-        skill_payload = {
-            "name": "skill-with-resource",
-            "description": "Kỹ năng kiểm thử đính kèm tài nguyên",
-            "content_markdown": "# Skill Guide\nHuong dan kiem thu skill."
-        }
-        res_skill = client.post("/api/v1/skills", json=skill_payload, headers=auth_headers_user_a)
-        assert res_skill.status_code == 201
-        skill_id = res_skill.json()["id"]
-
-        # 2. Upload resource to this skill
-        res_file = io.BytesIO(b"config_key: 12345\nfeature_enabled: true")
-        res_up = client.post(
-            "/api/v1/attachments/upload",
-            files={"file": ("config.yaml", res_file, "text/yaml")},
-            data={"context_type": "skill", "context_id": skill_id},
-            headers=auth_headers_user_a
-        )
-        assert res_up.status_code == 201
-        att_id = res_up.json()["id"]
-
-        # 3. Query skill detail and verify attachment is listed
-        res_detail = client.get(f"/api/v1/skills/{skill_id}", headers=auth_headers_user_a)
-        assert res_detail.status_code == 200
-        data = res_detail.json()
-        assert "attachments" in data
-        assert any(a["id"] == att_id for a in data["attachments"])
-
-        # 4. Query skills/{id}/attachments endpoint
-        res_atts = client.get(f"/api/v1/skills/{skill_id}/attachments", headers=auth_headers_user_a)
-        assert res_atts.status_code == 200
-        assert res_atts.json()["total"] >= 1
 
     def test_09_system_prompt_resource_attachment(self, client, auth_headers_user_a):
         # 1. Create a system prompt

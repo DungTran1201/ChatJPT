@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AgentModel, ModelSearchResponse, UserConnectionsResponse } from '@/types';
+import { AgentModel, ModelSearchResponse } from '@/types';
 import Icon from '@/components/ui/Icon';
 import { useApp } from '@/context/AppContext';
 import ApiKeysTab from '@/components/settings/ApiKeysTab';
@@ -35,13 +35,13 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
   const { refreshUser } = useApp();
 
-  // Active tab state: 'profile' | 'security' | 'preferences' | 'connections' | 'models' | 'api-keys'
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences' | 'connections' | 'models' | 'api-keys'>('profile');
+  // Active tab state: 'profile' | 'security' | 'preferences' | 'models' | 'api-keys'
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences' | 'models' | 'api-keys'>('profile');
 
   // Sync tab from URL ?tab= param
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile', 'security', 'preferences', 'connections', 'models', 'api-keys'].includes(tab)) {
+    if (tab && ['profile', 'security', 'preferences', 'models', 'api-keys'].includes(tab)) {
       setActiveTab(tab as any);
     }
   }, [searchParams]);
@@ -51,14 +51,7 @@ export default function SettingsPage() {
   const [stats, setStats] = useState<UserStats>({ total_conversations: 0, total_messages: 0 });
   const [loadingInitial, setLoadingInitial] = useState(true);
 
-  // Tab 4: Connections state (FR-040, FR-041, FR-042, BR-025, BR-026, BR-027)
-  const [connectionsData, setConnectionsData] = useState<UserConnectionsResponse | null>(null);
-  const [loadingConnections, setLoadingConnections] = useState(false);
-  const [linkingDiscord, setLinkingDiscord] = useState(false);
-  const [showUnlinkModal, setShowUnlinkModal] = useState(false);
-  const [unlinkPassword, setUnlinkPassword] = useState('');
-  const [unlinking, setUnlinking] = useState(false);
-  const [unlinkError, setUnlinkError] = useState('');
+
 
   // Notifications
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -172,103 +165,21 @@ export default function SettingsPage() {
     fetchProfile();
   }, [router]);
 
-  const fetchConnections = async () => {
-    try {
-      setLoadingConnections(true);
-      const res = await fetch('/api/v1/users/me/connections');
-      if (res.ok) {
-        const data: UserConnectionsResponse = await res.json();
-        setConnectionsData(data);
-      }
-    } catch (err) {
-      console.error('Failed to load connections:', err);
-    } finally {
-      setLoadingConnections(false);
-    }
-  };
 
-  // Read URL query parameter ?tab=... & status/error notifications on mount
+
+  // Read URL query parameter ?tab=... on mount
   useEffect(() => {
-    fetchConnections();
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      const statusParam = params.get('status');
-      const errorParam = params.get('error');
 
-      if (tabParam === 'models' || tabParam === 'security' || tabParam === 'preferences' || tabParam === 'profile' || tabParam === 'connections') {
+      if (tabParam === 'models' || tabParam === 'security' || tabParam === 'preferences' || tabParam === 'profile' || tabParam === 'api-keys') {
         setActiveTab(tabParam as any);
-      }
-
-      if (statusParam === 'linked_success') {
-        showToast('success', 'Discord account linked successfully.');
-        fetchConnections();
-        refreshUser();
-      } else if (errorParam === 'discord_already_linked') {
-        showToast('error', 'This Discord account is already linked to another AI-Chan account (BR-025).');
-      } else if (errorParam === 'invalid_state') {
-        showToast('error', 'Invalid or expired authentication state (BR-016). Please try again.');
-      } else if (errorParam === 'oauth_cancelled') {
-        showToast('error', 'Discord authentication request was cancelled.');
-      }
-
-      // Clean query params from URL bar
-      if (statusParam || errorParam) {
-        const newUrl = tabParam ? `/settings?tab=${tabParam}` : '/settings';
-        window.history.replaceState({}, '', newUrl);
       }
     }
   }, []);
 
-  const handleLinkDiscord = async () => {
-    setLinkingDiscord(true);
-    try {
-      const res = await fetch('/api/v1/auth/discord/link');
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || 'Failed to initialize Discord authorization.');
-      }
-      if (data.authorization_url) {
-        window.location.href = data.authorization_url;
-      }
-    } catch (err: any) {
-      showToast('error', err.message || 'Error initializing Discord authorization.');
-      setLinkingDiscord(false);
-    }
-  };
 
-  const handleUnlinkDiscord = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!unlinkPassword) {
-      setUnlinkError('Please enter your password to confirm unlinking.');
-      return;
-    }
-    setUnlinking(true);
-    setUnlinkError('');
-    try {
-      const res = await fetch('/api/v1/users/me/discord', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: unlinkPassword })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || 'Failed to unlink Discord account.');
-      }
-      showToast('success', data.message || 'Discord account unlinked successfully.');
-      setShowUnlinkModal(false);
-      setUnlinkPassword('');
-      fetchConnections();
-      refreshUser();
-      if (user) {
-        setUser({ ...user, discord_id: undefined } as any);
-      }
-    } catch (err: any) {
-      setUnlinkError(err.message || 'Error unlinking account.');
-    } finally {
-      setUnlinking(false);
-    }
-  };
 
   const fetchModels = async (searchQ?: string) => {
     try {
@@ -998,24 +909,7 @@ export default function SettingsPage() {
             <span>Preferences</span>
           </button>
 
-          <button
-            type="button"
-            className={`segmented-item ${activeTab === 'connections' ? 'active' : ''}`}
-            onClick={() => setActiveTab('connections')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Icon name="link" size={14} />
-            <span>Connections</span>
-            {connectionsData?.connections?.discord?.connected && (
-              <span style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--accent)',
-                display: 'inline-block'
-              }} />
-            )}
-          </button>
+          
 
           <button
             type="button"
@@ -1400,157 +1294,6 @@ export default function SettingsPage() {
                 <option value="en">English (Default)</option>
                 <option value="vi">Vietnamese</option>
               </select>
-            </div>
-          </div>
-        )}
-
-        {/* ============================================================ */}
-        {/* TAB 4: CONNECTIONS                                           */}
-        {/* ============================================================ */}
-        {activeTab === 'connections' && (
-          <div className="card" style={{ padding: '1.75rem' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Connected Accounts
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>
-                Connect third-party accounts for single-click sign-in and automated service identity verification (FR-040, FR-041, FR-042).
-              </p>
-            </div>
-
-            {/* Lockout Prevention Guard Banner (BR-026) */}
-            {connectionsData?.connections?.discord?.connected && !connectionsData?.has_password && (
-              <div style={{
-                background: 'rgba(245, 158, 11, 0.08)',
-                border: '1px solid rgba(245, 158, 11, 0.35)',
-                borderRadius: 'var(--radius-md)',
-                padding: '14px 18px',
-                marginBottom: '1.5rem',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'flex-start'
-              }}>
-                <Icon name="alert" size={20} style={{ color: '#f59e0b', marginTop: '2px' }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#f59e0b', fontSize: '0.9rem', marginBottom: '4px' }}>
-                    Lockout Protection: Account has no standalone password (BR-026)
-                  </div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.5 }}>
-                    Your account was provisioned via Discord OAuth and has no standalone password.
-                    To prevent permanent account lockout, unlinking is disabled until a password is set under Security.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('security')}
-                    className="btn btn-secondary"
-                    style={{ marginTop: '10px', fontSize: '0.8rem', padding: '6px 12px' }}
-                  >
-                    Go to Security Settings
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Discord Connection Card */}
-            <div style={{
-              background: 'var(--bg-base)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '1.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '1.25rem'
-            }}>
-              {/* Left: Discord Icon + Info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: '#5865F2',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff'
-                }}>
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                  </svg>
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>Discord</h3>
-                    {connectionsData?.connections?.discord?.connected ? (
-                      <span className="badge badge-accent">
-                        Connected
-                      </span>
-                    ) : (
-                      <span className="badge">
-                        Not Connected
-                      </span>
-                    )}
-                  </div>
-
-                  {connectionsData?.connections?.discord?.connected ? (
-                    <div style={{ marginTop: '4px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                      Account: <strong style={{ color: 'var(--text-primary)' }}>@{connectionsData.connections.discord.discord_username || 'Discord User'}</strong>
-                      {connectionsData.connections.discord.discord_id && (
-                        <span style={{ marginLeft: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          (ID: {connectionsData.connections.discord.discord_id})
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ marginTop: '4px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                      Authorize your Discord profile for streamlined login and bot synchronizations.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Right: Actions */}
-              <div>
-                {connectionsData?.connections?.discord?.connected ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Link
-                      href="/bot/discord"
-                      id="btn-settings-goto-bot"
-                      className="btn btn-secondary"
-                      style={{ fontSize: '0.85rem' }}
-                    >
-                      <Icon name="external" size={14} />
-                      <span>Manage Bot</span>
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!connectionsData.has_password) return;
-                        setUnlinkPassword('');
-                        setUnlinkError('');
-                        setShowUnlinkModal(true);
-                      }}
-                      disabled={!connectionsData.has_password}
-                      className="btn btn-danger"
-                      style={{ fontSize: '0.85rem' }}
-                    >
-                      Unlink
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleLinkDiscord}
-                    disabled={linkingDiscord}
-                    className="btn btn-primary"
-                    style={{ background: '#5865F2', borderColor: '#5865F2' }}
-                  >
-                    <Icon name="link" size={14} />
-                    <span>{linkingDiscord ? 'Redirecting...' : 'Connect Discord'}</span>
-                  </button>
-                )}
-              </div>
             </div>
           </div>
         )}
@@ -2394,93 +2137,7 @@ export default function SettingsPage() {
           <ApiKeysTab showToast={showToast} userEmail={user?.email} />
         )}
 
-        {/* Modal Re-authentication for Discord Unlink (BR-027, CTRL-010) */}
-        {showUnlinkModal && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-            padding: '1.5rem'
-          }}>
-            <div className="card" style={{
-              width: '100%',
-              maxWidth: '440px',
-              padding: '1.75rem',
-              border: '1px solid rgba(239, 68, 68, 0.3)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-                <Icon name="shield" size={20} style={{ color: '#ef4444' }} />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Confirm Discord Unlink
-                </h3>
-              </div>
-
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>
-                You will no longer be able to use Discord for single sign-on to this account.
-                For security, please enter your current account password to authenticate (BR-027).
-              </p>
-
-              {unlinkError && (
-                <div style={{
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  color: '#f87171',
-                  fontSize: '0.82rem',
-                  marginBottom: '1rem'
-                }}>
-                  {unlinkError}
-                </div>
-              )}
-
-              <form onSubmit={handleUnlinkDiscord}>
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    autoFocus
-                    required
-                    placeholder="Enter your account password..."
-                    value={unlinkPassword}
-                    onChange={(e) => setUnlinkPassword(e.target.value)}
-                    className="input"
-                    style={{ width: '100%' }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowUnlinkModal(false);
-                      setUnlinkPassword('');
-                      setUnlinkError('');
-                    }}
-                    disabled={unlinking}
-                    className="btn btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={unlinking}
-                    className="btn btn-danger"
-                  >
-                    {unlinking ? 'Authenticating...' : 'Confirm Unlink'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        
       </div>
     </div>
   );

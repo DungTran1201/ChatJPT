@@ -1,5 +1,5 @@
 # Sơ Đồ Kiến Trúc Triển Khai (Deployment Topology Diagram)
-## Dự Án: Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)
+## Dự Án: Website Hỗ Trợ Học Tiếng Nhật & AI Virtual Sensei (ChatJPT)
 
 ---
 
@@ -7,7 +7,7 @@
 | :--- | :--- |
 | **Mã Sơ Đồ** | `DIAG-DEP-001` |
 | **Mã Triển Khai** | `DEP-001` |
-| **Nguồn Sự Thật Thượng Nguồn** | [docs/06-architecture/deployment-concept.md](file:///c:/Users/PC/Project/ai-chan/docs/06-architecture/deployment-concept.md), [docs/13-operations/deployment-guide.md](file:///c:/Users/PC/Project/ai-chan/docs/13-operations/deployment-guide.md), [ai-infra/compose/docker-compose.yml](file:///c:/Users/PC/Project/ai-chan/ai-infra/compose/docker-compose.yml) |
+| **Nguồn Sự Thật Thượng Nguồn** | [docs/06-architecture/deployment-concept.md](file:///c:/Users/PC/Project/ChatJPT/docs/06-architecture/deployment-concept.md), [docs/13-operations/deployment-guide.md](file:///c:/Users/PC/Project/ChatJPT/docs/13-operations/deployment-guide.md), [ai-infra/compose/docker-compose.yml](file:///c:/Users/PC/Project/ChatJPT/ai-infra/compose/docker-compose.yml) |
 | **Mục Đích** | Trực quan hóa cấu trúc triển khai container hóa bằng Docker Compose, ranh giới mạng nội bộ và các cổng dịch vụ |
 
 ---

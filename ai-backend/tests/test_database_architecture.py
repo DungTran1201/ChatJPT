@@ -17,7 +17,7 @@ class TestDatabaseArchitecture(unittest.TestCase):
     def test_tables_exist(self):
         """Kiểm tra các bảng bắt buộc tồn tại theo tài liệu kiến trúc cơ sở dữ liệu."""
         tables = [r[0] for r in self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
-        expected_tables = ["users", "conversations", "messages", "models", "discord_bot_configs"]
+        expected_tables = ["users", "conversations", "messages", "models", "rules", "system_prompts", "attachments", "user_api_keys", "user_quotas", "api_metric_logs"]
         for table in expected_tables:
             self.assertIn(table, tables, f"Table '{table}' must exist in database")
 
@@ -97,18 +97,6 @@ class TestDatabaseArchitecture(unittest.TestCase):
         row = self.cur.execute("SELECT latency_ms, updated_at FROM models WHERE id = 'gemini-3.8-flash'").fetchone()
         self.assertEqual(row[0], 120)
         self.assertIsNotNone(row[1])
-
-    def test_discord_bot_configs_schema(self):
-        """Kiểm tra schema bảng discord_bot_configs (CR-009, ADR-012)."""
-        cols_info = self.cur.execute("PRAGMA table_info(discord_bot_configs)").fetchall()
-        cols = {c[1]: c[2].upper() for c in cols_info}
-        expected_cols = [
-            "id", "user_id", "scope", "guild_id", "guild_name", "channel_id",
-            "active_model_id", "trigger_mode", "custom_prefix", "system_prompt",
-            "max_tokens_per_response", "is_enabled", "sync_to_web", "created_at", "updated_at"
-        ]
-        for col in expected_cols:
-            self.assertIn(col, cols, f"Column '{col}' must exist in discord_bot_configs table")
 
     def test_messages_source_column(self):
         """Kiểm tra cột source trong bảng messages phục vụ đồng bộ đa nền tảng (FR-047)."""

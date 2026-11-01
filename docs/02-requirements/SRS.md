@@ -107,12 +107,12 @@ Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
                                ├─► Secondary: OpenAI API (Complex Reasoning & Test Gen)
                                └─► Nuance: Claude API (Kaiwa & Cultural Keigo)
 ```
-- **Tầng Trình Diễn (`ai-frontend`)**: Giao diện Next.js cung cấp UI tương tác học tập, sân khấu 3D VRM avatar, studio project graph và sidebar quản trị phiên học.
+- **Tầng Trình Diễn (`ai-frontend`)**: Giao diện Next.js cung cấp UI tương tác học tập, sân khấu 3D VRM avatar, quản lý Rules & Prompts và sidebar quản trị phiên học.
 - **Tầng Xử Lý Nghiệp Vụ (`ai-backend`)**: Xử lý logic sư phạm, điều phối AI tiếng Nhật, kiểm soát định mức token và bảo mật ứng dụng.
-- **Tầng Lưu Trữ & Hạ Tầng (`ai-infra`)**: Nginx Gateway, PostgreSQL (lưu User, Conversations, Messages, Project Graphs, Prompts) và Redis.
+- **Tầng Lưu Trữ & Hạ Tầng (`ai-infra`)**: Nginx Gateway, SQLite/PostgreSQL (lưu User, Conversations, Messages, Rules, Prompts, Attachments) và Redis.
 
 ### 2.2 Các Khối Chức Năng Chính (Product Functions)
-1. **Xác thực & Danh tính Học Viên (Identity & Authentication)**: Đăng ký, đăng nhập mật khẩu bcrypt, tích hợp Discord OAuth2, bảo vệ phiên bằng JWT/Secure Cookie.
+1. **Xác thực & Danh tính Học Viên (Identity & Authentication)**: Đăng ký, đăng nhập mật khẩu bcrypt, bảo vệ phiên bằng JWT/Secure Cookie (`FR-001..003`).
 2. **Không Gian Học Tập Đàm Thoại (Japanese Learning Chat Workspace)**:
    - Nhập prompt tiếng Nhật/Việt, nhận phản hồi sư phạm thời gian thực qua Server-Sent Events (SSE).
    - Hiển thị Markdown kèm Furigana, Romaji và bảng tra cứu Kanji.
@@ -121,17 +121,16 @@ Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
    - Nhân vật 3D avatar (AI-Chan Sensei) hiện diện trực tiếp trên màn hình học.
    - Hỗ trợ chế độ Workspace (thu nhỏ góc màn hình) và chế độ Companion (toàn màn hình xoay 360 độ).
    - Động cơ cử động tự nhiên (thở, chớp mắt, gật đầu, vẫy tay khi học viên trả lời bài).
-4. **Studio Xây Dựng Bài Học Dạng Node Graph (Project Workflows)**:
-   - Giáo viên hoặc học viên tự tạo đồ thị luồng học: `Web/Discord Input -> Model AI -> Rules sư phạm -> Output`.
-   - Kết nối với thư viện 32 công cụ thực tế (Jisho lookup, Text File Import).
-5. **Thư Viện System Prompts & Quy Tắc Học Tập (Prompts & Rules Library)**:
+4. **Quản Lý Quy Tắc Sư Phạm & System Prompts (Pedagogy Rules & Prompts)**:
    - Kho prompt mẫu theo cấp độ JLPT (N5, N4, N3, N2, N1) và theo tình huống giao tiếp đời sống / công sở.
    - 4 chế độ kích hoạt quy tắc (`always_on`, `model_decision`, `glob`, `manual`).
-6. **Điều Phối AI Đa Nền Tảng & Failover (Multi-Provider AI Orchestration)**:
+   - Hỗ trợ nạp tệp quy tắc bài tập dạng text (`.txt`, `.md`).
+5. **Điều Phối AI Đa Nền Tảng & Failover (Multi-Provider AI Orchestration)**:
    - Tự động chuyển đổi mượt mà giữa Google Gemini, OpenAI và Anthropic Claude khi gặp sự cố quota hoặc nghẽn mạng (`BR-005`).
-7. **Bot Học Tập Cộng Đồng Discord (Discord Study Bot)**:
-   - Tích hợp bot Discord tham gia vào các server học tiếng Nhật, hỗ trợ slash commands, daily vocabulary & kanji quiz.
-8. **Giám Sát Tài Nguyên & Hạn Ngạch Học Tập (Telemetry & Quota Guard)**:
+6. **Tùy Biến Khóa Cá Nhân & Tệp Đính Kèm (BYOK API Keys & Attachments)**:
+   - Học viên kết nối API Key riêng (Gemini, OpenAI, Claude, DeepSeek, Groq) được mã hóa AES-256.
+   - Đính kèm tệp tài liệu bài học để trợ lý phân tích trực tiếp.
+7. **Giám Sát Tài Nguyên & Hạn Ngạch Học Tập (Telemetry & Quota Guard)**:
    - Giới hạn tốc độ chống spam, theo dõi lượng token tiêu thụ và cảnh báo khi chạm định mức học tập hàng ngày.
 
 ### 2.3 Đặc Điểm & Nhóm Người Dùng (User Classes and Characteristics)
@@ -143,10 +142,7 @@ Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
   - *Đặc quyền*: Khởi tạo không giới hạn các phiên học theo chủ đề, lưu trữ toàn bộ lịch sử trò chuyện và sổ tay câu sai, tùy biến API key cá nhân.
 - **Japanese Educator / Content Creator (Giáo viên / Người tạo bài giảng)**:
   - *Mô tả*: Giáo viên tiếng Nhật hoặc người sáng tạo nội dung giáo dục.
-  - *Đặc quyền*: Sử dụng Project Builder Studio để thiết kế pipeline bài học chuyên sâu, tạo thư viện prompt riêng và chia sẻ kịch bản học.
-- **Discord Community Learner (Học viên cộng đồng Discord)**:
-  - *Mô tả*: Thành viên trong các server Discord học tiếng Nhật có cài đặt ChatJPT Bot.
-  - *Đặc quyền*: Tương tác đố vui, tra cứu từ vựng và nhận thông báo học tập trực tiếp trong Discord.
+  - *Đặc quyền*: Tùy biến thư viện prompt riêng, thiết lập các quy tắc sư phạm cho học viên và xuất/nhập tệp bài tập.
 - **System Administrator (Quản trị viên hệ thống)**:
   - *Mô tả*: Đội ngũ vận hành hệ thống kỹ thuật.
   - *Đặc quyền*: Quản lý danh mục model AI, giám sát telemetry độ trễ TTFT, cấu hình định mức quota hệ thống.
@@ -174,18 +170,20 @@ Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
 
 | Phân Loại | Mã Hạng Mục | Mô Tả Chi Tiết |
 | :--- | :--- | :--- |
-| **IN SCOPE** *(Bắt buộc hoàn thiện trong phiên bản ChatJPT)* | **SC-IN-01** | **Xác thực học viên**: Đăng ký (Email/Password), Đăng nhập, Đăng nhập Discord OAuth2, Bảo vệ phiên qua JWT HttpOnly. |
-| | **SC-IN-02** | **Quản lý phiên học tập (Learning Sessions)**: Tạo mới, liệt kê danh sách, đổi tên theo chủ đề (JLPT N5-N1, Kaiwa), xóa phiên học. |
-| | **SC-IN-03** | **Trợ lý AI Sư Phạm (AI Tutor Sensei)**: Phân tích câu, sửa lỗi ngữ pháp (Grammar Doctor), phân tích Kanji, sinh ví dụ song ngữ Nhật - Việt qua SSE stream. |
-| | **SC-IN-04** | **Sân khấu 3D VRM Sensei Companion**: Avatar 3D tương tác biểu cảm, chuyển động tự nhiên (thở, chớp mắt, cử chỉ động viên). |
+| **IN SCOPE** *(Bắt buộc hoàn thiện trong phiên bản ChatJPT)* | **SC-IN-01** | **Xác thực học viên**: Đăng ký (Email/Password), Đăng nhập, Bảo vệ phiên qua JWT HttpOnly (`FR-001..003`). |
+| | **SC-IN-02** | **Quản lý phiên học tập (Learning Sessions)**: Tạo mới, liệt kê danh sách, đổi tên theo chủ đề (JLPT N5-N1, Kaiwa), xóa phiên học (`FR-004..007`). |
+| | **SC-IN-03** | **Trợ lý AI Sư Phạm (AI Tutor Sensei)**: Phân tích câu, sửa lỗi ngữ pháp (Grammar Doctor), phân tích Kanji, sinh ví dụ song ngữ Nhật - Việt qua SSE stream (`FR-008..014`). |
+| | **SC-IN-04** | **Sân khấu 3D VRM Sensei Companion**: Avatar 3D tương tác biểu cảm, chuyển động tự nhiên (thở, chớp mắt, xoay 360 độ, cử chỉ động viên) (`FR-048..056`). |
 | | **SC-IN-05** | **Điều phối AI Đa Nền Tảng & Failover**: Gọi Gemini (mặc định), tự động chuyển vùng dự phòng sang OpenAI/Claude khi lỗi hoặc hết quota (`BR-005`). |
-| | **SC-IN-06** | **Studio Pipeline Bài Học (Project Builder)**: Kéo thả các node bài giảng, liên kết model, prompt và rules kiểm tra ngữ pháp. |
+| | **SC-IN-06** | **Quản lý Quy Tắc & Prompts Sư Phạm**: Kho prompts JLPT, 4 chế độ kích hoạt rules, import tệp quy tắc (`rules`, `system_prompts`). |
 | | **SC-IN-07** | **Bảo vệ ứng dụng & Quota học tập**: Giới hạn tốc độ chống spam, kiểm soát định mức token học tập hàng ngày (`quota_manager`). |
-| | **SC-IN-08** | **Tích hợp Discord Study Bot**: Nhắc học hàng ngày, tra cứu từ vựng và đố vui Kanji trong server Discord. |
-| **OUT OF SCOPE** *(Tuyệt đối không thực hiện trong giai đoạn này)* | **SC-OUT-01** | Tích hợp cổng thanh toán trực tuyến hoặc mua gói thành viên (Payment / Subscription billing). |
+| | **SC-IN-08** | **Tùy biến Khóa API Cá Nhân (BYOK)**: Lưu trữ và mã hóa AES-256 API Key cá nhân người dùng (`user_api_keys`). |
+| **OUT OF SCOPE** *(Tách khỏi phạm vi web học tiếng Nhật)* | **SC-OUT-01** | Tích hợp cổng thanh toán trực tuyến hoặc mua gói thành viên (Payment / Subscription billing). |
 | | **SC-OUT-02** | Xây dựng ứng dụng di động bản địa (Native Mobile Apps cho iOS / Android). |
 | | **SC-OUT-03** | Tự huấn luyện (Fine-tuning / Pre-training) mô hình AI riêng trên máy chủ cục bộ. |
 | | **SC-OUT-04** | Đàm thoại âm thanh hai chiều thời gian thực (Full Duplex Speech-to-Speech latency cực thấp). |
+| | **SC-OUT-05** | Studio xây dựng bài học dạng đồ thị Node Graph phức tạp (`projects`, canvas editor). |
+| | **SC-OUT-06** | Hệ thống quản lý External Skills, Custom Tools, và tích hợp Discord Bot / OAuth2 mạng xã hội. |
 | **FUTURE SCOPE** *(Lộ trình phát triển tiếp theo)* | **SC-FUT-01** | **Voice Chat luyện phát âm với Sensei**: Nhận diện giọng nói tiếng Nhật và phát âm phản hồi tự nhiên qua Speech-to-Text / Text-to-Speech. |
 | | **SC-FUT-02** | **RAG Giáo trình PDF tiếng Nhật**: Tải lên giáo trình Minna no Nihongo, Soumatome để AI tra cứu bài tập chuẩn sách giáo khoa. |
 | | **SC-FUT-03** | **Chế độ thi thử JLPT bấm giờ & Bảng xếp hạng**: Làm bài thi mẫu N5-N1 có đếm ngược thời gian và chấm điểm tự động. |
@@ -217,20 +215,19 @@ Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
 │ (Trial)   │               │  Learner  │               │ Educator  │
 └─────┬─────┘               └─────┬─────┘               └─────┬─────┘
       │                           │                           │
-      ├───────────────────────────┴───────────────────────────┤
-      ▼                                                       ▼
-┌───────────┐                                           ┌───────────┐
-│  Discord  │                                           │ External  │
-│ Community │                                           │AI Provider│
-└───────────┘                                           └───────────┘
+      └───────────────────────────┼───────────────────────────┘
+                                  ▼
+                            ┌───────────┐
+                            │ External  │
+                            │AI Provider│
+                            └───────────┘
 ```
 
 | Actor ID | Tên Tác Nhân | Trách Nhiệm & Quyền Hạn | Tương Tác Với Hệ Thống |
 | :--- | :--- | :--- | :--- |
 | **ACT-01** | **Guest (Khách vãng lai)** | Người dùng chưa đăng nhập muốn tìm hiểu nền tảng. | Xem Landing page, trải nghiệm thử thách ngữ pháp cơ bản có giới hạn lượt câu hỏi. |
 | **ACT-02** | **Japanese Learner (Học viên)** | Học viên chính thức đã xác thực tài khoản. | Tạo phiên học, gửi câu hỏi ngữ pháp, luyện Kaiwa với 3D VRM Sensei, lưu sổ tay câu sai, quản lý API key cá nhân. |
-| **ACT-03** | **Japanese Educator (Giáo viên)** | Người tạo bài giảng hoặc trợ giảng. | Thiết kế workflow bài học trên Project Builder Canvas, tạo prompts chuyên đề, gắn kết rules kiểm tra bài. |
-| **ACT-04** | **Discord Community Learner** | Thành viên trong cộng đồng Discord. | Tương tác qua ChatJPT Discord Bot, tham gia giải đố Kanji và nhận từ vựng hàng ngày. |
+| **ACT-03** | **Japanese Educator (Giáo viên)** | Người tạo bài giảng hoặc trợ giảng. | Tạo prompts chuyên đề JLPT, gắn kết rules kiểm tra ngữ pháp, nhập tệp quy tắc sư phạm. |
 | **ACT-05** | **External AI Provider** | Đám mây AI đối tác (Google Gemini, OpenAI, Claude). | Nhận prompt sư phạm, trả về luồng token phân tích ngữ pháp và câu trả lời tiếng Nhật. |
 | **ACT-06** | **System Background Scheduler** | Tiến trình ngầm hệ thống. | Tự động làm mới hạn ngạch quota token hàng ngày, dọn dẹp session hết hạn. |
 
@@ -383,12 +380,12 @@ Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
 - **Điều Kiện Tiên Quyết (Preconditions)**: Tin nhắn người dùng đã gửi thành công tới Backend.
 - **Luồng Chính (Main Flow)**:
   1. Backend tập hợp ngữ cảnh các tin nhắn gần nhất của cuộc trò chuyện.
-  2. Backend gọi engine LLM ([llm_manager](file:///c:/Users/PC/Project/ai-chan/ai-backend/llm/client.py)).
+  2. Backend gọi engine LLM ([llm_manager](file:///c:/Users/PC/Project/ChatJPT/ai-backend/llm/client.py)).
   3. Mô hình AI phân tích và trả về nội dung hoàn chỉnh kèm số lượng token tiêu thụ.
   4. Backend lưu tin nhắn phản hồi của AI vào cơ sở dữ liệu (`role: assistant`).
   5. Backend trả kết quả về cho Client; Client kết xuất định dạng Markdown, danh sách và khối mã nguồn (Syntax Highlighting).
 - **Luồng Phụ (Alternative Flow - Streaming)**:
-  - Client yêu cầu stream -> Backend truyền dữ liệu chunk-by-chunk qua ReadableStream ([apiClient.ts](file:///c:/Users/PC/Project/ai-chan/ai-frontend/src/services/apiClient.ts)), giao diện hiển thị hiệu ứng gõ phím theo thời gian thực.
+  - Client yêu cầu stream -> Backend truyền dữ liệu chunk-by-chunk qua ReadableStream ([apiClient.ts](file:///c:/Users/PC/Project/ChatJPT/ai-frontend/src/services/apiClient.ts)), giao diện hiển thị hiệu ứng gõ phím theo thời gian thực.
 - **Luồng Ngoại Lệ (Exception Flow)**:
   - *EF-01*: Nhà cung cấp AI chính lỗi/timeout -> Kích hoạt cơ chế Fallback sang nhà cung cấp phụ (`FR-011`).
   - *EF-02*: Cả hai nhà cung cấp đều thất bại -> Trả về thông báo lỗi thân thiện: "Hệ thống AI hiện đang bận, vui lòng thử lại sau giây lát."
@@ -441,7 +438,7 @@ Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
 - **NFR-SEC-03 (Bảo vệ Mật Khẩu)**: Mật khẩu người dùng trong cơ sở dữ liệu phải được băm một chiều bằng thuật toán hiện đại có muối ngẫu nhiên (Bcrypt hoặc Argon2id), không lưu mật khẩu dạng plain-text.
 - **NFR-SEC-04 (Bảo Vệ Tầng Mạng & Chống DoS)**:
   - Nginx Gateway giới hạn tần suất gửi yêu cầu tối đa 10 req/s cho các endpoint `/api/` và tối đa 20 kết nối đồng thời trên mỗi địa chỉ IP.
-  - Tầng Backend thực thi bổ sung bộ lọc trượt [InMemoryRateLimiter](file:///c:/Users/PC/Project/ai-chan/ai-backend/src/core/security.py) (60 req/phút/IP).
+  - Tầng Backend thực thi bổ sung bộ lọc trượt [InMemoryRateLimiter](file:///c:/Users/PC/Project/ChatJPT/ai-backend/src/core/security.py) (60 req/phút/IP).
 - **NFR-SEC-05 (Kiểm Soát Nhập Liệu & Chống Tiêm Nhiễm)**: Toàn bộ dữ liệu gửi lên phải được kiểm tra schema nghiêm ngặt thông qua Pydantic tại Backend; hiển thị phía Frontend phải được khử khuẩn (Sanitize) để chống tấn công Cross-Site Scripting (XSS).
 
 ### 6.3 Độ Tin Cậy & Tính Sẵn Sàng (Reliability & Availability) - `NFR-REL`
@@ -564,10 +561,10 @@ stateDiagram-v2
 
 | Hệ Thống Ngoài | Vai Trò Tích Hợp | Phương Thức Kết Nối | Trạng Thái Bằng Chứng |
 | :--- | :--- | :--- | :--- |
-| **Google Gemini API** | Nhà cung cấp AI chính (Primary LLM Provider) để sinh câu trả lời đàm thoại. | REST API / Python Google Generative AI SDK qua Internet bảo mật. | `FACT` (Đã tích hợp trong [gemini_provider.py](file:///c:/Users/PC/Project/ai-chan/ai-backend/llm/providers/gemini_provider.py)). |
-| **OpenAI API** | Nhà cung cấp AI dự phòng (Fallback LLM Provider) khi Gemini lỗi hoặc quá tải. | REST API / Python OpenAI SDK qua Internet bảo mật. | `FACT` (Đã tích hợp trong [openai_provider.py](file:///c:/Users/PC/Project/ai-chan/ai-backend/llm/providers/openai_provider.py)). |
-| **PostgreSQL 16** | Hệ quản trị cơ sở dữ liệu quan hệ lưu trữ Users, Conversations, Messages. | Cổng kết nối nội bộ Docker Compose qua giao thức TCP chuẩn 5432. | `FACT` (Đã cấu hình service trong [docker-compose.yml](file:///c:/Users/PC/Project/ai-chan/ai-infra/compose/docker-compose.yml)). |
-| **Redis 7** | Bộ nhớ đệm (Cache) lưu trạng thái phiên làm việc và khóa tốc độ tập trung. | Cổng kết nối nội bộ Docker Compose qua giao thức Redis 6379. | `FACT` (Đã cấu hình service trong [docker-compose.yml](file:///c:/Users/PC/Project/ai-chan/ai-infra/compose/docker-compose.yml)). |
+| **Google Gemini API** | Nhà cung cấp AI chính (Primary LLM Provider) để sinh câu trả lời đàm thoại. | REST API / Python Google Generative AI SDK qua Internet bảo mật. | `FACT` (Đã tích hợp trong [gemini_provider.py](file:///c:/Users/PC/Project/ChatJPT/ai-backend/llm/providers/gemini_provider.py)). |
+| **OpenAI API** | Nhà cung cấp AI dự phòng (Fallback LLM Provider) khi Gemini lỗi hoặc quá tải. | REST API / Python OpenAI SDK qua Internet bảo mật. | `FACT` (Đã tích hợp trong [openai_provider.py](file:///c:/Users/PC/Project/ChatJPT/ai-backend/llm/providers/openai_provider.py)). |
+| **PostgreSQL 16** | Hệ quản trị cơ sở dữ liệu quan hệ lưu trữ Users, Conversations, Messages. | Cổng kết nối nội bộ Docker Compose qua giao thức TCP chuẩn 5432. | `FACT` (Đã cấu hình service trong [docker-compose.yml](file:///c:/Users/PC/Project/ChatJPT/ai-infra/compose/docker-compose.yml)). |
+| **Redis 7** | Bộ nhớ đệm (Cache) lưu trạng thái phiên làm việc và khóa tốc độ tập trung. | Cổng kết nối nội bộ Docker Compose qua giao thức Redis 6379. | `FACT` (Đã cấu hình service trong [docker-compose.yml](file:///c:/Users/PC/Project/ChatJPT/ai-infra/compose/docker-compose.yml)). |
 | **OAuth2 Identity Providers** | Cung cấp đăng nhập qua Google, GitHub `[POTENTIAL]`. | OAuth2 / OpenID Connect qua HTTPS callback. | `FUTURE SCOPE` / `POTENTIAL`. |
 | **S3-compatible Object Storage** | Lưu trữ tệp đính kèm khi mở rộng tính năng upload tài liệu `[POTENTIAL]`. | S3 API / HTTPS. | `FUTURE SCOPE` / `POTENTIAL`. |
 
@@ -625,7 +622,7 @@ stateDiagram-v2
 - **SEC-05 (Kiểm Soát Tải & Chống Lạm Dụng - Anti-Abuse Rate Limiting)**:
   - Thiết lập phòng thủ 2 lớp (Defense-in-depth):
     - *Lớp 1 (Ingress Edge)*: Nginx Gateway giới hạn 10 request/giây trên IP, cắt tỉa kết nối vượt quá 20 socket đồng thời.
-    - *Lớp 2 (Application Core)*: Bộ đếm trượt [InMemoryRateLimiter](file:///c:/Users/PC/Project/ai-chan/ai-backend/src/core/security.py) giới hạn 60 request/phút trên mỗi Client IP đối với các thao tác chat.
+    - *Lớp 2 (Application Core)*: Bộ đếm trượt [InMemoryRateLimiter](file:///c:/Users/PC/Project/ChatJPT/ai-backend/src/core/security.py) giới hạn 60 request/phút trên mỗi Client IP đối với các thao tác chat.
 - **SEC-06 (An Toàn Nhật Ký - Sensitive Data Redaction in Logs)**: Nhật ký hệ thống không được chứa mật khẩu người dùng, dữ liệu băm mật khẩu, token xác thực đầy đủ hoặc toàn văn thông tin cá nhân nhạy cảm.
 
 ---

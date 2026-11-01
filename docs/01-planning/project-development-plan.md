@@ -22,8 +22,8 @@ Dự án kế thừa và phát huy tối đa các năng lực kỹ thuật đã 
 1. **Kiến trúc full-stack 3 tầng containerized**: FastAPI backend bất đồng bộ, Next.js frontend hiện đại, reverse proxy Nginx và hệ thống lưu trữ bền vững.
 2. **Trợ lý AI Sư Phạm Đa Nền Tảng (Pedagogical AI Orchestrator)**: Khai thác sức mạnh của các mô hình LLM hàng đầu (Gemini, OpenAI, Claude) với cơ chế tự phục hồi (Multi-Provider Failover) để đóng vai trò **Gia sư ảo tiếng Nhật thông minh** (AI Tutor Sensei) có khả năng sửa lỗi câu, phân tích ngữ pháp theo cấp độ JLPT từ N5 đến N1, giải nghĩa Hán tự (Kanji) và đàm thoại phản xạ (Kaiwa).
 3. **Gia sư ảo 3D VRM tương tác sống động (AI-Chan Sensei Companion)**: Ứng dụng Three.js và `@pixiv/three-vrm` để tạo sân khấu tương tác 3D chân thực, mô phỏng cử chỉ động viên, chớp mắt và nhịp thở tự nhiên, xóa bỏ cảm giác cô đơn khi tự học ngoại ngữ.
-4. **Studio Xây Dựng Bài Giảng Dạng Đồ Thị (Node-based Project Builder)**: Cho phép giáo viên và học viên tự thiết kế các pipeline học tập chuyên đề linh hoạt (`Văn bản đầu vào -> Model AI -> Rules kiểm tra -> Output giải thích song ngữ`).
-5. **Hệ thống Discord Study Bot tích hợp**: Mở rộng môi trường học tập ra cộng đồng Discord thông qua bot tự động nhắc học, đố vui Kanji và giải nghĩa nhanh từ vựng.
+4. **Hệ thống Quản lý Quy tắc Sư phạm & System Prompts (Pedagogical Rules & Prompts)**: Cung cấp kho quy tắc kiểm soát ngôn ngữ, phân loại theo trình độ JLPT (N5 - N1), và hỗ trợ cơ chế nạp/xuất file bài tập nhanh chóng.
+5. **Cơ chế Tùy biến Khóa API cá nhân (Bring Your Own Key - BYOK)**: Cho phép người dùng cấu hình khóa API riêng cho các nhà cung cấp AI tiên tiến (Gemini, OpenAI, Anthropic Claude, OpenRouter, DeepSeek, Groq) được mã hóa AES-256 an toàn.
 
 ### 1.2 Mục Tiêu Nghiệp Vụ Trọng Tâm (Business Objectives)
 - **BO-01 (Trải nghiệm học tập trực quan & tức thì)**: Cung cấp giao diện học tiếng Nhật thân thiện, hiển thị cấu trúc câu rõ ràng (Furigana, Romaji, Hán tự, giải thích ngữ pháp tiếng Việt), phản hồi luồng ký tự qua Server-Sent Events với độ trễ bắt đầu `TTFT < 2.0s`.
@@ -50,26 +50,23 @@ Dự án áp dụng mô hình **Incremental, Dependency-Aware, Risk-First & Docu
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                           CHATJPT SYSTEM SCOPE                                  │
 ├──────────────────────────────────────┬──────────────────────────────────────────┤
-│ IN SCOPE (MVP Release)               │ OUT OF SCOPE (Giai Đoạn Này)             │
-│ - Xác thực: Email/Password & Discord │ - Cổng thanh toán khóa học (Billing/     │
-│   OAuth2 an toàn, bảo vệ phiên JWT.  │   Subscription Gateway).                 │
-│ - Gia sư AI Tiếng Nhật (AI Tutor):   │ - Ứng dụng di động bản địa (Native       │
-│   • Phân tích câu & sửa lỗi văn phạm │   Mobile App iOS/Android).               │
-│     (Grammar Doctor).                │ - Tự pre-train/fine-tune LLM riêng       │
-│   • Tra cứu & phân tích Hán tự Kanji │   trên máy chủ cục bộ.                   │
-│   • Luyện đàm thoại Kaiwa phản xạ.   │ - Đàm thoại thoại 2 chiều âm thanh       │
-│   • Phân loại lộ trình JLPT N5 - N1. │   thời gian thực (Speech-to-Speech).     │
-│ - Sân khấu 3D VRM Sensei Companion:  ├──────────────────────────────────────────┤
-│   Mô phỏng nhịp thở, chớp mắt, cử    │ FUTURE SCOPE (Lộ Trình Tương Lai)        │
-│   chỉ động viên theo câu trả lời AI. │ - Đàm thoại giọng nói 2 chiều AI Sensei  │
-│ - Studio Project Builder: Xây dựng   │   (Tích hợp Web Speech API / Whisper).   │
-│   pipeline bài giảng dạng Node Graph.│ - RAG tài liệu PDF giáo trình học        │
-│ - Thư viện Prompts & Rules học tập:  │   (Minna no Nihongo, Soumatome, v.v.).   │
-│   Chế độ kích hoạt linh hoạt 4 tầng. │ - Thi thử JLPT bấm giờ & Bảng xếp hạng   │
-│ - Quản lý API Key người dùng (AES) & │   vinh danh học viên (Leaderboard).      │
-│   bộ đếm định mức token hàng ngày.   │ - Chia sẻ công khai bài giảng/pipeline   │
-│ - Discord Study Bot: Slash commands, │   học tập trong cộng đồng (Community     │
-│   daily quiz từ vựng và Kanji.       │   Template Hub).                         │
+│ IN SCOPE (MVP Release)               │ OUT OF SCOPE (Đã Tách Khỏi Dự Án)        │
+│ - Xác thực người dùng Email/Password │ - Studio thiết kế bài học đồ thị Node    │
+│   an toàn, bảo vệ phiên qua JWT.     │   Graph phức tạp (Project Studio).       │
+│ - Gia sư AI Tiếng Nhật (AI Tutor):   │ - Hệ thống Skills mở rộng & Custom Tools.│
+│   • Phân tích câu & sửa lỗi văn phạm │ - Bot Discord và OAuth2 mạng xã hội.     │
+│     (Grammar Doctor).                │ - Cổng thanh toán (Billing/Subscription).│
+│   • Tra cứu & phân tích Hán tự Kanji │ - Ứng dụng di động bản địa Native Mobile.│
+│   • Luyện đàm thoại Kaiwa phản xạ.   │ - Tự pre-train/fine-tune LLM riêng.      │
+│   • Phân loại lộ trình JLPT N5 - N1. ├──────────────────────────────────────────┤
+│ - Sân khấu 3D VRM Sensei Companion:  │ FUTURE SCOPE (Lộ Trình Tương Lai)        │
+│   Mô phỏng nhịp thở, chớp mắt, xoay  │ - Đàm thoại giọng nói 2 chiều AI Sensei  │
+│   360 độ, cử chỉ động viên tự nhiên. │   (Web Speech API / Whisper).            │
+│ - Quản lý Prompts & Rules Sư phạm:   │ - RAG tài liệu PDF giáo trình học        │
+│   Cơ chế kích hoạt linh hoạt 4 tầng. │   (Minna no Nihongo, Soumatome, v.v.).   │
+│ - Đính kèm tệp văn bản bài học.      │ - Thi thử JLPT bấm giờ & Bảng xếp hạng   │
+│ - BYOK API Keys (AES-256 mã hóa).    │   vinh danh học viên (Leaderboard).      │
+│ - Bộ đếm định mức token hàng ngày.   │                                          │
 └──────────────────────────────────────┴──────────────────────────────────────────┘
 ```
 
@@ -84,10 +81,10 @@ Dự án áp dụng mô hình **Incremental, Dependency-Aware, Risk-First & Docu
 | **Quản Lý Phiên Học & Lịch Sử** | `CAP-CONV` | `FR-004..007`, `FR-012`, `BR-002` | `Must Have` | **IMPLEMENTED** |
 | **Trợ Lý AI Sư Phạm Tiếng Nhật** | `CAP-JAPANESE-AI` | `FR-008..011`, `FR-013..014`, `BR-005` | `Must Have` | **ENHANCED WITH JAPANESE PROMPTS** |
 | **Gia Sư Ảo 3D VRM Đồng Hành** | `CAP-VRM-TUTOR` | `FR-048..056`, `BR-035`, `ADR-013` | `Must Have` | **IMPLEMENTED** |
-| **Studio Pipeline Bài Giảng** | `CAP-PROJECT-STUDIO` | `FR-057`, `BR-036..039`, `ADR-014` | `Must Have` | **IMPLEMENTED** |
-| **Thư Viện Công Cụ & Quy Tắc Học** | `CAP-TOOLS-RULES` | 32 Tools, 4 Activation Modes, PolicyGate | `Must Have` | **IMPLEMENTED** |
+| **Studio Pipeline Bài Giảng** | `CAP-PROJECT-STUDIO` | `FR-057`, `BR-036..039`, `ADR-014` | `Retired` | **RETIRED** (Tách khỏi phạm vi web học tập) |
+| **Thư Viện Quy Tắc & Prompts Học** | `CAP-RULES-PROMPTS` | Rules sư phạm, Prompts N5-N1, Import file | `Must Have` | **IMPLEMENTED** |
 | **Quản Lý API Key & Quota Học Tập** | `CAP-RES-MGMT` | `FR-029..034`, `BR-019..021`, `SEC-015` | `Must Have` | **IMPLEMENTED** |
-| **Bot Học Tập Cộng Đồng Discord** | `CAP-DISCORD-BOT` | `FR-044..046`, `BR-031..034`, Multi-bot | `Should Have`| **IMPLEMENTED** |
+| **Bot Học Tập Cộng Đồng Discord** | `CAP-DISCORD-BOT` | `FR-044..046`, `BR-031..034`, Multi-bot | `Retired` | **RETIRED** (Tách khỏi phạm vi web học tập) |
 
 ---
 
@@ -98,7 +95,7 @@ graph LR
     P01[Phase 01: Kiến Trúc & Thiết Kế Nền Tảng Học Tiếng Nhật] --> P02[Phase 02: Xác Thực & Quản Lý Hồ Sơ Học Viên]
     P02 --> P03[Phase 03: Vòng Đời Phiên Học & Sổ Tay Câu Sai]
     P03 --> P04[Phase 04: Bộ Điều Phối AI Sư Phạm & Sân Khấu 3D VRM]
-    P04 --> P05[Phase 05: Studio Pipeline Bài Giảng & Discord Study Bot]
+    P04 --> P05[Phase 05: Quy Tắc Sư Phạm, BYOK API Keys & Sổ Tay Học Tập]
     P05 --> P06[Phase 06: Kiểm Thử Toàn Diện, Tối Ưu Quota & Phát Hành]
 ```
 
@@ -106,7 +103,7 @@ graph LR
 - **Phase 02 (Authentication & Student Profile Management)**: Xác thực tài khoản, hỗ trợ đăng nhập Discord OAuth2 cho học viên cộng đồng, bảo vệ thông tin học viên qua JWT Cookie và mã hóa mật khẩu bcrypt.
 - **Phase 03 (Learning Session Lifecycle & Data Isolation)**: Quản lý các phiên hội thoại học tập theo từng chủ đề (Văn phạm, Từ vựng, Kanji, Đàm thoại), cách ly dữ liệu cá nhân theo `BR-002`.
 - **Phase 04 (Japanese AI Orchestrator & 3D VRM Sensei Companion)**: Kích hoạt bộ điều phối AI đa nhà cung cấp, streaming phản hồi phân tích ngữ pháp tiếng Nhật ra giao diện, kết nối động cơ chuyển động tự nhiên của mô hình 3D VRM.
-- **Phase 05 (Project Learning Studio & Discord Study Bot)**: Cung cấp giao diện trực quan cho giáo viên tạo pipeline bài học, kết nối bot Discord phục vụ học nhóm.
+- **Phase 05 (Pedagogical Rules, BYOK Keys & User Experience)**: Cung cấp giao diện quản lý quy tắc sư phạm, thư viện prompt JLPT, quản lý khóa BYOK API Keys an toàn và sổ tay lưu trữ câu hỏi.
 - **Phase 06 (Testing, Quota Optimization & Release Readiness)**: Kiểm toán truy vết, xác thực độ trễ TTFT < 2s, kiểm tra an toàn dữ liệu và đóng gói bản phát hành.
 
 ---
@@ -119,7 +116,7 @@ graph LR
 | **M02** | **Student Identity & Personalization Ready**| Học viên đăng ký, đăng nhập tài khoản an toàn; cấu hình API Key cá nhân (nếu có) được mã hóa AES-256-GCM. | Vượt qua bài kiểm tra xác thực và mã hóa bí mật. |
 | **M03** | **Interactive Learning Session Foundation** | Quản lý danh sách các buổi học trên Sidebar, phân tách phiên học theo chủ đề ôn thi JLPT và Kaiwa. | Bảo đảm bất biến cách ly dữ liệu `BR-002`. |
 | **M04** | **AI Tutor Sensei & 3D Companion Live** | Chatbot tiếng Nhật phân tích câu chính xác, stream mượt mà, avatar 3D VRM biểu cảm đồng bộ và tự động fallback model khi nghẽn mạng. | Độ trễ bắt đầu stream TTFT < 2.0s (`NFR-003`). |
-| **M05** | **Full Ecosystem & Discord Study Release** | Studio Project Builder và Discord Study Bot hoạt động đồng bộ, hoàn tất đóng gói chạy thử qua `run-demo.bat`. | Vượt qua toàn bộ bộ kiểm thử tích hợp và nghiệm thu phát hành. |
+| **M05** | **Focused Japanese Web Platform Release** | Nền tảng Web học tiếng Nhật tập trung (Kaiwa, 3D VRM Sensei, Rules, Prompts, BYOK) hoàn tất đóng gói chạy qua `run-demo.bat`. | Vượt qua toàn bộ bộ kiểm thử tích hợp và nghiệm thu phát hành. |
 
 ---
 

@@ -617,11 +617,15 @@
 
 ---
 
-## 5. Phân Hệ Xác Thực Bên Thứ Ba & OAuth2 (Third-Party Authentication & OAuth2)
+## 5. [RETIRED] Phân Hệ Xác Thực Bên Thứ Ba & OAuth2 (Third-Party Authentication & OAuth2 - Phạm vi đã được gỡ bỏ để tập trung vào ứng dụng Web học tiếng Nhật)
 
 ---
 
 ### FR-027: Đăng Ký Tài Khoản Bằng Discord (Discord Account Registration)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-027`
 - **Tên Yêu Cầu**: Đăng Ký Tài Khoản Bằng Discord (Discord Account Registration).
 - **Mô Tả**: Cho phép người dùng chưa có tài khoản thực hiện đăng ký tài khoản mới trên hệ thống AI-Chan thông qua ủy quyền OAuth2 của Discord, tự động trích xuất thông tin định danh (`discord_id`, `email`, `discord_username`, `avatar`) mà không bắt buộc nhập mật khẩu thủ công.
@@ -648,13 +652,17 @@
   - *EF-03*: Email từ tài khoản Discord chưa được xác thực (`verified == false`) -> Backend từ chối liên kết hoặc đăng ký mới với lỗi `HTTP 400 Bad Request`: "Tài khoản Discord của bạn cần xác thực email trước khi sử dụng để đăng ký."
 - **Điều Kiện Sau (Postconditions)**: Bản ghi người dùng được tạo thành công trong cơ sở dữ liệu với `discord_id` được ghi nhận; người dùng được đăng nhập vào hệ thống với phiên JWT hợp lệ.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-001`, `BR-016`, `BR-017`, `BR-018`, `SEC-004`, `SEC-008`, `ADR-007`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `AC-009-A`.
 
 ---
 
 ### FR-028: Đăng Nhập & Tự Động Liên Kết Bằng Discord (Discord Account Login & Linking)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-028`
 - **Tên Yêu Cầu**: Đăng Nhập & Tự Động Liên Kết Bằng Discord (Discord Account Login & Linking).
 - **Mô Tả**: Cho phép người dùng đã liên kết tài khoản Discord đăng nhập nhanh vào hệ thống chỉ bằng 1 thao tác click, hoặc người dùng đã có tài khoản email/mật khẩu truyền thống được tự động liên kết với tài khoản Discord khi đăng nhập bằng Discord với email tương ứng (`BR-017`).
@@ -680,7 +688,7 @@
   - *EF-03*: Tài khoản người dùng đang bị khóa hoặc hạn chế -> Hệ thống từ chối đăng nhập với thông báo phù hợp.
 - **Điều Kiện Sau (Postconditions)**: Người dùng thiết lập phiên đăng nhập thành công thông qua tài khoản Discord; thông tin định danh Discord được liên kết đồng bộ.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-002`, `BR-016`, `BR-017`, `SEC-004`, `SEC-008`, `ADR-007`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `AC-009-B`.
 
@@ -928,6 +936,10 @@
 ---
 
 ### FR-040: Liên Kết Tài Khoản Người Dùng Với Discord (Link Authenticated User Account with Discord)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-040`
 - **Tên Yêu Cầu**: Liên Kết Tài Khoản Người Dùng Với Discord (Link Authenticated User Account with Discord).
 - **Mô Tả**: Cho phép người dùng đã đăng nhập thực hiện liên kết tài khoản website hiện tại với tài khoản Discord cá nhân thông qua luồng ủy quyền Discord OAuth2, với cơ chế kiểm tra tính duy nhất 1-1 và từ chối xung đột (`BR-025`).
@@ -949,13 +961,17 @@
   - *EF-02*: Tham số `state` không hợp lệ hoặc quá hạn 10 phút -> Chặn với lỗi `HTTP 400 Bad Request` (`BR-016`).
 - **Điều Kiện Sau (Postconditions)**: Tài khoản người dùng được liên kết định danh với Discord, cho phép đăng nhập một chạm bằng Discord trong các phiên kế tiếp.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-002`, `FR-028`, `BR-016`, `BR-025`, `SEC-011`, `OP-026`, `OP-027`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `TC-031`, `TC-032`.
 
 ---
 
 ### FR-041: Hủy Liên Kết Tài Khoản Discord Có Chốt Chặn An Toàn (Unlink Discord Account with Lockout Guard)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-041`
 - **Tên Yêu Cầu**: Hủy Liên Kết Tài Khoản Discord Có Chốt Chặn An Toàn (Unlink Discord Account with Lockout Guard).
 - **Mô Tả**: Cung cấp khả năng hủy liên kết tài khoản Discord khỏi tài khoản website, tích hợp chốt chặn bắt buộc tài khoản phải có mật khẩu trước khi hủy (`BR-026`) và yêu cầu tái xác thực mật khẩu hiện tại (`BR-027`, `SEC-006`) nhằm ngăn chặn nguy cơ người dùng bị khóa vĩnh viễn khỏi tài khoản.
@@ -976,13 +992,17 @@
   - *EF-02*: Mật khẩu xác thực sai -> Trả về `HTTP 401 Unauthorized`: "Mật khẩu xác nhận không chính xác." (`BR-027`).
 - **Điều Kiện Sau (Postconditions)**: Tài khoản được gỡ bỏ liên kết Discord an toàn mà không làm mất quyền đăng nhập của người dùng.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-019`, `FR-040`, `BR-026`, `BR-027`, `SEC-011`, `CTRL-010`, `OP-028`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `TC-033`, `TC-034`.
 
 ---
 
 ### FR-042: Quản Lý & Hiển Thị Trạng Thái Tài Khoản Mạng Xã Hội (Manage & Display Connected Social Accounts)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-042`
 - **Tên Yêu Cầu**: Quản Lý & Hiển Thị Trạng Thái Tài Khoản Mạng Xã Hội (Manage & Display Connected Social Accounts).
 - **Mô Tả**: Cung cấp giao diện trung tâm tại trang Cài đặt tài khoản (`/settings?tab=connections`) cho phép người dùng quan sát trực quan danh sách và trạng thái kết nối của các tài khoản mạng xã hội bên thứ ba (Discord), kèm theo định danh tài khoản, avatar và các nút hành động liên kết hoặc hủy liên kết tức thì.
@@ -996,15 +1016,19 @@
   5. Nếu tài khoản chưa có mật khẩu (`hashed_password IS NULL`), giao diện hiển thị banner thông tin cảnh báo: "Tài khoản của bạn hiện đang liên kết với Discord. Để hủy liên kết an toàn, bạn cần tạo mật khẩu tại tab Bảo mật trước."
 - **Điều Kiện Sau (Postconditions)**: Người dùng nắm bắt minh bạch tình trạng kết nối danh tính của tài khoản.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-015`, `FR-040`, `FR-041`, `UX-009`, `OP-029`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `TC-031`, `TC-033`.
 
 ---
 
-## 10. Phân Hệ Quản Lý Bot Discord Cho Tài Khoản Đã Liên Kết (Discord Bot Management for Linked Accounts)
+## 10. [RETIRED] Phân Hệ Quản Lý Bot Discord (Discord Bot Management - Phạm vi đã được gỡ bỏ để tập trung vào ứng dụng Web học tiếng Nhật)
 
 ### FR-044: Tra Cứu Trạng Thái Bot & Khám Phá Máy Chủ Discord (Discord Bot Status Inspection & Guild Discovery)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-044`
 - **Tên Yêu Cầu**: Tra Cứu Trạng Thái Bot & Khám Phá Máy Chủ Discord (Discord Bot Status Inspection & Guild Discovery).
 - **Mô Tả**: Cung cấp giao diện trực quan cho người dùng đã liên kết tài khoản Discord (`BR-031`) kiểm tra trạng thái hoạt động của Bot AI-Chan (Online/Offline, Bot ID), lấy đường dẫn mời Bot vào Discord Server với quyền hạn chuẩn (`bot`, `applications.commands`), và tra cứu danh sách các Discord Server (Guilds) mà tài khoản có quyền quản trị kèm trạng thái cài đặt Bot (`OP-031`, `OP-033`, `UC-BOT-001 [UC-032]`, `BP-BOT-001 [PROC-022]`).
@@ -1022,13 +1046,17 @@
   - *EF-02*: Discord API rate limit hoặc token bot hết hạn -> Backend trả về trạng thái ngoại tuyến với mã lỗi `HTTP 502 Bad Gateway`.
 - **Điều Kiện Sau (Postconditions)**: Người dùng nắm được danh sách các Guild có thể triển khai bot và lấy được liên kết mời bot.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-040`, `BR-031`, `SEC-013`, `OP-031`, `OP-033`, `UC-032`, `PROC-022`, `ADR-012`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `TC-040`.
 
 ---
 
 ### FR-045: Cấu Hình Định Tuyến Mô Hình & Nhân Vật Trợ Lý Cho Bot Discord (Discord Bot Model Routing & Persona Configuration)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-045`
 - **Tên Yêu Cầu**: Cấu Hình Định Tuyến Mô Hình & Nhân Vật Trợ Lý Cho Bot Discord (Discord Bot Model Routing & Persona Configuration).
 - **Mô Tả**: Cho phép người dùng tùy biến cấu hình hoạt động của Bot Discord cho phạm vi cá nhân (Direct Message) hoặc Server quản trị (`BR-034`): lựa chọn mô hình AI ưu tiên (`preferred_model_id` ràng buộc trạng thái `ACTIVE` theo `BR-033`), thiết lập Prompt nhân vật (System Prompt / Persona), và chọn cơ chế kích hoạt (`@Mention`, `Custom Prefix`, hoặc `Slash Command`) (`OP-032`, `UC-BOT-002 [UC-033]`, `BP-BOT-001 [PROC-022]`).
@@ -1051,13 +1079,17 @@
   - *EF-03*: System Prompt vượt quá 2,000 ký tự hoặc Prefix rỗng -> Backend trả về `HTTP 422 Unprocessable Entity`.
 - **Điều Kiện Sau (Postconditions)**: Cấu hình mới được áp dụng ngay lập tức cho các câu hỏi tiếp theo được gửi tới bot trên Discord.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-021`, `FR-044`, `BR-031`, `BR-033`, `BR-034`, `SEC-013`, `OP-032`, `UC-033`, `PROC-022`, `ADR-012`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `TC-039`, `TC-042`.
 
 ---
 
 ### FR-046: Kiểm Soát Hạn Ngạch & Trần Tiêu Thụ Token Bot Discord (Discord Bot Quota Enforcement & Token Ceiling Control)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-046`
 - **Tên Yêu Cầu**: Kiểm Soát Hạn Ngạch & Trần Tiêu Thụ Token Bot Discord (Discord Bot Quota Enforcement & Token Ceiling Control).
 - **Mô Tả**: Ràng buộc toàn bộ lưu lượng token tiêu thụ bởi Bot Discord vào hạn ngạch token hàng ngày (`user_quotas`) của tài khoản người dùng (`BR-032`), thiết lập giới hạn trần token tối đa cho mỗi phản hồi của Bot (`max_tokens_per_response`, từ 256 đến 2,048 tokens), và cung cấp công tắc bật/tắt khẩn cấp hoạt động của bot (`is_enabled`) (`OP-032`, `UC-BOT-003 [UC-034]`, `BP-BOT-002 [PROC-023]`).
@@ -1075,13 +1107,17 @@
   - *EF-02*: Bot đang bị tắt (`is_enabled = false`) -> Bot im lặng hoặc thông báo bot đang tạm dừng theo cấu hình của người dùng.
 - **Điều Kiện Sau (Postconditions)**: Tài khoản không bị vượt hạn ngạch do tin nhắn Discord; trần token bảo vệ tài nguyên người dùng.
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-032`, `BR-020`, `BR-032`, `CTRL-008`, `CTRL-012`, `OP-032`, `UC-034`, `PROC-023`, `ADR-012`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `TC-041`.
 
 ---
 
 ### FR-047: Đồng Bộ Hội Thoại Giữa Discord & Web (Discord-to-Web Conversation Sync & History Tracking)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-047`
 - **Tên Yêu Cầu**: Đồng Bộ Hội Thoại Giữa Discord & Web (Discord-to-Web Conversation Sync & History Tracking).
 - **Mô Tả**: Cung cấp tùy chọn đồng bộ hóa tự động các phiên đàm thoại diễn ra trên Discord vào danh mục lịch sử hội thoại trên Web Chat (`conversations` và `messages` có đánh dấu nguồn gốc `channel_source = 'discord'`), cho phép người dùng xem lại toàn bộ nội dung đã trò chuyện với Bot Discord ngay trong không gian làm việc của website (`OP-032`, `UC-BOT-003 [UC-034]`).
@@ -1096,7 +1132,7 @@
   - *EF-01*: Người dùng tắt tính năng đồng bộ (`sync_to_web = false`) -> Bot chỉ phản hồi trên Discord, không ghi nhận bản ghi vào bảng `conversations` (chỉ trừ token trong `user_quotas`).
 - **Điều Kiện Sau (Postconditions)**: Ngữ cảnh đàm thoại được thống nhất liền mạch giữa nền tảng Discord và giao diện Web.
 - **Độ Ưu Tiên**: `SHOULD`.
-- **Trạng Thái**: `BASELINED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-004`, `FR-005`, `FR-045`, `OP-032`, `UC-034`, `PROC-023`, `ADR-012`.
 - **Tiêu Chí Nghiệm Thu Liên Quan**: `TC-039`.
 
@@ -1196,10 +1232,14 @@
 ---
 
 ### FR-057: Xử Lý Thông Điệp Discord Đầu-Cuối Qua Đồ Thị Dự Án & Điều Phối Mô Hình/Kỹ Năng (End-to-End Discord Message Processing Through Project Graph)
+
+> [!NOTE] RETIRED REQUIREMENT
+> Yêu cầu này thuộc nhánh tính năng đã được gỡ bỏ khỏi phiên bản ChatJPT tập trung nhằm bảo đảm trải nghiệm người dùng học tiếng Nhật tối ưu.
+
 - **Mã Yêu Cầu**: `FR-057`
 - **Tên Yêu Cầu**: Xử Lý Thông Điệp Discord Đầu-Cuối Qua Đồ Thị Dự Án & Điều Phối Mô Hình/Kỹ Năng (End-to-End Discord Message Processing Through Project Graph).
 - **Mô Tả**: Tiếp nhận lệnh tương tác `/ask` từ Discord Bot, nhận diện Bot và định tuyến xác định đến Dự án hoạt động (Active), trích xuất node Model và các node Skill kết nối trên Canvas đồ thị, kiểm tra ràng buộc 0..1 Bot và nạp danh sách Kỹ năng hợp lệ, tải ngữ cảnh lịch sử đa lượt gần nhất, điều phối suy luận qua LLM và phân mảnh câu trả lời an toàn cho Markdown code blocks về Discord embed.
 - **Tác Nhân (Actor)**: `ACT-02` (Registered User).
 - **Độ Ưu Tiên**: `MUST`.
-- **Trạng Thái**: `IMPLEMENTED`.
+- **Trạng Thái**: `RETIRED` (Đã gỡ bỏ khỏi phạm vi để tập trung chuyên sâu cho nền tảng web học tiếng Nhật, Kaiwa và Sensei 3D Companion).
 - **Phụ Thuộc (Dependencies)**: `FR-044`, `FR-045`, `BR-036`, `BR-037`, `BR-038`, `BR-039`, `SEC-013`, `SEC-014`, `ADR-014`.

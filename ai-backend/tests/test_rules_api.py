@@ -37,9 +37,7 @@ class TestRulesAPI(unittest.TestCase):
         self.headers_b = {"Authorization": f"Bearer {self.token_b}"}
 
     def tearDown(self):
-        execute_commit("DELETE FROM project_rules WHERE rule_id IN (SELECT id FROM rules WHERE user_id IN (?, ?))", (self.user_a_id, self.user_b_id))
         execute_commit("DELETE FROM rules WHERE user_id IN (?, ?)", (self.user_a_id, self.user_b_id))
-        execute_commit("DELETE FROM projects WHERE user_id IN (?, ?)", (self.user_a_id, self.user_b_id))
         execute_commit("DELETE FROM users WHERE id IN (?, ?)", (self.user_a_id, self.user_b_id))
 
     def test_01_list_rules_default(self):
@@ -180,65 +178,17 @@ class TestRulesAPI(unittest.TestCase):
         self.assertEqual(cloned["scope"], "user")
         self.assertTrue(cloned["is_editable"])
 
-    def test_10_delete_rule_guard_and_force(self):
-        # Create rule and project
-        rule_res = self.client.post("/api/v1/rules", json={"name": "Bound Rule", "content": "Rule text"}, headers=self.headers_a)
+    def test_10_delete_rule_success(self):
+        rule_res = self.client.post("/api/v1/rules", json={"name": "Rule to Delete", "content": "Rule text"}, headers=self.headers_a)
         rule_id = rule_res.json()["id"]
 
-        project_id = f"prj_{uuid.uuid4().hex[:12]}"
-        execute_commit(
-            "INSERT INTO projects (id, user_id, name, status) VALUES (?, ?, 'Project Bound', 'ACTIVE')",
-            (project_id, self.user_a_id)
-        )
-
-        # Bind rule to project
-        execute_commit(
-            "INSERT INTO project_rules (id, project_id, rule_id, is_enabled) VALUES (?, ?, ?, 1)",
-            (f"pr_{uuid.uuid4().hex[:8]}", project_id, rule_id)
-        )
-
-        # Attempt delete without force -> 400 Bad Request
-        res_del_fail = self.client.delete(f"/api/v1/rules/{rule_id}?force=false", headers=self.headers_a)
-        self.assertEqual(res_del_fail.status_code, 400)
-        self.assertIn("RULE_IN_USE_BY_PROJECTS", str(res_del_fail.json()))
-
-        # Delete with force=true -> 200 OK
-        res_del_ok = self.client.delete(f"/api/v1/rules/{rule_id}?force=true", headers=self.headers_a)
-        self.assertEqual(res_del_ok.status_code, 200)
+        res_del = self.client.delete(f"/api/v1/rules/{rule_id}", headers=self.headers_a)
+        self.assertEqual(res_del.status_code, 200)
 
         # Verify soft deleted
         rule_db = query_one("SELECT deleted_at, status FROM rules WHERE id = ?", (rule_id,))
         self.assertIsNotNone(rule_db["deleted_at"])
         self.assertEqual(rule_db["status"], "archived")
-
-    def test_11_project_rules_binding_and_associated_projects(self):
-        rule_res = self.client.post("/api/v1/rules", json={"name": "Project Binding Rule", "content": "Text"}, headers=self.headers_a)
-        rule_id = rule_res.json()["id"]
-
-        project_id = f"prj_{uuid.uuid4().hex[:12]}"
-        execute_commit(
-            "INSERT INTO projects (id, user_id, name, status) VALUES (?, ?, 'Project Test', 'ACTIVE')",
-            (project_id, self.user_a_id)
-        )
-
-        # Bind rule to project via API
-        bind_res = self.client.put(
-            f"/api/v1/projects/{project_id}/rules",
-            json={"rule_ids": [rule_id, "sys-rule-security-first"]},
-            headers=self.headers_a
-        )
-        self.assertEqual(bind_res.status_code, 200)
-
-        # Get bound rules
-        get_bound = self.client.get(f"/api/v1/projects/{project_id}/rules", headers=self.headers_a)
-        self.assertEqual(get_bound.status_code, 200)
-        self.assertEqual(len(get_bound.json()), 2)
-
-        # Get associated projects from rule endpoint
-        assoc_res = self.client.get(f"/api/v1/rules/{rule_id}/projects", headers=self.headers_a)
-        self.assertEqual(assoc_res.status_code, 200)
-        self.assertEqual(len(assoc_res.json()), 1)
-        self.assertEqual(assoc_res.json()[0]["id"], project_id)
 
     def test_12_search_filter_pagination(self):
         self.client.post("/api/v1/rules", json={"name": "Python PEP8", "content": "Code rule", "tags": ["python", "backend"]}, headers=self.headers_a)

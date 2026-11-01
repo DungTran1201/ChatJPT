@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AgentModel, Project } from '@/types';
+import { AgentModel } from '@/types';
 import {
   AttachmentButton,
   ComposerAttachmentChips,
@@ -18,9 +18,6 @@ interface MessageComposerProps {
   activeModels?: AgentModel[];
   selectedModelId?: string;
   onSelectModel?: (modelId: string) => void;
-  activeProjects?: Project[];
-  selectedProjectId?: string;
-  onSelectProject?: (projId: string) => void;
   placeholder?: string;
 }
 
@@ -33,14 +30,10 @@ export default function MessageComposer({
   activeModels = [],
   selectedModelId = 'gemini-3.8-flash',
   onSelectModel,
-  activeProjects = [],
-  selectedProjectId = '',
-  onSelectProject,
   placeholder = 'Message AI-Chan…',
 }: MessageComposerProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
-  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -61,7 +54,6 @@ export default function MessageComposer({
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowModelDropdown(false);
-        setShowProjectDropdown(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -104,8 +96,8 @@ export default function MessageComposer({
       try {
         const att = await AttachmentService.uploadAttachment(
           f,
-          selectedProjectId ? 'project_chat' : 'chat',
-          selectedProjectId || undefined,
+          'chat',
+          undefined,
           (percent) => {
             setStagedFiles(prev =>
               prev.map(item => (item.id === tempId ? { ...item, progress: percent } : item))
@@ -178,7 +170,6 @@ export default function MessageComposer({
     name: selectedModelId.includes('gemini') ? 'Gemini 2.5 Flash' : selectedModelId,
   };
 
-  const currentProject = activeProjects.find(p => p.id === selectedProjectId);
   const hasInput = inputPrompt.trim().length > 0 || stagedFiles.some(f => f.status === 'READY');
 
   return (
@@ -219,43 +210,6 @@ export default function MessageComposer({
           boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
         }}
       >
-        {/* Active project badge */}
-        {currentProject && (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '3px 8px',
-              borderRadius: 'var(--radius-full)',
-              background: 'var(--accent-subtle)',
-              border: '1px solid var(--accent-border)',
-              color: 'var(--accent-hover)',
-              fontSize: '0.74rem',
-              alignSelf: 'flex-start',
-            }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            <span>Workflow: {currentProject.name}</span>
-            <button
-              type="button"
-              onClick={() => onSelectProject?.('')}
-              aria-label="Remove workflow"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--accent)',
-                cursor: 'pointer',
-                lineHeight: 1,
-                padding: '0 0 0 2px',
-                display: 'flex',
-              }}
-            >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-        )}
-
         {/* Attached files preview chips */}
         <ComposerAttachmentChips
           files={stagedFiles}
@@ -301,45 +255,10 @@ export default function MessageComposer({
             borderTop: '1px solid var(--border-subtle)',
           }}
         >
-          {/* Left: project selector & attachments */}
+          {/* Left: attachments */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <AttachmentButton onFilesSelected={handleUploadFiles} disabled={isStreaming} />
-            {activeProjects.length > 0 && (
-              <div style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  onClick={() => { setShowProjectDropdown(v => !v); setShowModelDropdown(false); }}
-                  aria-label="Select project workflow"
-                  style={toolbarBtnStyle}
-                  title="Project Workflow"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                  </svg>
-                </button>
-                {showProjectDropdown && (
-                  <Dropdown top style={{ width: '200px' }}>
-                    <DropdownLabel>Project Workflow</DropdownLabel>
-                    <DropdownItem
-                      selected={!selectedProjectId}
-                      onClick={() => { onSelectProject?.(''); setShowProjectDropdown(false); }}
-                    >
-                      None (standard chat)
-                    </DropdownItem>
-                    {activeProjects.map(p => (
-                      <DropdownItem
-                        key={p.id}
-                        selected={selectedProjectId === p.id}
-                        onClick={() => { onSelectProject?.(p.id); setShowProjectDropdown(false); }}
-                      >
-                        {p.name}
-                      </DropdownItem>
-                    ))}
-                  </Dropdown>
-                )}
-              </div>
-            )}
+            
           </div>
 
           {/* Right: model selector + send */}
@@ -348,7 +267,7 @@ export default function MessageComposer({
             <div style={{ position: 'relative' }}>
               <button
                 type="button"
-                onClick={() => { setShowModelDropdown(v => !v); setShowProjectDropdown(false); }}
+                onClick={() => { setShowModelDropdown(v => !v); }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

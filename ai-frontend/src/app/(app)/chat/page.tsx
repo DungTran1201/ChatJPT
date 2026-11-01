@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AgentModel, Project } from '@/types';
-import { ProjectService } from '@/services/projectService';
+import { AgentModel } from '@/types';
 import { AttachmentService, AttachmentItem } from '@/services/attachmentService';
 import { useApp } from '@/context/AppContext';
 import ChatWorkspace, { Message } from '@/components/chat/ChatWorkspace';
@@ -25,8 +24,6 @@ export default function ChatPage() {
 
   const [activeModels, setActiveModels] = useState<AgentModel[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>('gemini-3.8-flash');
-  const [activeProjects, setActiveProjects] = useState<Project[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -46,40 +43,7 @@ export default function ChatPage() {
     })();
   }, []);
 
-  // ── Load projects ─────────────────────────────────────────────────
-  useEffect(() => {
-    (async () => {
-      try {
-        setActiveProjects(await ProjectService.getActiveProjects());
-      } catch { /* fallback */ }
-    })();
-  }, []);
-
-  // ── Sync active conversation when selectedProjectId changes ────────
-  useEffect(() => {
-    if (!selectedProjectId) return;
-    let isCancelled = false;
-    (async () => {
-      try {
-        const conv = await ProjectService.getOrCreateProjectConversation(selectedProjectId);
-        if (conv?.id && !isCancelled) {
-          setActiveConvId(conv.id);
-          const activeProj = activeProjects.find(p => p.id === selectedProjectId);
-          const modelNode = activeProj?.graph_data?.nodes.find((n: any) => n.type === 'model');
-          if (modelNode?.data?.config?.model_id) {
-            setSelectedModelId(modelNode.data.config.model_id);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to sync project conversation on project select:', err);
-      }
-    })();
-    return () => {
-      isCancelled = true;
-    };
-  }, [selectedProjectId, activeProjects, setActiveConvId]);
-
-  // ── Load messages when activeConvId changes & reconnect if RUNNING ──
+  // ── Load messages when activeConvId changes ───────────────────────
   useEffect(() => {
     if (!activeConvId) {
       setMessages([]);
@@ -100,37 +64,6 @@ export default function ChatPage() {
             };
           });
           setMessages(loadedMsgs);
-
-          // Reconnect stream if the last assistant message is RUNNING
-          const lastMsg = loadedMsgs[loadedMsgs.length - 1];
-          if (selectedProjectId && lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
-            setIsStreaming(true);
-            const controller = new AbortController();
-            abortControllerRef.current = controller;
-            let currentContent = lastMsg.content || '';
-            ProjectService.reconnectProjectChat(
-              selectedProjectId,
-              activeConvId,
-              -1,
-              (chunk: string) => {
-                currentContent += chunk;
-                setMessages(prev => prev.map(m => m.id === lastMsg.id ? { ...m, content: currentContent, isStreaming: true } : m));
-              },
-              () => {
-                setIsStreaming(false);
-                abortControllerRef.current = null;
-                setMessages(prev => prev.map(m => m.id === lastMsg.id ? { ...m, isStreaming: false } : m));
-              },
-              (err: any) => {
-                setIsStreaming(false);
-                abortControllerRef.current = null;
-                if (err?.name !== 'AbortError') {
-                  setMessages(prev => prev.map(m => m.id === lastMsg.id ? { ...m, isStreaming: false } : m));
-                }
-              },
-              controller.signal
-            );
-          }
         }
       } catch (err) {
         console.error('Failed to load messages:', err);
@@ -139,7 +72,7 @@ export default function ChatPage() {
     return () => {
       isCancelled = true;
     };
-  }, [activeConvId, selectedProjectId]);
+  }, [activeConvId]);
 
   // Clean up client subscription on unmount without cancelling backend turn
   useEffect(() => {
@@ -172,16 +105,6 @@ export default function ChatPage() {
       abortControllerRef.current = null;
     }
     setIsStreaming(false);
-    if (selectedProjectId && activeConvId) {
-      await ProjectService.cancelProjectChat(selectedProjectId, activeConvId);
-      try {
-        const res = await fetch(`/api/v1/conversations/${activeConvId}/messages`);
-        if (res.ok) {
-          const data = await res.json();
-          setMessages(data.messages || []);
-        }
-      } catch {}
-    }
   };
 
   // ── Send ──────────────────────────────────────────────────────────
@@ -193,14 +116,8 @@ export default function ChatPage() {
     let targetConvId = activeConvId;
 
     if (!targetConvId) {
-      if (selectedProjectId) {
-        const pConv = await ProjectService.getOrCreateProjectConversation(selectedProjectId);
-        targetConvId = pConv.id;
-        setActiveConvId(pConv.id);
-      } else {
-        targetConvId = await createConversation();
-        if (!targetConvId) return;
-      }
+      targetConvId = await createConversation();
+      if (!targetConvId) return;
     }
 
     let loadedAttachments: AttachmentItem[] = [];
@@ -236,68 +153,6 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMsg, assistantMsgPlaceholder]);
     setInputPrompt('');
     setIsStreaming(true);
-
-    // ── Project Workflow ─────────────────────────────────────────────
-    if (selectedProjectId) {
-      const activeProj = activeProjects.find(p => p.id === selectedProjectId);
-      if (activeProj) {
-        const maxWords = activeProj.max_words_limit ||
-          (activeProj.graph_data?.nodes.find(n => n.type === 'web_input')?.data?.config as any)?.max_words_limit;
-        if (maxWords && typeof maxWords === 'number') {
-          const wordCount = textToSend.trim().split(/\s+/).filter(Boolean).length;
-          if (wordCount > maxWords) {
-            alert(`Word count (${wordCount}) exceeds project limit (${maxWords}).`);
-            setMessages(prev => prev.filter(m => m.id !== assistantPlaceholderId && m.id !== userMsg.id));
-            setIsStreaming(false);
-            return;
-          }
-        }
-      }
-
-      let accumulatedText = '';
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-
-      try {
-        await ProjectService.streamProjectChat(
-          selectedProjectId,
-          textToSend.trim(),
-          targetConvId,
-          (chunk: string) => {
-            accumulatedText += chunk;
-            setMessages(prev => prev.map(m => m.id === assistantPlaceholderId ? { ...m, content: accumulatedText } : m));
-          },
-          (doneData?: any) => {
-            if (doneData?.conversation_id && !activeConvId) setActiveConvId(doneData.conversation_id);
-          },
-          (err: any) => {
-            if (err?.name === 'AbortError') return;
-            accumulatedText = `⚠️ **Workflow error:** ${err?.message || 'Unknown error'}`;
-            setMessages(prev => prev.map(m => m.id === assistantPlaceholderId ? { ...m, content: accumulatedText } : m));
-          },
-          controller.signal,
-          attachmentIds
-        );
-      } catch (err: any) {
-        if (err?.name !== 'AbortError') {
-          setMessages(prev => prev.map(m =>
-            m.id === assistantPlaceholderId
-              ? { ...m, content: m.content || `⚠️ Connection error: ${err.message}` }
-              : m
-          ));
-        }
-      } finally {
-        setIsStreaming(false);
-        abortControllerRef.current = null;
-        setMessages(prev => prev.map(m =>
-          m.id === assistantPlaceholderId
-            ? { ...m, isStreaming: false, content: m.content || 'No response received.' }
-            : m
-        ));
-        fetchConversations();
-      }
-      return;
-    }
 
     // ── Standard streaming ───────────────────────────────────────────
     const controller = new AbortController();
@@ -414,9 +269,6 @@ export default function ChatPage() {
           activeModels={activeModels}
           selectedModelId={selectedModelId}
           onSelectModel={setSelectedModelId}
-          activeProjects={activeProjects}
-          selectedProjectId={selectedProjectId}
-          onSelectProject={setSelectedProjectId}
           placeholder="Message AI-Chan…"
         />
       </div>

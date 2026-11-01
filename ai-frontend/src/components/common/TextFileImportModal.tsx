@@ -10,14 +10,13 @@ import {
   ParsedItemMetadata,
   toKebabCase,
 } from '@/lib/textImportParser';
-import { SkillService } from '@/services/skillService';
 import { RuleService } from '@/services/ruleService';
 import { SystemPromptService } from '@/services/systemPromptService';
 import { formatErrorMessage } from '@/lib/errors';
 
 export interface TextFileImportModalProps {
   isOpen: boolean;
-  target: 'skills' | 'rules' | 'prompts';
+  target: 'rules' | 'prompts';
   existingNames?: string[];
   onClose: () => void;
   onSuccess: (importedItem: any) => void;
@@ -49,12 +48,7 @@ export default function TextFileImportModal({
   const [tagsText, setTagsText] = useState('');
   const [priority, setPriority] = useState<number>(50);
 
-  // Specific to Skills
-  const [skillAction, setSkillAction] = useState<'ACTIVATE' | 'SAVE_DRAFT'>('ACTIVATE');
-  const [showAdvancedSkill, setShowAdvancedSkill] = useState(false);
-  const [license, setLicense] = useState('');
-  const [compatibility, setCompatibility] = useState('');
-  const [allowedTools, setAllowedTools] = useState('');
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,7 +62,6 @@ export default function TextFileImportModal({
       setDragOver(false);
       setIsReading(false);
       setIsImporting(false);
-      setShowAdvancedSkill(false);
     }
   }, [isOpen]);
 
@@ -86,11 +79,6 @@ export default function TextFileImportModal({
   if (!isOpen) return null;
 
   const targetTitles = {
-    skills: {
-      modalTitle: 'Nhập Agent Skill từ tệp',
-      itemType: 'Skill',
-      hint: 'Hỗ trợ tệp SKILL.md với YAML frontmatter hoặc bất kỳ tệp tài liệu văn bản (.md, .txt, .json...).',
-    },
     rules: {
       modalTitle: 'Nhập Rule từ tệp văn bản',
       itemType: 'Rule',
@@ -122,10 +110,6 @@ export default function TextFileImportModal({
         setGlobPatternsText(parsed.glob_patterns?.join(', ') || '');
         setTagsText(parsed.tags?.join(', ') || 'imported');
         setPriority(parsed.priority !== undefined ? parsed.priority : 50);
-      } else if (target === 'skills') {
-        setLicense(parsed.license || '');
-        setCompatibility(parsed.compatibility || '');
-        setAllowedTools(parsed.allowed_tools || '');
       }
     } catch (err: any) {
       setError(err.message || 'Lỗi đọc tệp.');
@@ -171,20 +155,7 @@ export default function TextFileImportModal({
 
       let createdItem: any = null;
 
-      if (target === 'skills') {
-        const skillName = toKebabCase(trimmedName);
-        createdItem = await SkillService.importSkillText({
-          filename: metadata.filename,
-          content: metadata.content,
-          name: skillName,
-          description: description.trim(),
-          action: skillAction,
-          license: license.trim() || undefined,
-          compatibility: compatibility.trim() || undefined,
-          allowed_tools: allowedTools.trim() || undefined,
-          metadata: metadata.metadata,
-        });
-      } else if (target === 'rules') {
+      if (target === 'rules') {
         const globs = globPatternsText
           .split(',')
           .map(s => s.trim())
@@ -518,12 +489,7 @@ export default function TextFileImportModal({
                     placeholder={`Tên gợi nhớ cho ${currentConfig.itemType}`}
                     style={{ width: '100%' }}
                   />
-                  {target === 'skills' && (
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      Định dạng chuẩn Skill: chữ thường, số, dấu gạch nối (sẽ tự động chuẩn hóa sang kebab-case khi lưu: &quot;
-                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{toKebabCase(name)}</span>&quot;).
-                    </div>
-                  )}
+
                 </div>
 
                 {/* Description */}
@@ -546,7 +512,7 @@ export default function TextFileImportModal({
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                     rows={2}
-                    maxLength={target === 'skills' ? 1024 : 500}
+                    maxLength={500}
                     placeholder={`Mục đích và phạm vi sử dụng của ${currentConfig.itemType}`}
                     style={{ width: '100%', resize: 'vertical' }}
                   />
@@ -625,101 +591,6 @@ export default function TextFileImportModal({
                         placeholder="architecture, security, coding"
                         style={{ width: '100%', height: '34px', fontSize: '0.8125rem' }}
                       />
-                    </div>
-                  </div>
-                )}
-
-                {target === 'skills' && (
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        Trạng thái kích hoạt:
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', cursor: 'pointer' }}>
-                        <input
-                          type="radio"
-                          name="skillAction"
-                          checked={skillAction === 'ACTIVATE'}
-                          onChange={() => setSkillAction('ACTIVATE')}
-                        />
-                        <span>Kích hoạt ngay (Activate)</span>
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', cursor: 'pointer' }}>
-                        <input
-                          type="radio"
-                          name="skillAction"
-                          checked={skillAction === 'SAVE_DRAFT'}
-                          onChange={() => setSkillAction('SAVE_DRAFT')}
-                        />
-                        <span>Lưu bản nháp (Draft)</span>
-                      </label>
-                    </div>
-
-                    <div style={{ marginTop: '8px' }}>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => setShowAdvancedSkill(!showAdvancedSkill)}
-                        style={{ padding: '4px 0', fontSize: '0.75rem', color: 'var(--accent)' }}
-                      >
-                        <Icon name={showAdvancedSkill ? 'chevronDown' : 'chevronRight'} size={12} />
-                        <span>{showAdvancedSkill ? 'Ẩn thông tin mở rộng' : 'Xem thông tin mở rộng (License, Tools)'}</span>
-                      </button>
-
-                      {showAdvancedSkill && (
-                        <div
-                          style={{
-                            marginTop: '8px',
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                            gap: '10px',
-                            padding: '10px',
-                            background: 'var(--bg-elevated)',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        >
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '2px' }}>
-                              License
-                            </label>
-                            <input
-                              type="text"
-                              className="input"
-                              value={license}
-                              onChange={e => setLicense(e.target.value)}
-                              placeholder="MIT, Apache-2.0..."
-                              style={{ width: '100%', height: '32px', fontSize: '0.8125rem' }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '2px' }}>
-                              Compatibility
-                            </label>
-                            <input
-                              type="text"
-                              className="input"
-                              value={compatibility}
-                              onChange={e => setCompatibility(e.target.value)}
-                              placeholder="python >= 3.10"
-                              style={{ width: '100%', height: '32px', fontSize: '0.8125rem' }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '2px' }}>
-                              Allowed Tools
-                            </label>
-                            <input
-                              type="text"
-                              className="input"
-                              value={allowedTools}
-                              onChange={e => setAllowedTools(e.target.value)}
-                              placeholder="bash, git, curl"
-                              style={{ width: '100%', height: '32px', fontSize: '0.8125rem' }}
-                            />
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}

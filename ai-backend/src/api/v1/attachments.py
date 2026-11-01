@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from src.core.config import settings
 from src.core.security import app_rate_limiter
-from src.api.v1.projects import get_optional_current_user
+from src.core.security import get_optional_current_user
 
 from src.core.attachment_storage import (
     save_attachment_file,
@@ -47,8 +47,6 @@ class AttachmentResponse(BaseModel):
     image_height: Optional[int] = None
     conversation_id: Optional[str] = None
     message_id: Optional[str] = None
-    project_id: Optional[str] = None
-    skill_id: Optional[str] = None
     prompt_id: Optional[str] = None
 
 class AttachmentListResponse(BaseModel):
@@ -95,8 +93,6 @@ def format_attachment_response(row: Dict[str, Any]) -> AttachmentResponse:
         image_height=row.get("image_height"),
         conversation_id=row.get("conversation_id"),
         message_id=row.get("message_id"),
-        project_id=row.get("project_id"),
-        skill_id=row.get("skill_id"),
         prompt_id=row.get("prompt_id"),
     )
 
@@ -175,8 +171,6 @@ async def upload_attachment(
 
     # Validate Context Ownership if context_id provided
     conversation_id = None
-    project_id = None
-    skill_id = None
     prompt_id = None
 
     if context_type == "chat" and context_id:
@@ -184,18 +178,6 @@ async def upload_attachment(
         if not conv:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cuộc trò chuyện không tồn tại hoặc bạn không có quyền.")
         conversation_id = context_id
-
-    elif context_type in ("project_chat", "project") and context_id:
-        proj = query_one("SELECT id FROM projects WHERE id = ? AND (user_id = ? OR user_id = 'guest_user')", (context_id, user_id))
-        if not proj:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project không tồn tại hoặc bạn không có quyền.")
-        project_id = context_id
-
-    elif context_type == "skill" and context_id:
-        sk = query_one("SELECT id FROM skills WHERE id = ? AND (user_id = ? OR user_id = 'guest_user')", (context_id, user_id))
-        if not sk:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kỹ năng không tồn tại hoặc bạn không có quyền.")
-        skill_id = context_id
 
     elif context_type in ("system_prompt", "prompt") and context_id:
         sp = query_one("SELECT id FROM system_prompts WHERE id = ? AND (user_id = ? OR user_id = 'guest_user')", (context_id, user_id))
@@ -228,10 +210,10 @@ async def upload_attachment(
     # Persist in SQLite
     sql = """
         INSERT INTO attachments (
-            id, user_id, conversation_id, project_id, skill_id, prompt_id,
+            id, user_id, conversation_id, prompt_id,
             filename, file_size, mime_type, category, storage_path, checksum_sha256,
             status, extracted_text, image_width, image_height
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     execute_commit(
         sql,
@@ -239,8 +221,6 @@ async def upload_attachment(
             file_meta["id"],
             user_id,
             conversation_id,
-            project_id,
-            skill_id,
             prompt_id,
             file_meta["filename"],
             file_meta["file_size"],
@@ -321,8 +301,6 @@ async def get_attachment_capabilities():
 @attachments_router.get("", response_model=AttachmentListResponse, include_in_schema=False)
 async def list_attachments(
     conversation_id: Optional[str] = Query(None),
-    project_id: Optional[str] = Query(None),
-    skill_id: Optional[str] = Query(None),
     prompt_id: Optional[str] = Query(None),
     status_filter: Optional[str] = Query(None, alias="status"),
     current_user: Dict[str, Any] = Depends(get_optional_current_user)
@@ -334,12 +312,7 @@ async def list_attachments(
     if conversation_id:
         conditions.append("conversation_id = ?")
         params.append(conversation_id)
-    if project_id:
-        conditions.append("project_id = ?")
-        params.append(project_id)
-    if skill_id:
-        conditions.append("skill_id = ?")
-        params.append(skill_id)
+
     if prompt_id:
         conditions.append("prompt_id = ?")
         params.append(prompt_id)

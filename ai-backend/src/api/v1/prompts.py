@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query, Request, U
 from pydantic import BaseModel, Field, field_validator
 
 from src.db import query_one, query_all, execute_commit
-from src.api.v1.projects import get_optional_current_user
+from src.core.security import get_optional_current_user
 from src.services.text_import_service import (
     TextImportService,
     TextFileImportRequest

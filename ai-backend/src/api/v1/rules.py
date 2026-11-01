@@ -8,7 +8,7 @@ import logging
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request, UploadFile, File
 
-from src.api.v1.projects import get_optional_current_user
+from src.core.security import get_optional_current_user
 from src.services.rule_service import (
     RuleService,
     RuleCreateRequest,
@@ -26,7 +26,7 @@ from src.services.text_import_service import (
 logger = logging.getLogger("api.rules")
 
 rules_router = APIRouter(prefix="/rules", tags=["Rules Management"])
-project_rules_router = APIRouter(prefix="/projects/{project_id}/rules", tags=["Project Rule Bindings"])
+
 
 
 # ==============================================================================
@@ -182,42 +182,3 @@ async def delete_rule_endpoint(
     return RuleService.delete_rule(user_id=user_id, rule_id=rule_id, force=force)
 
 
-@rules_router.get("/{rule_id}/projects", summary="Get list of projects using this rule")
-async def get_rule_projects_endpoint(
-    rule_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
-):
-    """
-    Lấy danh sách các Project của người dùng hiện tại đang liên kết với Rule này (RUL-FR-011).
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.get_associated_projects(user_id=user_id, rule_id=rule_id)
-
-
-# ==============================================================================
-# 2. PROJECT RULES BINDING ENDPOINTS
-# ==============================================================================
-
-@project_rules_router.get("", summary="Get rules bound to a project")
-async def get_project_rules_endpoint(
-    project_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
-):
-    """
-    Lấy danh sách các Rule được gán cho một Project cụ thể.
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.get_project_rules(user_id=user_id, project_id=project_id)
-
-
-@project_rules_router.put("", summary="Synchronize rules bound to a project")
-async def sync_project_rules_endpoint(
-    project_id: str,
-    req: ProjectRuleBindingRequest,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
-):
-    """
-    Đồng bộ danh sách liên kết Rules cho một Project (RUL-FR-012).
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.sync_project_rules(user_id=user_id, project_id=project_id, rule_ids=req.rule_ids)

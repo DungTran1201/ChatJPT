@@ -34,7 +34,6 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
-  const isDiscordLinked = Boolean(currentUser?.discord_id);
 
   // ── Conversations ────────────────────────────────────────────────────
   const fetchConversations = useCallback(async () => {
@@ -139,7 +138,6 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
 
   const ctx: AppContextValue = {
     currentUser,
-    isDiscordLinked,
     refreshUser: fetchCurrentUser,
     conversations,
     activeConvId,
@@ -188,7 +186,6 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
             onDeleteConversation={deleteConversation}
             collapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(v => !v)}
-            isDiscordLinked={isDiscordLinked}
           />
 
           <main

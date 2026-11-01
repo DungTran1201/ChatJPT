@@ -166,3 +166,32 @@ def verify_oauth_state(received_state: Optional[str], cookie_state: Optional[str
     expected_sig = hmac.new(settings.SECRET_KEY.encode(), expected_data.encode(), hashlib.sha256).hexdigest()
     return hmac.compare_digest(signature, expected_sig)
 
+GUEST_USER_ID = "guest_user"
+
+async def get_optional_current_user(request: Request) -> Dict:
+    """
+    Lấy thông tin người dùng nếu có token xác thực.
+    Nếu không có token hoặc chưa đăng nhập, tự động gán vào Guest User ('guest_user').
+    """
+    token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
+    if token:
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            user = query_one("SELECT * FROM users WHERE id = ?", (payload["sub"],))
+            if user and user.get("status") == "ACTIVE":
+                return user
+
+    return {
+        "id": GUEST_USER_ID,
+        "email": "guest@chatjpt.local",
+        "full_name": "Guest Learner",
+        "username": "guest",
+        "status": "ACTIVE"
+    }
+
+

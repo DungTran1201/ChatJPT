@@ -9,14 +9,10 @@ actors:
     type: "human"
     description: "Interacts with ChatJPT to study JLPT (N5-N1), practice Kaiwa, analyze Kanji, and chat with AI Tutor Sensei"
   - id: ACT-002
-    name: "Japanese Educator / Content Creator"
+    name: "Japanese Educator / Sensei Creator"
     type: "human"
-    description: "Builds structured learning pipelines, prompts, and lesson workflows via Project Builder"
+    description: "Builds Japanese pedagogical prompts, custom JLPT guides, and grammar rules"
   - id: ACT-003
-    name: "Discord Community Learner"
-    type: "human"
-    description: "Participates in daily quizzes, vocabulary practice, and group study via ChatJPT Discord Bot"
-  - id: ACT-004
     name: "System Admin"
     type: "human"
     description: "Manages deployments, configurations, and observability via ai-infra"
@@ -34,10 +30,6 @@ external_systems:
     type: "llm-provider"
     role: "Nuanced Japanese contextual dialogue, Keigo, and cultural explanations"
   - id: EXT-004
-    name: "Discord Gateway API"
-    type: "community-platform"
-    role: "Interactive study bot gateway, slash commands, and study notifications"
-  - id: EXT-005
     name: "Ollama Local Service"
     type: "local-llm"
     role: "Offline / local Japanese language model execution"
@@ -60,4 +52,4 @@ trust_boundaries:
   - id: TB-002
     name: "Internal Network (Frontend to Backend / DB / Redis)"
   - id: TB-003
-    name: "Outbound HTTPS to External LLM Providers & Discord API"
+    name: "Outbound HTTPS to External LLM Providers"
