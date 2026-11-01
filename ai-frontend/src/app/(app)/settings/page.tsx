@@ -1014,6 +1014,7 @@ export default function SettingsPage() {
 
             {/* Profile Form */}
             <form onSubmit={handleUpdateProfile}>
+              {/* Row 1: Full Name & Username */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
@@ -1047,138 +1048,110 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
-                  className="input"
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              {/* Personalization Section for Japanese Learning */}
-              <div style={{
-                marginTop: '1.5rem',
-                marginBottom: '1.5rem',
-                padding: '1.25rem',
-                background: 'rgba(236, 72, 153, 0.04)',
-                border: '1px solid rgba(236, 72, 153, 0.2)',
-                borderRadius: 'var(--radius-md)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                  <span style={{ fontSize: '1rem' }}>🌸</span>
-                  <div>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
-                      Thông Tin Cá Nhân Hóa (Personalization)
-                    </h3>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
-                      Cung cấp thêm thông tin để Trợ lý ảo AI Sensei cá nhân hóa ngữ cảnh luyện Kaiwa và giải thích bài học phù hợp nhất.
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                      Độ Tuổi (Age)
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={120}
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      placeholder="Ví dụ: 25"
-                      className="input"
-                      style={{ width: '100%' }}
-                    />
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                      Từ 1 đến 120 tuổi (tùy chọn)
-                    </span>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                      Nghề Nghiệp (Occupation)
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={100}
-                      value={occupation}
-                      onChange={(e) => setOccupation(e.target.value)}
-                      placeholder="Kỹ sư phần mềm, Sinh viên, Kế toán..."
-                      className="input"
-                      style={{ width: '100%' }}
-                    />
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                      Tối đa 100 ký tự
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                      Trình Độ Tiếng Nhật Mục Tiêu (Japanese Level)
-                    </label>
-                    <select
-                      value={japaneseLevel}
-                      onChange={(e) => setJapaneseLevel(e.target.value)}
-                      className="input"
-                      style={{ width: '100%', height: '38px' }}
-                    >
-                      <option value="CHUA_HOC">Chưa từng học / Mới bắt đầu</option>
-                      <option value="N5">JLPT N5 (Sơ cấp 1 - Chữ cái &amp; Câu đơn giản)</option>
-                      <option value="N4">JLPT N4 (Sơ cấp 2 - Giao tiếp hàng ngày cơ bản)</option>
-                      <option value="N3">JLPT N3 (Trung cấp - Giao tiếp tự nhiên)</option>
-                      <option value="N2">JLPT N2 (Trung - Cao cấp - Công sở &amp; Tin tức)</option>
-                      <option value="N1">JLPT N1 (Cao cấp - Lưu loát mọi ngữ cảnh)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                      Mục Tiêu Học Tập (Learning Goal)
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={255}
-                      value={learningGoal}
-                      onChange={(e) => setLearningGoal(e.target.value)}
-                      placeholder="Luyện Kaiwa giao tiếp, Lấy bằng N3, Đi làm công ty Nhật..."
-                      className="input"
-                      style={{ width: '100%' }}
-                    />
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                      Định hướng bài học cho Sensei
-                    </span>
-                  </div>
+              {/* Row 2: Phone Number & Age */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="+1 (555) 000-0000"
+                    className="input"
+                    style={{ width: '100%' }}
+                  />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Sở Thích &amp; Chủ Đề Quan Tâm (Interests &amp; Topics)
+                    Age
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="e.g. 25"
+                    className="input"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Occupation & Japanese Level */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Occupation
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={100}
+                    value={occupation}
+                    onChange={(e) => setOccupation(e.target.value)}
+                    placeholder="e.g. Software Engineer, Student"
+                    className="input"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Japanese Level
+                  </label>
+                  <select
+                    value={japaneseLevel}
+                    onChange={(e) => setJapaneseLevel(e.target.value)}
+                    className="input"
+                    style={{ width: '100%', height: '38px' }}
+                  >
+                    <option value="CHUA_HOC">Beginner / Not studied yet</option>
+                    <option value="N5">JLPT N5 (Basic Elementary)</option>
+                    <option value="N4">JLPT N4 (Elementary)</option>
+                    <option value="N3">JLPT N3 (Intermediate)</option>
+                    <option value="N2">JLPT N2 (Upper Intermediate)</option>
+                    <option value="N1">JLPT N1 (Advanced)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 4: Learning Goal & Interests */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Learning Goal
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={255}
+                    value={learningGoal}
+                    onChange={(e) => setLearningGoal(e.target.value)}
+                    placeholder="e.g. Daily conversation, JLPT N2, Work in Japan"
+                    className="input"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Interests &amp; Hobbies
                   </label>
                   <input
                     type="text"
                     maxLength={255}
                     value={interests}
                     onChange={(e) => setInterests(e.target.value)}
-                    placeholder="Anime, Manga, Du lịch Tokyo, Văn hóa ẩm thực, Công nghệ, Nhiếp ảnh..."
+                    placeholder="e.g. Anime, Manga, Tokyo travel, Technology"
                     className="input"
                     style={{ width: '100%' }}
                   />
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                    Sensei sẽ lồng ghép các từ vựng và chủ đề này vào các buổi luyện nói hội thoại
-                  </span>
                 </div>
               </div>
 
+              {/* Row 5: Bio */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Bio</label>
