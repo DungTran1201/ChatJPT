@@ -189,11 +189,17 @@ class TestUserManagementAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 422)
 
     def test_update_preferences(self):
+        # Test full UI customization update (FR-020, UC-015)
         response = self.client.patch(
             "/api/v1/users/me/preferences",
             json={
                 "theme_preference": "LIGHT",
-                "language_preference": "en"
+                "language_preference": "en",
+                "custom_bg_url": "https://images.unsplash.com/photo-japan-bg",
+                "bg_opacity": 80,
+                "bg_blur": 16,
+                "accent_color": "sakura",
+                "ui_font_size": "large"
             },
             cookies=self.cookies
         )
@@ -201,6 +207,54 @@ class TestUserManagementAPI(unittest.TestCase):
         data = response.json()
         self.assertEqual(data["theme_preference"], "LIGHT")
         self.assertEqual(data["language_preference"], "en")
+        self.assertEqual(data["custom_bg_url"], "https://images.unsplash.com/photo-japan-bg")
+        self.assertEqual(data["bg_opacity"], 80)
+        self.assertEqual(data["bg_blur"], 16)
+        self.assertEqual(data["accent_color"], "sakura")
+        self.assertEqual(data["ui_font_size"], "large")
+
+        # Verify profile reflects updated preferences
+        prof_res = self.client.get("/api/v1/users/me", cookies=self.cookies)
+        self.assertEqual(prof_res.status_code, 200)
+        user_data = prof_res.json()["user"]
+        self.assertEqual(user_data["custom_bg_url"], "https://images.unsplash.com/photo-japan-bg")
+        self.assertEqual(user_data["bg_opacity"], 80)
+        self.assertEqual(user_data["bg_blur"], 16)
+        self.assertEqual(user_data["accent_color"], "sakura")
+        self.assertEqual(user_data["ui_font_size"], "large")
+
+    def test_update_preferences_validation_errors(self):
+        # Invalid opacity (< 20)
+        res1 = self.client.patch(
+            "/api/v1/users/me/preferences",
+            json={"bg_opacity": 10},
+            cookies=self.cookies
+        )
+        self.assertEqual(res1.status_code, 422)
+
+        # Invalid blur (> 40)
+        res2 = self.client.patch(
+            "/api/v1/users/me/preferences",
+            json={"bg_blur": 50},
+            cookies=self.cookies
+        )
+        self.assertEqual(res2.status_code, 422)
+
+        # Invalid accent color
+        res3 = self.client.patch(
+            "/api/v1/users/me/preferences",
+            json={"accent_color": "neon_rainbow"},
+            cookies=self.cookies
+        )
+        self.assertEqual(res3.status_code, 422)
+
+        # Invalid ui_font_size
+        res4 = self.client.patch(
+            "/api/v1/users/me/preferences",
+            json={"ui_font_size": "gigantic"},
+            cookies=self.cookies
+        )
+        self.assertEqual(res4.status_code, 422)
 
 if __name__ == "__main__":
     unittest.main()

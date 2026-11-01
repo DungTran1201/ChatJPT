@@ -91,6 +91,7 @@ async def get_current_user(request: Request) -> Dict:
         """
         SELECT id, email, full_name, username, avatar_url, bio, phone_number,
                age, occupation, interests, japanese_level, learning_goal,
+               custom_bg_url, bg_opacity, bg_blur, accent_color, ui_font_size,
                discord_id, discord_username,
                theme_preference, language_preference, status, created_at,
                last_login_at, password_changed_at

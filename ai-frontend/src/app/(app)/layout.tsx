@@ -34,6 +34,64 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  // Synchronize dynamic personal preferences to root styles
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (!currentUser) return;
+
+    const customBg = currentUser.custom_bg_url;
+    const opacityVal = currentUser.bg_opacity !== undefined && currentUser.bg_opacity !== null ? currentUser.bg_opacity : 90;
+    const blurVal = currentUser.bg_blur !== undefined && currentUser.bg_blur !== null ? currentUser.bg_blur : 12;
+    const accent = currentUser.accent_color || 'emerald';
+    const fontSize = currentUser.ui_font_size || 'medium';
+
+    const accentPalette: Record<string, { accent: string; hover: string; border: string; glow: string; subtle: string }> = {
+      emerald: { accent: '#3ecf8e', hover: '#5ad9a0', border: 'rgba(62, 207, 142, 0.30)', glow: '0 0 16px rgba(62, 207, 142, 0.18)', subtle: 'rgba(62, 207, 142, 0.10)' },
+      sakura:  { accent: '#ec4899', hover: '#f472b6', border: 'rgba(236, 72, 153, 0.30)', glow: '0 0 16px rgba(236, 72, 153, 0.18)', subtle: 'rgba(236, 72, 153, 0.10)' },
+      violet:  { accent: '#8b5cf6', hover: '#a78bfa', border: 'rgba(139, 92, 246, 0.30)', glow: '0 0 16px rgba(139, 92, 246, 0.18)', subtle: 'rgba(139, 92, 246, 0.10)' },
+      amber:   { accent: '#f59e0b', hover: '#fbbf24', border: 'rgba(245, 158, 11, 0.30)', glow: '0 0 16px rgba(245, 158, 11, 0.18)', subtle: 'rgba(245, 158, 11, 0.10)' },
+      sky:     { accent: '#0ea5e9', hover: '#38bdf8', border: 'rgba(14, 165, 233, 0.30)', glow: '0 0 16px rgba(14, 165, 233, 0.18)', subtle: 'rgba(14, 165, 233, 0.10)' },
+    };
+    const activePalette = accentPalette[accent] || accentPalette.emerald;
+
+    if (customBg) {
+      const alpha = opacityVal / 100;
+      root.style.setProperty('--bg-base', `rgba(15, 15, 16, ${alpha})`);
+      root.style.setProperty('--bg-surface', `rgba(21, 21, 22, ${Math.min(1, alpha + 0.05)})`);
+      root.style.setProperty('--bg-elevated', `rgba(28, 28, 31, ${Math.min(1, alpha + 0.10)})`);
+      root.style.setProperty('--bg-overlay', `rgba(34, 34, 37, ${Math.min(1, alpha + 0.15)})`);
+      root.style.setProperty('--app-backdrop-blur', `${blurVal}px`);
+    } else {
+      root.style.removeProperty('--bg-base');
+      root.style.removeProperty('--bg-surface');
+      root.style.removeProperty('--bg-elevated');
+      root.style.removeProperty('--bg-overlay');
+      root.style.removeProperty('--app-backdrop-blur');
+    }
+
+    // Set dynamic accent theme
+    root.style.setProperty('--accent', activePalette.accent);
+    root.style.setProperty('--accent-hover', activePalette.hover);
+    root.style.setProperty('--accent-border', activePalette.border);
+    root.style.setProperty('--accent-glow', activePalette.glow);
+    root.style.setProperty('--accent-subtle', activePalette.subtle);
+    root.style.setProperty('--primary', activePalette.accent);
+    root.style.setProperty('--primary-hover', activePalette.hover);
+
+    // Font size scaling
+    if (fontSize === 'small') {
+      root.style.setProperty('--font-size-base', '13px');
+      root.style.fontSize = '14px';
+    } else if (fontSize === 'large') {
+      root.style.setProperty('--font-size-base', '15px');
+      root.style.fontSize = '17px';
+    } else {
+      root.style.removeProperty('--font-size-base');
+      root.style.fontSize = '16px';
+    }
+  }, [currentUser]);
+
 
   // ── Conversations ────────────────────────────────────────────────────
   const fetchConversations = useCallback(async () => {
@@ -151,15 +209,40 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
     handleLogout,
   };
 
+  const customBg = currentUser?.custom_bg_url;
+  const blurVal = currentUser?.bg_blur !== undefined && currentUser?.bg_blur !== null ? currentUser.bg_blur : 12;
+
   return (
     <AppContext.Provider value={ctx}>
+      {customBg && (
+        <div
+          data-testid="app-custom-background"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `url("${customBg}")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
           height: '100dvh',
           overflow: 'hidden',
-          backgroundColor: 'var(--bg-base)',
+          backgroundColor: customBg ? 'transparent' : 'var(--bg-base)',
+          position: 'relative',
+          zIndex: 1,
+          backdropFilter: customBg ? `blur(${blurVal}px)` : undefined,
+          WebkitBackdropFilter: customBg ? `blur(${blurVal}px)` : undefined,
         }}
       >
         {/* Global header */}

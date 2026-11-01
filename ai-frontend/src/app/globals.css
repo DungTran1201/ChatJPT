@@ -359,6 +359,8 @@ html, body {
   border-radius: var(--radius-md);
   padding: 1.25rem;
   transition: border-color var(--transition-fast), background var(--transition-fast);
+  backdrop-filter: blur(var(--app-backdrop-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--app-backdrop-blur, 0px));
 }
 
 .card:hover {

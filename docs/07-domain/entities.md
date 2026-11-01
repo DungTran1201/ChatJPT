@@ -34,6 +34,11 @@
   - `learning_goal: Optional[string]` (Mục tiêu học tập tiếng Nhật của học viên, tối đa 255 ký tự).
   - `discord_id: Optional[string]` (Mã định danh duy nhất Discord, UNIQUE - `FR-027`, `FR-028`).
   - `discord_username: Optional[string]` (Tên người dùng Discord liên kết - `FR-027`).
+  - `custom_bg_url: Optional[UrlString]` (Đường dẫn hình nền không gian học tập cá nhân hóa, tối đa 1000 ký tự).
+  - `bg_opacity: integer` (Độ mờ đục của các lớp layer phủ lên nền, 20..100%, mặc định 90%).
+  - `bg_blur: integer` (Độ mờ kính backdrop-filter blur tạo hiệu ứng glassmorphism, 0..40px, mặc định 12px).
+  - `accent_color: AccentPalette` (Màu chủ đạo giao diện: `emerald`, `sakura`, `violet`, `amber`, `sky` - Mặc định `emerald`).
+  - `ui_font_size: UiFontSize` (Mật độ và kích thước phông chữ: `small`, `medium`, `large` - Mặc định `medium`).
   - `theme_preference: ThemeMode` (Chủ đề giao diện: `DARK`, `LIGHT`, `SYSTEM` - Mặc định `DARK`).
   - `language_preference: LanguageCode` (Ngôn ngữ hiển thị: `vi`, `en` - Mặc định `vi`).
   - `status: UserStatus` (Trạng thái: `ACTIVE`, `DISABLED`).
@@ -47,7 +52,7 @@
   - `unlink_discord(current_password)`: Hủy liên kết tài khoản Discord sau khi xác thực mật khẩu, có chốt chặn bắt buộc `hashed_password IS NOT NULL` chống mất quyền truy cập tài khoản (`FR-041`, `BR-026`, `BR-027`).
   - `change_email(new_email, current_password)`: Đổi email kèm xác thực mật khẩu hiện tại (`BR-008`).
   - `change_password(new_password, current_password)`: Đổi mật khẩu, băm bcrypt, cập nhật `password_changed_at` (`BR-009`).
-  - `update_preferences(theme, language)`: Cập nhật tùy chọn hiển thị và ngôn ngữ.
+  - `update_preferences(theme, language, custom_bg_url, bg_opacity, bg_blur, accent_color, ui_font_size)`: Cập nhật tùy chọn hiển thị, hình nền, độ mờ đục và cá nhân hóa giao diện (`FR-020`, `UC-015`).
   - `verify_password(plain_password)`: Thẩm định mật khẩu hiện tại.
 
 

@@ -165,7 +165,7 @@ requirements:
   actors:
   - Registered User
 - id: FR-020
-  name: Update User Preferences
+  name: Update User Preferences & UI Personalization
   type: functional
   capability: CAP-USER
   priority: SHOULD

@@ -296,18 +296,35 @@
 ---
 
 ### 5.6 PATCH /api/v1/users/me/preferences
-- **Mục đích**: Cập nhật cài đặt giao diện hiển thị và ngôn ngữ (`FR-020`, `UC-015`).
+- **Mục đích**: Cập nhật cài đặt giao diện hiển thị, hình nền tùy chỉnh, độ trong suốt, hiệu ứng kính mờ và màu chủ đạo (`FR-020`, `UC-015`, `OP-028`).
 - **Bảo mật**: Yêu cầu Cookie `access_token`.
 - **Request Body**:
   ```json
   {
     "theme_preference": "DARK",
-    "language_preference": "vi"
+    "language_preference": "vi",
+    "custom_bg_url": "https://images.unsplash.com/photo-japan-bg",
+    "bg_opacity": 85,
+    "bg_blur": 14,
+    "accent_color": "sakura",
+    "ui_font_size": "medium"
   }
   ```
 - **Responses**:
-  - `200 OK`: `{"theme_preference": "DARK", "language_preference": "vi"}`.
-  - `422 Unprocessable Entity`: Giá trị không nằm trong whitelist cho phép.
+  - `200 OK`:
+    ```json
+    {
+      "message": "Cập nhật tùy chọn giao diện thành công!",
+      "theme_preference": "DARK",
+      "language_preference": "vi",
+      "custom_bg_url": "https://images.unsplash.com/photo-japan-bg",
+      "bg_opacity": 85,
+      "bg_blur": 14,
+      "accent_color": "sakura",
+      "ui_font_size": "medium"
+    }
+    ```
+  - `422 Unprocessable Entity`: Giá trị không nằm trong whitelist cho phép hoặc vượt ngưỡng kiểm định (`bg_opacity` ngoài 20..100, `bg_blur` ngoài 0..40, `accent_color` không hợp lệ).
 
 ---
 

@@ -21,6 +21,11 @@ interface UserProfile {
   interests?: string;
   japanese_level?: string;
   learning_goal?: string;
+  custom_bg_url?: string;
+  bg_opacity?: number;
+  bg_blur?: number;
+  accent_color?: string;
+  ui_font_size?: 'small' | 'medium' | 'large';
   theme_preference: 'DARK' | 'LIGHT' | 'SYSTEM';
   language_preference: 'vi' | 'en';
   status: string;
@@ -89,8 +94,36 @@ export default function SettingsPage() {
 
   // Tab 3: Preferences state
   const [themePreference, setThemePreference] = useState<'DARK' | 'LIGHT' | 'SYSTEM'>('DARK');
-  const [languagePreference, setLanguagePreference] = useState<'vi' | 'en'>('en');
+  const [languagePreference, setLanguagePreference] = useState<'vi' | 'en'>('vi');
+  const [customBgUrl, setCustomBgUrl] = useState('');
+  const [bgOpacity, setBgOpacity] = useState<number>(90);
+  const [bgBlur, setBgBlur] = useState<number>(12);
+  const [accentColor, setAccentColor] = useState<string>('emerald');
+  const [uiFontSize, setUiFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [savingPreferences, setSavingPreferences] = useState(false);
+
+  const WALLPAPER_PRESETS = [
+    { id: 'none', label: 'Mặc định (Không nền)', url: '' },
+    { id: 'sakura', label: 'Vườn Sakura', url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'fuji', label: 'Núi Phú Sĩ', url: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'tokyo', label: 'Đêm Tokyo', url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'kyoto', label: 'Rừng Trúc Kyoto', url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80' },
+    { id: 'cyberpunk', label: 'Cyberpunk Shinjuku', url: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1920&q=80' },
+  ];
+
+  const ACCENT_PRESETS = [
+    { id: 'emerald', name: 'Emerald', hex: '#3ecf8e', desc: 'Mặc định sắc nét' },
+    { id: 'sakura', name: 'Sakura', hex: '#ec4899', desc: 'Hồng hoa anh đào' },
+    { id: 'violet', name: 'Violet', hex: '#8b5cf6', desc: 'Tím mộng mơ' },
+    { id: 'amber', name: 'Amber', hex: '#f59e0b', desc: 'Hổ phách ấm' },
+    { id: 'sky', name: 'Sky Blue', hex: '#0ea5e9', desc: 'Lam thanh thoát' },
+  ];
+
+  const FONT_SIZE_PRESETS = [
+    { id: 'small', label: 'Nhỏ (13px)', desc: 'Mật độ cao, hiển thị nhiều nội dung hơn' },
+    { id: 'medium', label: 'Tiêu chuẩn (14px)', desc: 'Cân bằng chuẩn' },
+    { id: 'large', label: 'Lớn (15px)', desc: 'Dễ đọc, thoáng mắt' },
+  ];
 
   // Tab 4: Models state (FR-021 to FR-026, FR-035 to FR-039)
   const [models, setModels] = useState<AgentModel[]>([]);
@@ -166,7 +199,12 @@ export default function SettingsPage() {
         setLearningGoal(u.learning_goal || '');
         setAvatarUrl(u.avatar_url || '');
         setThemePreference(u.theme_preference || 'DARK');
-        setLanguagePreference(u.language_preference || 'en');
+        setLanguagePreference(u.language_preference || 'vi');
+        setCustomBgUrl(u.custom_bg_url || '');
+        setBgOpacity(u.bg_opacity !== undefined && u.bg_opacity !== null ? u.bg_opacity : 90);
+        setBgBlur(u.bg_blur !== undefined && u.bg_blur !== null ? u.bg_blur : 12);
+        setAccentColor(u.accent_color || 'emerald');
+        setUiFontSize((u.ui_font_size as any) || 'medium');
 
         // Apply theme
         applyTheme(u.theme_preference || 'DARK');
@@ -708,11 +746,33 @@ export default function SettingsPage() {
     }
   };
 
-  // 5. Submit Preferences Update
-  const handleUpdatePreferences = async (theme: 'DARK' | 'LIGHT' | 'SYSTEM', lang: 'vi' | 'en') => {
-    setThemePreference(theme);
-    setLanguagePreference(lang);
-    applyTheme(theme);
+  // 5. Submit Preferences Update (FR-020, UC-015, UI Personalization)
+  const handleUpdatePreferences = async (overrides?: Partial<{
+    theme: 'DARK' | 'LIGHT' | 'SYSTEM';
+    lang: 'vi' | 'en';
+    bgUrl: string;
+    opacity: number;
+    blur: number;
+    accent: string;
+    fontSize: 'small' | 'medium' | 'large';
+  }>) => {
+    const nextTheme = overrides?.theme !== undefined ? overrides.theme : themePreference;
+    const nextLang = overrides?.lang !== undefined ? overrides.lang : languagePreference;
+    const nextBgUrl = overrides?.bgUrl !== undefined ? overrides.bgUrl : customBgUrl;
+    const nextOpacity = overrides?.opacity !== undefined ? overrides.opacity : bgOpacity;
+    const nextBlur = overrides?.blur !== undefined ? overrides.blur : bgBlur;
+    const nextAccent = overrides?.accent !== undefined ? overrides.accent : accentColor;
+    const nextFontSize = overrides?.fontSize !== undefined ? overrides.fontSize : uiFontSize;
+
+    if (overrides?.theme !== undefined) setThemePreference(nextTheme);
+    if (overrides?.lang !== undefined) setLanguagePreference(nextLang);
+    if (overrides?.bgUrl !== undefined) setCustomBgUrl(nextBgUrl);
+    if (overrides?.opacity !== undefined) setBgOpacity(nextOpacity);
+    if (overrides?.blur !== undefined) setBgBlur(nextBlur);
+    if (overrides?.accent !== undefined) setAccentColor(nextAccent);
+    if (overrides?.fontSize !== undefined) setUiFontSize(nextFontSize);
+
+    applyTheme(nextTheme);
 
     setSavingPreferences(true);
     try {
@@ -720,20 +780,48 @@ export default function SettingsPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          theme_preference: theme,
-          language_preference: lang
+          theme_preference: nextTheme,
+          language_preference: nextLang,
+          custom_bg_url: nextBgUrl,
+          bg_opacity: nextOpacity,
+          bg_blur: nextBlur,
+          accent_color: nextAccent,
+          ui_font_size: nextFontSize
         })
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to save preferences.');
+      if (!res.ok) throw new Error(data.detail || 'Không thể lưu cài đặt tùy chọn.');
 
-      showToast('success', 'Preferences updated successfully.');
+      await refreshUser();
+      showToast('success', 'Đã lưu cấu hình tùy chỉnh giao diện thành công.');
     } catch (err: any) {
-      showToast('error', err.message || 'Error saving preferences.');
+      showToast('error', err.message || 'Lỗi lưu tùy chọn giao diện.');
     } finally {
       setSavingPreferences(false);
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('error', 'Chỉ hỗ trợ tệp hình ảnh hợp lệ (PNG, JPG, WebP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('error', 'Kích thước tệp ảnh tối đa là 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setCustomBgUrl(result);
+        showToast('success', 'Đã nạp ảnh thành công. Nhấn "Lưu Thay Đổi Giao Diện" để áp dụng.');
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   if (loadingInitial) {
@@ -1323,23 +1411,27 @@ export default function SettingsPage() {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 3: PREFERENCES                                           */}
+        {/* TAB 3: PREFERENCES (FR-020, UC-015, UI PERSONALIZATION)      */}
         {/* ============================================================ */}
         {activeTab === 'preferences' && (
           <div className="card" style={{ padding: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1.25rem', color: 'var(--text-primary)' }}>
-              Appearance & Localization
-            </h2>
+            <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                Tùy Chỉnh Giao Diện & Cá Nhân Hóa
+              </h2>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Tùy biến hình nền không gian học tập, độ trong suốt kính mờ, bảng màu chủ đạo và mật độ hiển thị theo sở thích.
+              </p>
+            </div>
 
-            {/* Theme Selector */}
+            {/* Section 1: Theme Mode */}
             <div style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>
-                Theme Mode
+                Chế độ màu giao diện (Theme Mode)
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
-                {/* Dark Theme Card */}
                 <div
-                  onClick={() => handleUpdatePreferences('DARK', languagePreference)}
+                  onClick={() => handleUpdatePreferences({ theme: 'DARK' })}
                   style={{
                     padding: '1.25rem',
                     borderRadius: 'var(--radius-md)',
@@ -1351,12 +1443,11 @@ export default function SettingsPage() {
                   }}
                 >
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Dark Mode</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Deep neutral dark surfaces</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Bề mặt tối trung tính dịu mắt</div>
                 </div>
 
-                {/* Light Theme Card */}
                 <div
-                  onClick={() => handleUpdatePreferences('LIGHT', languagePreference)}
+                  onClick={() => handleUpdatePreferences({ theme: 'LIGHT' })}
                   style={{
                     padding: '1.25rem',
                     borderRadius: 'var(--radius-md)',
@@ -1369,12 +1460,11 @@ export default function SettingsPage() {
                   }}
                 >
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>Light Mode</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Clean high-contrast palette</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Bảng màu sáng tương phản cao</div>
                 </div>
 
-                {/* System Theme Card */}
                 <div
-                  onClick={() => handleUpdatePreferences('SYSTEM', languagePreference)}
+                  onClick={() => handleUpdatePreferences({ theme: 'SYSTEM' })}
                   style={{
                     padding: '1.25rem',
                     borderRadius: 'var(--radius-md)',
@@ -1385,26 +1475,296 @@ export default function SettingsPage() {
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>System</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Follow OS preferences</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Theo hệ điều hành</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Tự động đồng bộ cài đặt OS</div>
                 </div>
               </div>
             </div>
 
-            {/* Language Selector */}
-            <div style={{ marginBottom: '1.5rem' }}>
+            {/* Section 2: Accent Color Palette */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                Màu chủ đạo (Accent Palette)
+              </label>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Thay đổi màu các nút bấm, biểu tượng nổi bật và viền nhấn trong toàn bộ ứng dụng.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
+                {ACCENT_PRESETS.map((acc) => {
+                  const isSelected = accentColor === acc.id;
+                  return (
+                    <div
+                      key={acc.id}
+                      onClick={() => handleUpdatePreferences({ accent: acc.id })}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-md)',
+                        background: isSelected ? 'var(--bg-selected)' : 'var(--bg-base)',
+                        border: isSelected ? `2px solid ${acc.hex}` : '1px solid var(--border-subtle)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: acc.hex, flexShrink: 0, boxShadow: isSelected ? `0 0 8px ${acc.hex}` : 'none' }} />
+                      <div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>{acc.name}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{acc.desc}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 3: Custom Wallpaper */}
+            <div style={{ marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Hình nền website tùy chỉnh (Custom Wallpaper)
+                </label>
+                {customBgUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePreferences({ bgUrl: '' })}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--danger)',
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                  >
+                    Xóa hình nền
+                  </button>
+                )}
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Cung cấp URL hình ảnh hoặc tải ảnh trực tiếp từ máy tính để làm hình nền cho không gian học tập.
+              </p>
+
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  value={customBgUrl.startsWith('data:image') ? '[Tệp ảnh đã tải từ máy tính]' : customBgUrl}
+                  disabled={customBgUrl.startsWith('data:image')}
+                  onChange={(e) => setCustomBgUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/... (URL hình ảnh)"
+                  className="input"
+                  style={{ flex: 1, minWidth: '240px' }}
+                />
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 14px',
+                    height: '36px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    fontWeight: 500,
+                    transition: 'background var(--transition-fast)'
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: 'none' }}
+                  />
+                  Tải ảnh từ máy
+                </label>
+              </div>
+
+              {/* Preset Wallpaper Chips */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>Gợi ý hình nền Nhật Bản:</span>
+                {WALLPAPER_PRESETS.map((wp) => {
+                  const isActive = customBgUrl === wp.url;
+                  return (
+                    <button
+                      key={wp.id}
+                      type="button"
+                      onClick={() => handleUpdatePreferences({ bgUrl: wp.url })}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 'var(--radius-full)',
+                        fontSize: '0.75rem',
+                        fontWeight: isActive ? 600 : 400,
+                        background: isActive ? 'var(--bg-selected)' : 'var(--bg-base)',
+                        border: isActive ? '1px solid var(--accent)' : '1px solid var(--border-subtle)',
+                        color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {wp.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Wallpaper Preview banner */}
+              {customBgUrl && (
+                <div
+                  style={{
+                    marginTop: '12px',
+                    height: '80px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundImage: `url("${customBgUrl}")`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    border: '1px solid var(--border-default)',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      left: '8px',
+                      background: 'rgba(0, 0, 0, 0.7)',
+                      padding: '2px 8px',
+                      borderRadius: 'var(--radius-xs)',
+                      fontSize: '0.7rem',
+                      color: '#ffffff'
+                    }}
+                  >
+                    Xem trước hình nền
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Section 4: Overlay & Glassmorphism Sliders */}
+            <div style={{ marginBottom: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
+              {/* Slider 1: Opacity */}
+              <div style={{ padding: '14px', background: 'var(--bg-base)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    Độ đục lớp phủ (Layer Opacity)
+                  </label>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+                    {bgOpacity}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={20}
+                  max={100}
+                  step={5}
+                  value={bgOpacity}
+                  onChange={(e) => setBgOpacity(Number(e.target.value))}
+                  onMouseUp={() => handleUpdatePreferences({ opacity: bgOpacity })}
+                  onTouchEnd={() => handleUpdatePreferences({ opacity: bgOpacity })}
+                  style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
+                />
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                  Độ trong suốt của thanh điều hướng và khung nội dung trên ảnh nền (20% - 100%).
+                </p>
+              </div>
+
+              {/* Slider 2: Blur */}
+              <div style={{ padding: '14px', background: 'var(--bg-base)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    Độ mờ kính (Backdrop Blur)
+                  </label>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+                    {bgBlur}px
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={40}
+                  step={2}
+                  value={bgBlur}
+                  onChange={(e) => setBgBlur(Number(e.target.value))}
+                  onMouseUp={() => handleUpdatePreferences({ blur: bgBlur })}
+                  onTouchEnd={() => handleUpdatePreferences({ blur: bgBlur })}
+                  style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
+                />
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                  Hiệu ứng kính mờ (glassmorphism) làm nổi bật văn bản và hội thoại tiếng Nhật (0px - 40px).
+                </p>
+              </div>
+            </div>
+
+            {/* Section 5: UI Font Size / Density */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                Cỡ chữ & Mật độ hiển thị (Layout Density)
+              </label>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Điều chỉnh tỉ lệ phông chữ và khoảng cách giao diện cho phù hợp với tầm nhìn.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                {FONT_SIZE_PRESETS.map((fs) => {
+                  const isSelected = uiFontSize === fs.id;
+                  return (
+                    <div
+                      key={fs.id}
+                      onClick={() => handleUpdatePreferences({ fontSize: fs.id as any })}
+                      style={{
+                        padding: '12px',
+                        borderRadius: 'var(--radius-md)',
+                        background: isSelected ? 'var(--bg-selected)' : 'var(--bg-base)',
+                        border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border-subtle)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>{fs.label}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>{fs.desc}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Section 6: Language Selector */}
+            <div style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                Interface Language
+                Ngôn ngữ hiển thị (Interface Language)
               </label>
               <select
                 value={languagePreference}
-                onChange={(e) => handleUpdatePreferences(themePreference, e.target.value as 'vi' | 'en')}
+                onChange={(e) => handleUpdatePreferences({ lang: e.target.value as 'vi' | 'en' })}
                 className="input"
                 style={{ width: '100%', maxWidth: '280px', cursor: 'pointer' }}
               >
-                <option value="en">English (Default)</option>
-                <option value="vi">Vietnamese</option>
+                <option value="vi">Tiếng Việt (Mặc định)</option>
+                <option value="en">English</option>
               </select>
+            </div>
+
+            {/* Section 7: Save Preferences Action */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.25rem' }}>
+              <button
+                type="button"
+                onClick={() => handleUpdatePreferences()}
+                disabled={savingPreferences}
+                className="btn-primary"
+                style={{
+                  padding: '8px 20px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                  cursor: savingPreferences ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {savingPreferences ? 'Đang lưu tùy chỉnh...' : 'Lưu Thay Đổi Giao Diện'}
+              </button>
             </div>
           </div>
         )}

@@ -276,3 +276,11 @@ apis:
     - FR-016
     - BR-007
     - CAP-USER
+  - id: OP-028
+    method: PATCH
+    path: /users/me/preferences
+    summary: Update user appearance preferences, wallpaper, layer opacity, blur, accent color, and font size
+    use_case: UC-015
+    source_refs:
+    - FR-020
+    - CAP-USER

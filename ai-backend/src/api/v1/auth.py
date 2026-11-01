@@ -70,6 +70,8 @@ async def login(req: LoginRequest, response: Response):
     user = query_one(
         """
         SELECT id, email, full_name, username, avatar_url, bio, phone_number,
+               age, occupation, interests, japanese_level, learning_goal,
+               custom_bg_url, bg_opacity, bg_blur, accent_color, ui_font_size,
                discord_id, discord_username,
                theme_preference, language_preference, status, created_at,
                last_login_at, hashed_password
@@ -139,6 +141,11 @@ async def login(req: LoginRequest, response: Response):
             "learning_goal": user.get("learning_goal") or "",
             "discord_id": user.get("discord_id"),
             "discord_username": user.get("discord_username"),
+            "custom_bg_url": user.get("custom_bg_url") or "",
+            "bg_opacity": user.get("bg_opacity") if user.get("bg_opacity") is not None else 90,
+            "bg_blur": user.get("bg_blur") if user.get("bg_blur") is not None else 12,
+            "accent_color": user.get("accent_color") or "emerald",
+            "ui_font_size": user.get("ui_font_size") or "medium",
             "theme_preference": user["theme_preference"] or "DARK",
             "language_preference": user["language_preference"] or "vi",
             "status": user["status"],

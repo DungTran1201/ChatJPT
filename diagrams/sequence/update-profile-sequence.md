@@ -46,14 +46,17 @@ sequenceDiagram
     UI->>UI: Cập nhật thông tin Header / Sidebar
     UI-->>User: Thông báo Toast: "Cập nhật hồ sơ thành công"
 
-    %% Nhánh Đổi Tùy Chọn Theme
-    Note over User, DB: Cập nhật Tùy chọn Giao diện (Theme / Ngôn ngữ)
-    User->>UI: Chọn Chế độ Sáng / Tối (Light / Dark)
-    UI->>UI: Đổi CSS class ngay lập tức (Zero-latency Theme Shift)
-    UI->>API: PATCH /api/v1/users/me/preferences (theme_preference="LIGHT")
-    API->>DB: UPDATE users SET theme_preference = 'LIGHT' WHERE id = :user_id
-    DB-->>API: Đã lưu
-    API-->>UI: HTTP 200 OK
+    %% Nhánh Tùy Chỉnh Giao Diện & Cá Nhân Hóa (FR-020, UC-015, OP-028)
+    Note over User, DB: Tùy Chỉnh Giao Diện (Theme, Wallpaper, Opacity, Blur, Accent Color, Font Size)
+    User->>UI: Tải hình nền / Chọn Preset, chỉnh Opacity (85%), Blur (14px), Accent (Sakura)
+    UI->>UI: Phản hồi thời gian thực qua CSS Variables (--accent, --bg-base, --app-backdrop-blur)
+    UI->>Auth: PATCH /api/v1/users/me/preferences (Payload JSON)
+    Auth->>API: Xác thực phiên người dùng & giải mã token
+    API->>API: Validate ràng buộc miền (20<=opacity<=100, 0<=blur<=40, accent in whitelist)
+    API->>DB: UPDATE users SET custom_bg_url = :bg, bg_opacity = :op, bg_blur = :blur, accent_color = :acc, ui_font_size = :fs WHERE id = :user_id
+    DB-->>API: Cập nhật cấu hình thành công
+    API-->>UI: HTTP 200 OK (Preferences JSON)
+    UI->>UI: Đồng bộ lại AppContext & Toast thông báo thành công
 ```
 
 ---

@@ -41,6 +41,11 @@ class ChangePasswordRequest(BaseModel):
 class UpdatePreferencesRequest(BaseModel):
     theme_preference: Optional[str] = Field(None, description="DARK, LIGHT, hoặc SYSTEM")
     language_preference: Optional[str] = Field(None, description="vi hoặc en")
+    custom_bg_url: Optional[str] = Field(None, max_length=1000, description="URL hoặc chuỗi data URI hình nền tùy chỉnh")
+    bg_opacity: Optional[int] = Field(None, ge=20, le=100, description="Độ mờ đục của các lớp layer phủ lên nền (20 - 100%)")
+    bg_blur: Optional[int] = Field(None, ge=0, le=40, description="Độ mờ kính backdrop-filter blur (0 - 40px)")
+    accent_color: Optional[str] = Field(None, description="Màu chủ đạo (emerald, sakura, violet, amber, sky)")
+    ui_font_size: Optional[str] = Field(None, description="Cỡ chữ hiển thị (small, medium, large)")
 
 
 
@@ -83,6 +88,11 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
             "interests": current_user.get("interests") or "",
             "japanese_level": current_user.get("japanese_level") or "CHUA_HOC",
             "learning_goal": current_user.get("learning_goal") or "",
+            "custom_bg_url": current_user.get("custom_bg_url") or "",
+            "bg_opacity": current_user.get("bg_opacity") if current_user.get("bg_opacity") is not None else 90,
+            "bg_blur": current_user.get("bg_blur") if current_user.get("bg_blur") is not None else 12,
+            "accent_color": current_user.get("accent_color") or "emerald",
+            "ui_font_size": current_user.get("ui_font_size") or "medium",
             "theme_preference": current_user.get("theme_preference") or "DARK",
             "language_preference": current_user.get("language_preference") or "vi",
             "status": current_user.get("status") or "ACTIVE",
@@ -353,20 +363,72 @@ async def update_preferences(
         updates.append("language_preference = ?")
         params.append(lang)
 
+    if req.custom_bg_url is not None:
+        clean_bg = req.custom_bg_url.strip()
+        updates.append("custom_bg_url = ?")
+        params.append(clean_bg if clean_bg else None)
+
+    if req.bg_opacity is not None:
+        if req.bg_opacity < 20 or req.bg_opacity > 100:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Độ mờ đục của lớp phủ phải từ 20% đến 100%."
+            )
+        updates.append("bg_opacity = ?")
+        params.append(req.bg_opacity)
+
+    if req.bg_blur is not None:
+        if req.bg_blur < 0 or req.bg_blur > 40:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Độ mờ kính (blur) phải từ 0px đến 40px."
+            )
+        updates.append("bg_blur = ?")
+        params.append(req.bg_blur)
+
+    if req.accent_color is not None:
+        accent = req.accent_color.lower().strip()
+        if accent not in ["emerald", "sakura", "violet", "amber", "sky"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Màu chủ đạo không hợp lệ. Chọn emerald, sakura, violet, amber, hoặc sky."
+            )
+        updates.append("accent_color = ?")
+        params.append(accent)
+
+    if req.ui_font_size is not None:
+        fsize = req.ui_font_size.lower().strip()
+        if fsize not in ["small", "medium", "large"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Cỡ chữ không hợp lệ. Chọn small, medium, hoặc large."
+            )
+        updates.append("ui_font_size = ?")
+        params.append(fsize)
+
     if updates:
         sql = f"UPDATE users SET {', '.join(updates)} WHERE id = ?"
         params.append(user_id)
         execute_commit(sql, tuple(params))
 
     updated = query_one(
-        "SELECT theme_preference, language_preference FROM users WHERE id = ?",
+        """
+        SELECT theme_preference, language_preference, custom_bg_url,
+               bg_opacity, bg_blur, accent_color, ui_font_size
+        FROM users WHERE id = ?
+        """,
         (user_id,)
     )
 
     return {
         "message": "Cập nhật tùy chọn giao diện thành công!",
         "theme_preference": updated["theme_preference"],
-        "language_preference": updated["language_preference"]
+        "language_preference": updated["language_preference"],
+        "custom_bg_url": updated.get("custom_bg_url") or "",
+        "bg_opacity": updated.get("bg_opacity") if updated.get("bg_opacity") is not None else 90,
+        "bg_blur": updated.get("bg_blur") if updated.get("bg_blur") is not None else 12,
+        "accent_color": updated.get("accent_color") or "emerald",
+        "ui_font_size": updated.get("ui_font_size") or "medium"
     }
 
 

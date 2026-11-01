@@ -452,21 +452,29 @@
 
 ---
 
-### FR-020: Tùy Chỉnh Cài Đặt Cá Nhân (Update User Preferences)
+### FR-020: Tùy Chỉnh Cài Đặt Cá Nhân & Cá Nhân Hóa Giao Diện (Update User Preferences & UI Personalization)
 - **Mã Yêu Cầu**: `FR-020`
-- **Tên Yêu Cầu**: Tùy Chỉnh Cài Đặt Cá Nhân (Update User Preferences).
-- **Mô Tả**: Cho phép người dùng tùy chọn chủ đề giao diện (`theme_preference`: DARK / LIGHT / SYSTEM) và ngôn ngữ hiển thị (`language_preference`: vi / en).
+- **Tên Yêu Cầu**: Tùy Chỉnh Cài Đặt Cá Nhân & Cá Nhân Hóa Giao Diện (Update User Preferences & UI Personalization).
+- **Mô Tả**: Cho phép người dùng tùy biến không gian học tập toàn diện:
+  - Chủ đề màu giao diện (`theme_preference`: DARK / LIGHT / SYSTEM).
+  - Ngôn ngữ hiển thị (`language_preference`: vi / en).
+  - Hình nền không gian học (`custom_bg_url`: URL hình ảnh hoặc ảnh tải trực tiếp từ máy tính lên qua Data URI, tối đa 1000 ký tự).
+  - Độ trong suốt của các panel nội dung, sidebar và header che phủ trên hình nền (`bg_opacity`: 20% - 100%, mặc định 90%).
+  - Độ mờ kính (`bg_blur`: 0px - 40px, mặc định 12px) tạo hiệu ứng glassmorphism làm nổi bật chữ hội thoại tiếng Nhật trên nền ảnh.
+  - Bảng màu chủ đạo (`accent_color`: emerald, sakura, violet, amber, sky).
+  - Kích thước phông chữ & mật độ giao diện (`ui_font_size`: small, medium, large).
 - **Tác Nhân (Actor)**: `ACT-02` (Registered User).
 - **Điều Kiện Tiên Quyết (Preconditions)**: Người dùng đã đăng nhập hợp lệ.
 - **Luồng Chính (Main Flow)**:
-  1. Người dùng vào tab Cài đặt tùy chọn, lựa chọn Theme và Ngôn ngữ mong muốn.
-  2. Client gửi request `PATCH /api/v1/users/me/preferences`.
-  3. Backend xác thực và cập nhật các trường `theme_preference` và `language_preference` trong bảng `users`.
-  4. Backend trả về `HTTP 200 OK`.
-  5. Client lưu cấu hình và áp dụng giao diện/ngôn ngữ tương ứng ngay lập tức.
+  1. Người dùng vào tab Preferences, chọn Theme, Accent Color, Hình nền (tải ảnh/URL/preset), độ đục Opacity, độ mờ Blur, Cỡ chữ và Ngôn ngữ.
+  2. Giao diện Next.js phản hồi thời gian thực qua biến CSS cục bộ (`--accent`, `--bg-base`, `--app-backdrop-blur`).
+  3. Client gửi request `PATCH /api/v1/users/me/preferences` mang payload JSON cấu hình.
+  4. Backend kiểm tra tính hợp lệ dữ liệu (giới hạn min/max opacity, blur, danh mục cho phép accent, cỡ chữ).
+  5. Backend cập nhật bảng `users` và trả về `HTTP 200 OK` chứa toàn bộ tùy chọn đã được lưu.
+  6. Client đồng bộ lại App Context để cập nhật bền vững trên toàn bộ ứng dụng.
 - **Luồng Ngoại Lệ (Exception Flow)**:
-  - *EF-01*: Giá trị tùy chọn không nằm trong whitelist -> Trả về `HTTP 422 Unprocessable Entity`.
-- **Điều Kiện Sau (Postconditions)**: Cấu hình cá nhân được lưu trên máy chủ và đồng bộ giữa các thiết bị đăng nhập.
+  - *EF-01*: Giá trị tùy chọn không nằm trong whitelist hoặc phạm vi hợp lệ (`bg_opacity` ngoài 20..100, `bg_blur` ngoài 0..40, `accent_color` không hợp lệ) -> Trả về `HTTP 422 Unprocessable Entity`.
+- **Điều Kiện Sau (Postconditions)**: Cấu hình cá nhân hóa được lưu trên cơ sở dữ liệu và đồng bộ tức thì trên giao diện người dùng.
 - **Độ Ưu Tiên**: `SHOULD`.
 - **Trạng Thái**: `BASELINED`.
 - **Phụ Thuộc (Dependencies)**: `FR-015`.
