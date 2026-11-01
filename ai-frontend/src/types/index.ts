@@ -147,12 +147,30 @@ export interface SystemPromptCreateRequest {
   name: string;
   description?: string | null;
   content: string;
+  age?: number;
+  gender?: string;
+  japanese_level?: string;
+  personality?: string | null;
+  teaching_style?: string | null;
+  catchphrase?: string | null;
+  hobbies?: string | null;
+  avatar_url?: string | null;
+  is_default?: boolean;
 }
 
 export interface SystemPromptUpdateRequest {
   name?: string;
   description?: string | null;
   content?: string;
+  age?: number;
+  gender?: string;
+  japanese_level?: string;
+  personality?: string | null;
+  teaching_style?: string | null;
+  catchphrase?: string | null;
+  hobbies?: string | null;
+  avatar_url?: string | null;
+  is_default?: boolean;
 }
 
 export interface UserConnectionsResponse {
@@ -165,7 +183,16 @@ export interface SystemPromptSummary {
   name: string;
   description: string | null;
   content_length: number;
+  age?: number;
+  gender?: string;
+  japanese_level?: string;
+  personality?: string | null;
+  teaching_style?: string | null;
+  catchphrase?: string | null;
+  hobbies?: string | null;
+  avatar_url?: string | null;
   is_default: boolean;
+  is_system_preset?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -178,4 +205,10 @@ export interface SystemPromptDetail extends SystemPromptSummary {
 export interface SystemPromptListResponse {
   prompts?: SystemPromptSummary[];
   items?: SystemPromptSummary[];
+  total?: number;
 }
+
+export type SenseiSummary = SystemPromptSummary;
+export type SenseiDetail = SystemPromptDetail;
+export type SenseiCreateRequest = SystemPromptCreateRequest;
+export type SenseiUpdateRequest = SystemPromptUpdateRequest;

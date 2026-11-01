@@ -26,10 +26,13 @@ export class SystemPromptService {
    * Fetch system prompts for the current user (or guest_user).
    * Returns metadata and content_length.
    */
-  static async getPrompts(query?: string, sort: string = 'updated_desc'): Promise<SystemPromptListResponse> {
+  static async getPrompts(query?: string, sort: string = 'level_asc', level?: string): Promise<SystemPromptListResponse> {
     const params = new URLSearchParams({ sort });
     if (query && query.trim()) {
       params.append('q', query.trim());
+    }
+    if (level && level.trim() && level !== 'ALL') {
+      params.append('level', level.trim());
     }
 
     const res = await fetch(`${BASE_URL}/system-prompts?${params.toString()}`, {

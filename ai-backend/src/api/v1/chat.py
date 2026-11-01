@@ -17,6 +17,7 @@ chat_router = APIRouter(tags=["Chat Streaming"])
 class MessageStreamRequest(BaseModel):
     content: str = Field(default="", max_length=4000, description="Nội dung prompt câu hỏi (tối đa 4000 ký tự)")
     model: Optional[str] = "gemini-3.8-flash"
+    sensei_id: Optional[str] = Field(default=None, description="ID của Sensei đồng hành (N5..N1)")
     attachments: Optional[List[str]] = Field(default=None, description="Danh sách attachment_id đính kèm cho lượt chat này")
 
 async def generate_mock_ai_stream(prompt: str, history: list) -> AsyncGenerator[str, None]:
@@ -219,12 +220,28 @@ async def stream_message_endpoint(
         ttft_recorded = False
         ttft_ms = None
 
+        # Nạp chỉ thị persona của Sensei đồng hành nếu được chọn (FR-064, FR-065)
+        sensei_instruction = None
+        if req.sensei_id:
+            sensei_row = query_one(
+                "SELECT name, content, teaching_style, catchphrase, japanese_level FROM system_prompts WHERE id = ? AND (user_id = ? OR is_system_preset = 1)",
+                (req.sensei_id, user_id)
+            )
+            if sensei_row:
+                sensei_instruction = (
+                    f"TÊN SENSEI: {sensei_row['name']} (Cấp độ {sensei_row.get('japanese_level', 'N5')})\n"
+                    f"PHONG CÁCH SƯ PHẠM: {sensei_row.get('teaching_style', '')}\n"
+                    f"CÂU CỬA MIỆNG: {sensei_row.get('catchphrase', '')}\n\n"
+                    f"CHỈ THỊ PERSONA:\n{sensei_row['content']}"
+                )
+
         try:
             from llm.agent import chat_agent
 
             async for event in chat_agent.astream_agent(
                 prompt=prompt_text,
                 history=context_msgs,
+                system_instruction=sensei_instruction,
                 model_override=selected_model,
                 attachments=attachment_records if attachment_records else None,
                 user_id=current_user["id"],

@@ -216,3 +216,10 @@
 - **Mục Tiêu Của Actor**: Tra cứu tức thì các câu hỏi tiếng Nhật phổ biến trong kho tri thức 10,000+ bản ghi với tốc độ dưới 5ms (thông qua SQLite FTS5 và B-Tree Index), đồng thời tự động lưu trữ mọi câu hỏi & câu trả lời mới vào Semantic Cache mà không tạo bản ghi trùng lặp (Strict Deduplication).
 - **Sự Kiện Kích Hoạt**: Người dùng gửi tin nhắn trò chuyện hoặc hệ thống phản hồi hoàn tất một lượt chat (`chat.py`).
 - **Phụ Thuộc**: Phụ thuộc vào `FR-062`, `FR-063`, `OP-046`, `SEQ-005`.
+
+---
+
+### 2.30 UC-PROMPT-004 [UC-042]: Quản Lý Đội Ngũ Sensei & Lựa Chọn Đồng Hành Kép (Sensei Guidance & Dual Selector)
+- **Mục Tiêu Của Actor**: Quản lý danh sách các giáo viên ảo Sensei với thông tin cá nhân hóa (Tên, tuổi, tính cách, cấp độ N5-N1, phong cách sư phạm, câu cửa miệng) và lựa chọn Sensei cùng Mô hình AI trong thanh chat qua giao diện popover trượt độc lập.
+- **Sự Kiện Kích Hoạt**: Người dùng truy cập trang Sensei Guidance (`/prompts`), tạo/sửa thông tin Sensei, hoặc click bộ chọn Sensei & Model trên thanh chat composer (`MessageComposer`).
+- **Phụ Thuộc**: Phụ thuộc vào `FR-064`, `FR-065`, `FR-066`, `OP-038`.

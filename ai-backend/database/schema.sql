@@ -167,13 +167,23 @@ CREATE TABLE IF NOT EXISTS system_prompts (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     content TEXT NOT NULL,
+    age INTEGER DEFAULT 25,
+    gender VARCHAR(20) DEFAULT 'female',
+    japanese_level VARCHAR(20) NOT NULL DEFAULT 'N5',
+    personality VARCHAR(255),
+    teaching_style TEXT,
+    catchphrase VARCHAR(255),
+    hobbies VARCHAR(255),
+    avatar_url VARCHAR(500),
     is_default BOOLEAN NOT NULL DEFAULT 0,
+    is_system_preset BOOLEAN NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_system_prompts_user_id ON system_prompts(user_id);
+CREATE INDEX IF NOT EXISTS idx_system_prompts_level ON system_prompts(japanese_level);
 
 
 -- ------------------------------------------------------------------------------

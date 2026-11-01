@@ -1338,3 +1338,59 @@
 - **Độ Ưu Tiên**: `MUST`.
 - **Trạng Thái**: `IMPLEMENTED`.
 - **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-060`, `FR-062`.
+
+---
+
+### FR-064: Quản Lý Hồ Sơ Đội Ngũ Sensei (Sensei Persona Management)
+- **Mã Yêu Cầu**: `FR-064`
+- **Tên Yêu Cầu**: Quản Lý Hồ Sơ Đội Ngũ Sensei (Sensei Persona Management).
+- **Mô Tả**: Chuyển đổi và nâng cấp phân hệ System Prompts thành Quản Lý Đội Ngũ Sensei (Sensei Guidance). Mỗi Sensei được định danh với các trường thông tin nhân bản học hoàn chỉnh:
+  - Tên Sensei (Tên tiếng Nhật kèm Kanji & Romaji).
+  - Tuổi (Age - e.g. 24 đến 42 tuổi).
+  - Giới tính & Xưng hô (Gender/Pronoun - Cô giáo / Thầy giáo).
+  - Trình độ tiếng Nhật chuyên trách (Japanese Level: N5, N4, N3, N2, N1).
+  - Nét tính cách sư phạm đặc trưng (Personality).
+  - Phong cách giảng dạy & Quy chuẩn Furigana/Song ngữ (Teaching Style).
+  - Câu nói cửa miệng / Lời chào thương hiệu (Catchphrase).
+  - Sở thích & Chủ đề quan tâm (Hobbies & Conversational Topics).
+  - Ảnh đại diện Sensei (Avatar URL / Dicebear Anime Preset).
+  - Chỉ dẫn Persona cốt lõi (Prompt Content cho LLM).
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-008`, `FR-011`.
+
+---
+
+### FR-065: Thiết Lập Sẵn 5 Sensei N5 - N1 Mặc Định Hệ Thống (System Preset Senseis)
+- **Mã Yêu Cầu**: `FR-065`
+- **Tên Yêu Cầu**: Thiết Lập Sẵn 5 Sensei N5 - N1 Mặc Định Hệ Thống (System Preset Senseis).
+- **Mô Tả**: Khởi tạo và cung cấp sẵn 5 Sensei đại diện cho 5 cấp độ JLPT từ N5 đến N1 cho tất cả người dùng ngay khi khởi chạy:
+  1. `Sakura-sensei (桜先生)`: 24 tuổi, N5 Sơ cấp cơ bản, dịu dàng, kiên nhẫn, giải thích song ngữ Nhật-Việt kèm Furigana.
+  2. `Kenji-sensei (健二先生)`: 27 tuổi, N4 Sơ cấp nâng cao, năng động, vui tính, chuyên luyện Kaiwa đời sống & liên kết thể động từ.
+  3. `Aoi-sensei (葵先生)`: 29 tuổi, N3 Trung cấp, điềm đạm, chu đáo, tinh tế, chuyên sâu về sắc thái ngữ cảnh và từ vựng Kanji ghép.
+  4. `Ryu-sensei (竜先生)`: 35 tuổi, N2 Trung thượng cấp, nghiêm cẩn, sắc sảo, chuyên tiếng Nhật thương mại (Business) và đọc hiểu báo chí.
+  5. `Yuki-sensei (雪先生)`: 42 tuổi, N1 Cao cấp, uyên bác, thâm thúy, chuyên sâu về Kính ngữ thượng thừa, văn phong học thuật & thành ngữ 4 chữ Yojijukugo.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-064`.
+
+---
+
+### FR-066: Bộ Chọn Kép Đồng Hành Sensei & Động Cơ Mô Hình AI (Dual-Column Independent Scroll Selector)
+- **Mã Yêu Cầu**: `FR-066`
+- **Tên Yêu Cầu**: Bộ Chọn Kép Đồng Hành Sensei & Động Cơ Mô Hình AI (Dual-Column Independent Scroll Selector).
+- **Mô Tả**: Nâng cấp bộ chọn mô hình đơn giản tại thanh nhập liệu tin nhắn (Message Composer) thành Khung Chọn Kép Thời Thượng (Dual-Column Popover):
+  - **Cột Trái (Danh Sách Sensei - Trợ Lý Chính)**:
+    - Thanh tìm kiếm tức thì theo tên Sensei hoặc tính cách.
+    - Bộ lọc nhanh theo trình độ tiếng Nhật (`Tất cả`, `N5`, `N4`, `N3`, `N2`, `N1`).
+    - Danh sách Sensei cuộn dọc độc lập (`overflow-y: auto`), hiển thị Avatar, Tên, Cấp độ, Tính cách tóm tắt.
+  - **Cột Phải (Danh Sách Mô Hình AI - Động Cơ Suy Luận)**:
+    - Danh sách các mô hình AI khả dụng (Gemini, Groq, Claude, OpenAI, Qwen Embedded, Offline Cache) cuộn dọc độc lập (`overflow-y: auto`).
+  - **Cơ chế cuộn độc lập (Independent Scroll Interaction)**: Chuột rê lên danh sách nào thì sự kiện cuộn bánh xe (wheel scroll) chỉ trượt trên danh sách đó, không gây nhảy vị trí của danh sách còn lại.
+  - **Hiển thị trực quan trên thanh composer**: Nút chọn hiển thị kết hợp `🎓 [Sensei Name] • ⚡ [Model Name]`.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-064`, `FR-065`, `FR-021`.

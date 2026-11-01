@@ -96,6 +96,9 @@ AI-CHAN CAPABILITIES
 | **FR-061** | In-Project Direct Embedded Model & Hardware Verification Gate | `CAP-AGENT-MGMT` | **MUST** | `IMPLEMENTED` | Mô hình siêu nhẹ nhúng trực tiếp không cần server ngoài, kiểm tra phần cứng trước khi tải về. |
 | **FR-062** | Large-Scale Japanese Semantic Knowledge Cache 10,000+ | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Thiết lập hàng chục nghìn câu hỏi/trả lời tiếng Nhật phổ biến với chỉ mục FTS5 tốc độ cao. |
 | **FR-063** | Auto-Learning Interaction Memory with Deduplication | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Tự động lưu Q&A vào Semantic Cache sau mỗi lượt chat, chống lưu trùng lặp câu đã có. |
+| **FR-064** | Sensei Persona Management | `CAP-PROMPT-MGMT` | **MUST** | `IMPLEMENTED` | Quản lý đội ngũ Sensei với đầy đủ thông tin nhân bản học: tên, tuổi, giới tính, cấp độ N5-N1, tính cách, phong cách sư phạm, câu cửa miệng. |
+| **FR-065** | System Preset Senseis N5-N1 | `CAP-PROMPT-MGMT` | **MUST** | `IMPLEMENTED` | Cung cấp sẵn 5 Sensei đại diện N5-N1 cho mọi người học: Sakura (N5), Kenji (N4), Aoi (N3), Ryu (N2), Yuki (N1). |
+| **FR-066** | Dual-Column Independent Scroll Selector | `CAP-CHAT-AI` | **MUST** | `IMPLEMENTED` | Khung chọn kép thời thượng trong khung chat: Cột Sensei (kèm search & filter level) song song Cột Mô hình AI, trượt độc lập khi rê chuột. |
 
 ---
 

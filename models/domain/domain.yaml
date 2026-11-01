@@ -92,11 +92,21 @@ entities:
 - name: SystemPrompt
   aggregate_root: true
   attributes:
-  - id: string (PK, sp_hex)
+  - id: string (PK, sp_hex / sensei_id)
   - user_id: UUID / string (FK -> User.id)
-  - name: string (1..100, UNIQUE per user)
+  - name: string (1..100, Sensei persona name)
   - description: string (max 500, nullable)
-  - content: string (TEXT, 1..10000)
+  - content: string (TEXT, 1..10000, persona instructions)
+  - age: integer (Sensei age, default 25)
+  - gender: string (female / male / other)
+  - japanese_level: enum(N5, N4, N3, N2, N1, ALL)
+  - personality: string (pedagogical persona attributes)
+  - teaching_style: string (teaching methodology & furigana usage)
+  - catchphrase: string (signature quote / greeting)
+  - hobbies: string (interests & conversational topics)
+  - avatar_url: string (portrait / avatar URL)
+  - is_default: boolean (default false)
+  - is_system_preset: boolean (default false, official pre-seeded senseis N5-N1)
   - created_at: timestamp
   - updated_at: timestamp
 - name: Rule

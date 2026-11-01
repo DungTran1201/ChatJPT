@@ -25,6 +25,19 @@ export default function ChatPage() {
 
   const [activeModels, setActiveModels] = useState<AgentModel[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>('gemini-3.8-flash');
+  const [selectedSenseiId, setSelectedSenseiId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('ai_chan_selected_sensei') || 'sensei_sakura_n5';
+    }
+    return 'sensei_sakura_n5';
+  });
+
+  const handleSelectSensei = (senseiId: string) => {
+    setSelectedSenseiId(senseiId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ai_chan_selected_sensei', senseiId);
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -168,6 +181,7 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
       body: JSON.stringify({
         content: textToSend.trim(),
         model: selectedModelId,
+        sensei_id: selectedSenseiId,
         attachments: attachmentIds && attachmentIds.length > 0 ? attachmentIds : undefined,
       }),
       signal: controller.signal,
@@ -301,6 +315,8 @@ return (
         activeModels={activeModels}
         selectedModelId={selectedModelId}
         onSelectModel={setSelectedModelId}
+        selectedSenseiId={selectedSenseiId}
+        onSelectSensei={handleSelectSensei}
         placeholder={t("chat.composer_placeholder")}
       />
     </div>

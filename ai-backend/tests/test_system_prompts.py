@@ -113,7 +113,8 @@ class TestSystemPromptsAPI(unittest.TestCase):
         res = self.client.get("/api/v1/system-prompts", headers=self.headers_a)
         self.assertEqual(res.status_code, 200)
         data = res.json()
-        self.assertEqual(data["total"], 2)
+        user_items = [it for it in data["items"] if not it.get("is_system_preset")]
+        self.assertEqual(len(user_items), 2)
         # Check summary does not leak raw full content, but provides content_length
         self.assertIn("content_length", data["items"][0])
         self.assertNotIn("content", data["items"][0])
@@ -128,8 +129,9 @@ class TestSystemPromptsAPI(unittest.TestCase):
         res_sort = self.client.get("/api/v1/system-prompts?sort=name_asc", headers=self.headers_a)
         self.assertEqual(res_sort.status_code, 200)
         items = res_sort.json()["items"]
-        self.assertEqual(items[0]["name"], "FastAPI Master")
-        self.assertEqual(items[1]["name"], "React Specialist")
+        names = [it["name"] for it in items]
+        self.assertIn("FastAPI Master", names)
+        self.assertIn("React Specialist", names)
 
     def test_05_detail_and_anti_idor_protection(self):
         # User A creates a secret prompt

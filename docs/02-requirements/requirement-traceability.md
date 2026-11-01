@@ -89,6 +89,9 @@
 | **BO-02** | `CAP-AGENT-MGMT` | **FR-061** | In-Project Direct Embedded Model & Hardware Verification Gate | `TC-043` | `PROC-024` (Quản lý mô hình nhúng cục bộ) | `UC-040` (Tải & vận hành mô hình nhúng nội bộ) |
 | **BO-01** | `CAP-CHAT-AI` | **FR-062** | Large-Scale Japanese Semantic Knowledge Cache 10,000+ | `TC-044` | `PROC-025` (Truy vấn tri thức đệm FTS5) | `UC-041` (Tra cứu tri thức tiếng Nhật ngoại tuyến) |
 | **BO-01** | `CAP-CHAT-AI` | **FR-063** | Auto-Learning Interaction Memory with Deduplication | `TC-045` | `PROC-025` (Ghi nhận & khử trùng lặp đệm) | `UC-041` (Tự động mở rộng bộ nhớ đệm hội thoại) |
+| **BO-01** | `CAP-PROMPT-MGMT` | **FR-064** | Sensei Persona Management | `TC-046` | `PROC-026` (Quản lý hồ sơ sư phạm Sensei) | `UC-042` (Quản lý hồ sơ & persona Sensei) |
+| **BO-01** | `CAP-PROMPT-MGMT` | **FR-065** | System Preset Senseis N5-N1 | `TC-047` | `PROC-026` (Khởi tạo Sensei mẫu hệ thống) | `UC-042` (Sử dụng Sensei N5-N1 mặc định) |
+| **BO-01** | `CAP-CHAT-AI` | **FR-066** | Dual-Column Independent Scroll Selector | `TC-048` | `PROC-CHAT-01` (Lựa chọn Sensei & Động cơ AI) | `UC-CHAT-01` (Tương tác chọn Sensei & Model kép) |
 
 ---
 
