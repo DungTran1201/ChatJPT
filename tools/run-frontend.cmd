@@ -21,12 +21,12 @@ set "LOG_DIR=%REPO_ROOT%\logs"
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 set "LOG_FILE=%LOG_DIR%\frontend.log"
 
-title AI-Chan ^| Frontend
+title ChatJPT ^| Frontend
 
 cd /d "%REPO_ROOT%\ai-frontend"
 
 echo ======================================================================
-echo   AI-Chan ^| Frontend
+echo   ChatJPT ^| Frontend
 echo ======================================================================
 echo   Directory : %CD%
 echo   Port      : %PORT%

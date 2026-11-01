@@ -21,7 +21,7 @@ set "LOG_DIR=%REPO_ROOT%\logs"
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 set "LOG_FILE=%LOG_DIR%\backend.log"
 
-title AI-Chan ^| Backend API
+title ChatJPT ^| Backend API
 
 cd /d "%REPO_ROOT%\ai-backend"
 
@@ -30,7 +30,7 @@ set PYTHONIOENCODING=utf-8
 set PYTHONUTF8=1
 
 echo ======================================================================
-echo   AI-Chan ^| Backend API
+echo   ChatJPT ^| Backend API
 echo ======================================================================
 echo   Directory : %CD%
 echo   Port      : %PORT%
