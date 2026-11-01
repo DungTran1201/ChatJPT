@@ -198,3 +198,4 @@ class EmbeddedModelService:
         for i, chunk in enumerate(chunks):
             yield chunk + (" " if i < len(chunks) - 1 else "")
             time.sleep(0.015)
+

@@ -69,3 +69,4 @@ async def learn_interaction_endpoint(payload: LearnRequest):
         response_text=payload.response,
         category=payload.category or "learned_chat"
     )
+

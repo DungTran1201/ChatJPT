@@ -73,3 +73,4 @@ sequenceDiagram
     end
     API-->>UI: SSE event: done\ndata: {"status": "done", "learned": true}
 ```
+

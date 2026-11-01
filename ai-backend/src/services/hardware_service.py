@@ -143,3 +143,4 @@ class HardwareInspectionService:
             "checks": checks,
             "message": msg
         }
+
