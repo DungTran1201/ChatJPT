@@ -55,12 +55,12 @@ flowchart TD
     Return200Avatar --> UpdateNavAvatar[Đồng bộ hiển thị avatar trên Header & Sidebar]
     UpdateNavAvatar --> EndEventSuccess
 
-    %% Nhánh 3: Đổi Tùy chọn Theme/Ngôn ngữ
-    UserChoice -- Tùy chọn giao diện --> SelectPref[User chọn Theme DARK/LIGHT và Ngôn ngữ vi/en]
+    %% Nhánh 3: Tùy chọn giao diện cá nhân hóa cao cấp
+    UserChoice -- Tùy chọn giao diện --> SelectPref[User chọn Theme Dark/Light, Ngôn ngữ vi/en/ja, RGB Accent, Wallpaper, Dimming, Opacity, Blur]
     SelectPref --> SendPatchPref[Gửi PATCH /api/v1/users/me/preferences]
-    SendPatchPref --> UpdateDBPref[Backend cập nhật theme_preference & language_preference]
-    UpdateDBPref --> Return200Pref[Trả về HTTP 200 OK]
-    Return200Pref --> ApplyThemeInstant[Client áp dụng Theme/i18n ngay lập tức]
+    SendPatchPref --> UpdateDBPref[Backend cập nhật theme, language, custom_bg_url, bg_dim, bg_opacity, bg_blur, accent_color, ui_font_size]
+    UpdateDBPref --> Return200Pref[Trả về HTTP 200 OK + Preferences JSON]
+    Return200Pref --> ApplyThemeInstant[Client áp dụng Frosted Glass Theme/i18n/RGB Accent ngay lập tức]
     ApplyThemeInstant --> EndEventSuccess
 
     style StartEvent fill:#dcfce7,stroke:#15803d

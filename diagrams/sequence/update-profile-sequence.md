@@ -47,16 +47,16 @@ sequenceDiagram
     UI-->>User: Thông báo Toast: "Cập nhật hồ sơ thành công"
 
     %% Nhánh Tùy Chỉnh Giao Diện & Cá Nhân Hóa (FR-020, UC-015, OP-028)
-    Note over User, DB: Tùy Chỉnh Giao Diện (Theme, Wallpaper, Opacity, Blur, Accent Color, Font Size)
-    User->>UI: Tải hình nền / Chọn Preset, chỉnh Opacity (85%), Blur (14px), Accent (Sakura)
-    UI->>UI: Phản hồi thời gian thực qua CSS Variables (--accent, --bg-base, --app-backdrop-blur)
+    Note over User, DB: Tùy Chỉnh Giao Diện (Theme, Wallpaper, Dimming, Opacity, Blur, RGB Accent, Font Size, Language vi/en/ja)
+    User->>UI: Chọn Theme (Dark/Light frosted glass), Kéo dải màu RGB (#ff007f), Tải nền, Chỉnh Dim (35%), Opacity (85%), Blur (14px), Đổi ngôn ngữ (ja)
+    UI->>UI: Phản hồi thời gian thực qua CSS Variables (--accent, --bg-base, --bg-surface, --app-backdrop-blur) & React AppContext i18n
     UI->>Auth: PATCH /api/v1/users/me/preferences (Payload JSON)
     Auth->>API: Xác thực phiên người dùng & giải mã token
-    API->>API: Validate ràng buộc miền (20<=opacity<=100, 0<=blur<=40, accent in whitelist)
-    API->>DB: UPDATE users SET custom_bg_url = :bg, bg_opacity = :op, bg_blur = :blur, accent_color = :acc, ui_font_size = :fs WHERE id = :user_id
+    API->>API: Validate ràng buộc miền (20<=opacity<=100, 0<=blur<=40, 0<=dim<=100, accent hex/preset, lang in vi/en/ja)
+    API->>DB: UPDATE users SET custom_bg_url = :bg, bg_opacity = :op, bg_blur = :blur, bg_dim = :dim, accent_color = :acc, ui_font_size = :fs, language_preference = :lang WHERE id = :user_id
     DB-->>API: Cập nhật cấu hình thành công
     API-->>UI: HTTP 200 OK (Preferences JSON)
-    UI->>UI: Đồng bộ lại AppContext & Toast thông báo thành công
+    UI->>UI: Đồng bộ lại AppContext & Toast thông báo thành công đa ngôn ngữ
 ```
 
 ---

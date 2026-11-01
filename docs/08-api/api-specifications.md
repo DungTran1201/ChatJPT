@@ -296,17 +296,18 @@
 ---
 
 ### 5.6 PATCH /api/v1/users/me/preferences
-- **Mục đích**: Cập nhật cài đặt giao diện hiển thị, hình nền tùy chỉnh, độ trong suốt, hiệu ứng kính mờ và màu chủ đạo (`FR-020`, `UC-015`, `OP-028`).
+- **Mục đích**: Cập nhật cài đặt giao diện hiển thị, hình nền tùy chỉnh, độ tối màn phủ nền, độ trong suốt kính mờ, dải màu RGB chủ đạo và ngôn ngữ hiển thị (`FR-020`, `UC-015`, `OP-028`).
 - **Bảo mật**: Yêu cầu Cookie `access_token`.
 - **Request Body**:
   ```json
   {
     "theme_preference": "DARK",
-    "language_preference": "vi",
+    "language_preference": "ja",
     "custom_bg_url": "https://images.unsplash.com/photo-japan-bg",
     "bg_opacity": 85,
     "bg_blur": 14,
-    "accent_color": "sakura",
+    "bg_dim": 35,
+    "accent_color": "#ff007f",
     "ui_font_size": "medium"
   }
   ```
@@ -316,15 +317,16 @@
     {
       "message": "Cập nhật tùy chọn giao diện thành công!",
       "theme_preference": "DARK",
-      "language_preference": "vi",
+      "language_preference": "ja",
       "custom_bg_url": "https://images.unsplash.com/photo-japan-bg",
       "bg_opacity": 85,
       "bg_blur": 14,
-      "accent_color": "sakura",
+      "bg_dim": 35,
+      "accent_color": "#ff007f",
       "ui_font_size": "medium"
     }
     ```
-  - `422 Unprocessable Entity`: Giá trị không nằm trong whitelist cho phép hoặc vượt ngưỡng kiểm định (`bg_opacity` ngoài 20..100, `bg_blur` ngoài 0..40, `accent_color` không hợp lệ).
+  - `422 Unprocessable Entity`: Giá trị không nằm trong whitelist cho phép hoặc vượt ngưỡng kiểm định (`bg_opacity` ngoài 20..100, `bg_blur` ngoài 0..40, `bg_dim` ngoài 0..100, `accent_color` không hợp lệ, `language_preference` không phải vi/en/ja).
 
 ---
 

@@ -24,10 +24,11 @@ interface UserProfile {
   custom_bg_url?: string;
   bg_opacity?: number;
   bg_blur?: number;
+  bg_dim?: number;
   accent_color?: string;
   ui_font_size?: 'small' | 'medium' | 'large';
   theme_preference: 'DARK' | 'LIGHT' | 'SYSTEM';
-  language_preference: 'vi' | 'en';
+  language_preference: 'vi' | 'en' | 'ja';
   status: string;
   created_at: string;
   last_login_at?: string;
@@ -43,7 +44,7 @@ interface UserStats {
 export default function SettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refreshUser } = useApp();
+  const { refreshUser, language, setLanguage, t } = useApp();
 
   // Active tab state: 'profile' | 'security' | 'preferences' | 'models' | 'api-keys'
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences' | 'models' | 'api-keys'>('profile');
@@ -94,13 +95,28 @@ export default function SettingsPage() {
 
   // Tab 3: Preferences state
   const [themePreference, setThemePreference] = useState<'DARK' | 'LIGHT' | 'SYSTEM'>('DARK');
-  const [languagePreference, setLanguagePreference] = useState<'vi' | 'en'>('vi');
+  const [languagePreference, setLanguagePreference] = useState<'vi' | 'en' | 'ja'>('vi');
   const [customBgUrl, setCustomBgUrl] = useState('');
   const [bgOpacity, setBgOpacity] = useState<number>(90);
   const [bgBlur, setBgBlur] = useState<number>(12);
+  const [bgDim, setBgDim] = useState<number>(0);
   const [accentColor, setAccentColor] = useState<string>('emerald');
+  const [customHex, setCustomHex] = useState<string>('#3ecf8e');
+  const [hueValue, setHueValue] = useState<number>(150);
   const [uiFontSize, setUiFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [savingPreferences, setSavingPreferences] = useState(false);
+
+  // Helper HSL to Hex
+  const hslToHex = (h: number, s: number, l: number): string => {
+    l /= 100;
+    const a = (s * Math.min(l, 1 - l)) / 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`.toLowerCase();
+  };
 
   const WALLPAPER_PRESETS = [
     { id: 'none', label: 'Mặc định (Không nền)', url: '' },
@@ -199,11 +215,15 @@ export default function SettingsPage() {
         setLearningGoal(u.learning_goal || '');
         setAvatarUrl(u.avatar_url || '');
         setThemePreference(u.theme_preference || 'DARK');
-        setLanguagePreference(u.language_preference || 'vi');
+        setLanguagePreference((u.language_preference as any) || 'vi');
         setCustomBgUrl(u.custom_bg_url || '');
         setBgOpacity(u.bg_opacity !== undefined && u.bg_opacity !== null ? u.bg_opacity : 90);
         setBgBlur(u.bg_blur !== undefined && u.bg_blur !== null ? u.bg_blur : 12);
+        setBgDim(u.bg_dim !== undefined && u.bg_dim !== null ? u.bg_dim : 0);
         setAccentColor(u.accent_color || 'emerald');
+        if (u.accent_color && u.accent_color.startsWith('#')) {
+          setCustomHex(u.accent_color);
+        }
         setUiFontSize((u.ui_font_size as any) || 'medium');
 
         // Apply theme
@@ -749,10 +769,11 @@ export default function SettingsPage() {
   // 5. Submit Preferences Update (FR-020, UC-015, UI Personalization)
   const handleUpdatePreferences = async (overrides?: Partial<{
     theme: 'DARK' | 'LIGHT' | 'SYSTEM';
-    lang: 'vi' | 'en';
+    lang: 'vi' | 'en' | 'ja';
     bgUrl: string;
     opacity: number;
     blur: number;
+    dim: number;
     accent: string;
     fontSize: 'small' | 'medium' | 'large';
   }>) => {
@@ -761,14 +782,19 @@ export default function SettingsPage() {
     const nextBgUrl = overrides?.bgUrl !== undefined ? overrides.bgUrl : customBgUrl;
     const nextOpacity = overrides?.opacity !== undefined ? overrides.opacity : bgOpacity;
     const nextBlur = overrides?.blur !== undefined ? overrides.blur : bgBlur;
+    const nextDim = overrides?.dim !== undefined ? overrides.dim : bgDim;
     const nextAccent = overrides?.accent !== undefined ? overrides.accent : accentColor;
     const nextFontSize = overrides?.fontSize !== undefined ? overrides.fontSize : uiFontSize;
 
     if (overrides?.theme !== undefined) setThemePreference(nextTheme);
-    if (overrides?.lang !== undefined) setLanguagePreference(nextLang);
+    if (overrides?.lang !== undefined) {
+      setLanguagePreference(nextLang);
+      setLanguage(nextLang);
+    }
     if (overrides?.bgUrl !== undefined) setCustomBgUrl(nextBgUrl);
     if (overrides?.opacity !== undefined) setBgOpacity(nextOpacity);
     if (overrides?.blur !== undefined) setBgBlur(nextBlur);
+    if (overrides?.dim !== undefined) setBgDim(nextDim);
     if (overrides?.accent !== undefined) setAccentColor(nextAccent);
     if (overrides?.fontSize !== undefined) setUiFontSize(nextFontSize);
 
@@ -785,6 +811,7 @@ export default function SettingsPage() {
           custom_bg_url: nextBgUrl,
           bg_opacity: nextOpacity,
           bg_blur: nextBlur,
+          bg_dim: nextDim,
           accent_color: nextAccent,
           ui_font_size: nextFontSize
         })
@@ -794,7 +821,10 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error(data.detail || 'Không thể lưu cài đặt tùy chọn.');
 
       await refreshUser();
-      showToast('success', 'Đã lưu cấu hình tùy chỉnh giao diện thành công.');
+      if (overrides?.lang !== undefined) {
+        setLanguage(nextLang);
+      }
+      showToast('success', t('settings.prefs_saved_success'));
     } catch (err: any) {
       showToast('error', err.message || 'Lỗi lưu tùy chọn giao diện.');
     } finally {
@@ -1417,17 +1447,17 @@ export default function SettingsPage() {
           <div className="card" style={{ padding: '1.75rem' }}>
             <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Tùy Chỉnh Giao Diện & Cá Nhân Hóa
+                {t('settings.appearance_title')}
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Tùy biến hình nền không gian học tập, độ trong suốt kính mờ, bảng màu chủ đạo và mật độ hiển thị theo sở thích.
+                {t('settings.appearance_sub')}
               </p>
             </div>
 
             {/* Section 1: Theme Mode */}
             <div style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>
-                Chế độ màu giao diện (Theme Mode)
+                {t('settings.theme_mode')}
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
                 <div
@@ -1442,8 +1472,8 @@ export default function SettingsPage() {
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Dark Mode</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Bề mặt tối trung tính dịu mắt</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{t('settings.dark_mode')}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{t('settings.dark_desc')}</div>
                 </div>
 
                 <div
@@ -1451,16 +1481,15 @@ export default function SettingsPage() {
                   style={{
                     padding: '1.25rem',
                     borderRadius: 'var(--radius-md)',
-                    background: '#f8fafc',
-                    color: '#0f172a',
+                    background: 'var(--bg-surface)',
                     border: themePreference === 'LIGHT' ? '2px solid var(--accent)' : '1px solid var(--border-subtle)',
                     cursor: 'pointer',
                     textAlign: 'center',
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>Light Mode</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Bảng màu sáng tương phản cao</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{t('settings.light_mode')}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{t('settings.light_desc')}</div>
                 </div>
 
                 <div
@@ -1475,27 +1504,32 @@ export default function SettingsPage() {
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Theo hệ điều hành</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Tự động đồng bộ cài đặt OS</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{t('settings.system_mode')}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>{t('settings.system_desc')}</div>
                 </div>
               </div>
             </div>
 
-            {/* Section 2: Accent Color Palette */}
+            {/* Section 2: Accent Color Palette & Custom RGB Slider */}
             <div style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                Màu chủ đạo (Accent Palette)
+                {t('settings.accent_palette')}
               </label>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Thay đổi màu các nút bấm, biểu tượng nổi bật và viền nhấn trong toàn bộ ứng dụng.
+                {t('settings.accent_sub')}
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
+              {/* Presets */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
                 {ACCENT_PRESETS.map((acc) => {
-                  const isSelected = accentColor === acc.id;
+                  const isSelected = accentColor.toLowerCase() === acc.id;
                   return (
                     <div
                       key={acc.id}
-                      onClick={() => handleUpdatePreferences({ accent: acc.id })}
+                      onClick={() => {
+                        setAccentColor(acc.id);
+                        setCustomHex(acc.hex);
+                        handleUpdatePreferences({ accent: acc.id });
+                      }}
                       style={{
                         padding: '10px 12px',
                         borderRadius: 'var(--radius-md)',
@@ -1517,13 +1551,76 @@ export default function SettingsPage() {
                   );
                 })}
               </div>
+
+              {/* Custom RGB Spectrum Slider */}
+              <div style={{ padding: '14px', background: 'var(--bg-base)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    {t('settings.custom_rgb')}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: 'var(--radius-xs)',
+                        backgroundColor: customHex,
+                        border: '1px solid var(--border-default)',
+                        boxShadow: `0 0 8px ${customHex}40`
+                      }}
+                    />
+                    <input
+                      type="color"
+                      value={customHex.startsWith('#') && customHex.length === 7 ? customHex : '#3ecf8e'}
+                      onChange={(e) => {
+                        const val = e.target.value.toLowerCase();
+                        setCustomHex(val);
+                        setAccentColor(val);
+                      }}
+                      onBlur={() => handleUpdatePreferences({ accent: customHex })}
+                      style={{ width: '28px', height: '28px', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
+                      title="Chọn màu bằng bảng màu"
+                    />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', padding: '2px 8px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
+                      {customHex.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={360}
+                  value={hueValue}
+                  onChange={(e) => {
+                    const h = Number(e.target.value);
+                    setHueValue(h);
+                    const hex = hslToHex(h, 85, 55);
+                    setCustomHex(hex);
+                    setAccentColor(hex);
+                  }}
+                  onMouseUp={() => handleUpdatePreferences({ accent: customHex })}
+                  onTouchEnd={() => handleUpdatePreferences({ accent: customHex })}
+                  style={{
+                    width: '100%',
+                    height: '10px',
+                    borderRadius: 'var(--radius-full)',
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Section 3: Custom Wallpaper */}
+            {/* Section 3: Custom Wallpaper & Darkness Dimmer */}
             <div style={{ marginBottom: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  Hình nền website tùy chỉnh (Custom Wallpaper)
+                  {t('settings.wallpaper_title')}
                 </label>
                 {customBgUrl && (
                   <button
@@ -1538,12 +1635,12 @@ export default function SettingsPage() {
                       padding: 0
                     }}
                   >
-                    Xóa hình nền
+                    {t('settings.clear_wallpaper')}
                   </button>
                 )}
               </div>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Cung cấp URL hình ảnh hoặc tải ảnh trực tiếp từ máy tính để làm hình nền cho không gian học tập.
+                {t('settings.wallpaper_sub')}
               </p>
 
               <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
@@ -1580,13 +1677,13 @@ export default function SettingsPage() {
                     onChange={handleImageUpload}
                     style={{ display: 'none' }}
                   />
-                  Tải ảnh từ máy
+                  {t('settings.upload_image')}
                 </label>
               </div>
 
               {/* Preset Wallpaper Chips */}
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>Gợi ý hình nền Nhật Bản:</span>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>{t('settings.preset_label')}</span>
                 {WALLPAPER_PRESETS.map((wp) => {
                   const isActive = customBgUrl === wp.url;
                   return (
@@ -1616,7 +1713,7 @@ export default function SettingsPage() {
               {customBgUrl && (
                 <div
                   style={{
-                    marginTop: '12px',
+                    marginBottom: '12px',
                     height: '80px',
                     borderRadius: 'var(--radius-md)',
                     backgroundImage: `url("${customBgUrl}")`,
@@ -1639,10 +1736,36 @@ export default function SettingsPage() {
                       color: '#ffffff'
                     }}
                   >
-                    Xem trước hình nền
+                    {t('settings.preview_label')}
                   </div>
                 </div>
               )}
+
+              {/* Background Darkness / Dim Slider */}
+              <div style={{ padding: '14px', background: 'var(--bg-base)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    {t('settings.bg_dim_title')}
+                  </label>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+                    {bgDim}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={bgDim}
+                  onChange={(e) => setBgDim(Number(e.target.value))}
+                  onMouseUp={() => handleUpdatePreferences({ dim: bgDim })}
+                  onTouchEnd={() => handleUpdatePreferences({ dim: bgDim })}
+                  style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
+                />
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                  {t('settings.bg_dim_sub')}
+                </p>
+              </div>
             </div>
 
             {/* Section 4: Overlay & Glassmorphism Sliders */}
@@ -1651,7 +1774,7 @@ export default function SettingsPage() {
               <div style={{ padding: '14px', background: 'var(--bg-base)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                    Độ đục lớp phủ (Layer Opacity)
+                    {t('settings.layer_opacity')}
                   </label>
                   <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
                     {bgOpacity}%
@@ -1669,7 +1792,7 @@ export default function SettingsPage() {
                   style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
                 />
                 <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  Độ trong suốt của thanh điều hướng và khung nội dung trên ảnh nền (20% - 100%).
+                  {t('settings.layer_opacity_sub')}
                 </p>
               </div>
 
@@ -1677,7 +1800,7 @@ export default function SettingsPage() {
               <div style={{ padding: '14px', background: 'var(--bg-base)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                    Độ mờ kính (Backdrop Blur)
+                    {t('settings.backdrop_blur')}
                   </label>
                   <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
                     {bgBlur}px
@@ -1695,7 +1818,7 @@ export default function SettingsPage() {
                   style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
                 />
                 <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  Hiệu ứng kính mờ (glassmorphism) làm nổi bật văn bản và hội thoại tiếng Nhật (0px - 40px).
+                  {t('settings.backdrop_blur_sub')}
                 </p>
               </div>
             </div>
@@ -1703,14 +1826,16 @@ export default function SettingsPage() {
             {/* Section 5: UI Font Size / Density */}
             <div style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                Cỡ chữ & Mật độ hiển thị (Layout Density)
+                {t('settings.font_size_title')}
               </label>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Điều chỉnh tỉ lệ phông chữ và khoảng cách giao diện cho phù hợp với tầm nhìn.
+                {t('settings.font_size_sub')}
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
                 {FONT_SIZE_PRESETS.map((fs) => {
                   const isSelected = uiFontSize === fs.id;
+                  const labelText = fs.id === 'small' ? t('settings.font_small') : fs.id === 'large' ? t('settings.font_large') : t('settings.font_medium');
+                  const descText = fs.id === 'small' ? t('settings.font_small_desc') : fs.id === 'large' ? t('settings.font_large_desc') : t('settings.font_medium_desc');
                   return (
                     <div
                       key={fs.id}
@@ -1724,8 +1849,8 @@ export default function SettingsPage() {
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>{fs.label}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>{fs.desc}</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>{labelText}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>{descText}</div>
                     </div>
                   );
                 })}
@@ -1735,16 +1860,17 @@ export default function SettingsPage() {
             {/* Section 6: Language Selector */}
             <div style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                Ngôn ngữ hiển thị (Interface Language)
+                {t('settings.lang_title')}
               </label>
               <select
                 value={languagePreference}
-                onChange={(e) => handleUpdatePreferences({ lang: e.target.value as 'vi' | 'en' })}
+                onChange={(e) => handleUpdatePreferences({ lang: e.target.value as 'vi' | 'en' | 'ja' })}
                 className="input"
                 style={{ width: '100%', maxWidth: '280px', cursor: 'pointer' }}
               >
-                <option value="vi">Tiếng Việt (Mặc định)</option>
-                <option value="en">English</option>
+                <option value="vi">{t('settings.lang_vi')}</option>
+                <option value="en">{t('settings.lang_en')}</option>
+                <option value="ja">{t('settings.lang_ja')}</option>
               </select>
             </div>
 
@@ -1763,7 +1889,7 @@ export default function SettingsPage() {
                   cursor: savingPreferences ? 'not-allowed' : 'pointer'
                 }}
               >
-                {savingPreferences ? 'Đang lưu tùy chỉnh...' : 'Lưu Thay Đổi Giao Diện'}
+                {savingPreferences ? t('settings.saving_prefs') : t('settings.save_prefs')}
               </button>
             </div>
           </div>

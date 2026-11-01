@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import DesktopHeader from '@/components/chat/DesktopHeader';
 import Sidebar, { Conversation } from '@/components/chat/Sidebar';
 import { AppContext, AppContextValue } from '@/context/AppContext';
+import { Language, getTranslation } from '@/utils/translations';
 
 // ── Shell ──────────────────────────────────────────────────────────────
 export default function AppShellLayout({ children }: { children: React.ReactNode }) {
@@ -16,6 +17,18 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [language, setLanguageState] = useState<Language>('vi');
+
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chatjpt_language', lang);
+    }
+  }, []);
+
+  const t = useCallback((key: string) => {
+    return getTranslation(language, key);
+  }, [language]);
 
   // ── Auth check ───────────────────────────────────────────────────────
   const fetchCurrentUser = useCallback(async () => {
@@ -24,6 +37,9 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
       if (!res.ok) { router.push('/login'); return; }
       const data = await res.json();
       setCurrentUser(data.user);
+      if (data.user?.language_preference && ['vi', 'en', 'ja'].includes(data.user.language_preference)) {
+        setLanguageState(data.user.language_preference as Language);
+      }
       setAuthChecked(true);
     } catch {
       router.push('/login');
@@ -40,12 +56,27 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
     const root = document.documentElement;
     if (!currentUser) return;
 
+    // 1. Theme synchronization
+    const theme = currentUser.theme_preference || 'DARK';
+    if (theme === 'LIGHT') {
+      root.setAttribute('data-theme', 'light');
+    } else if (theme === 'DARK') {
+      root.removeAttribute('data-theme');
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'light');
+    }
+    const isLight = root.getAttribute('data-theme') === 'light';
+
+    // 2. Personalization parameters
     const customBg = currentUser.custom_bg_url;
     const opacityVal = currentUser.bg_opacity !== undefined && currentUser.bg_opacity !== null ? currentUser.bg_opacity : 90;
     const blurVal = currentUser.bg_blur !== undefined && currentUser.bg_blur !== null ? currentUser.bg_blur : 12;
     const accent = currentUser.accent_color || 'emerald';
     const fontSize = currentUser.ui_font_size || 'medium';
 
+    // 3. Accent Palette or Custom Hex
     const accentPalette: Record<string, { accent: string; hover: string; border: string; glow: string; subtle: string }> = {
       emerald: { accent: '#3ecf8e', hover: '#5ad9a0', border: 'rgba(62, 207, 142, 0.30)', glow: '0 0 16px rgba(62, 207, 142, 0.18)', subtle: 'rgba(62, 207, 142, 0.10)' },
       sakura:  { accent: '#ec4899', hover: '#f472b6', border: 'rgba(236, 72, 153, 0.30)', glow: '0 0 16px rgba(236, 72, 153, 0.18)', subtle: 'rgba(236, 72, 153, 0.10)' },
@@ -53,20 +84,59 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
       amber:   { accent: '#f59e0b', hover: '#fbbf24', border: 'rgba(245, 158, 11, 0.30)', glow: '0 0 16px rgba(245, 158, 11, 0.18)', subtle: 'rgba(245, 158, 11, 0.10)' },
       sky:     { accent: '#0ea5e9', hover: '#38bdf8', border: 'rgba(14, 165, 233, 0.30)', glow: '0 0 16px rgba(14, 165, 233, 0.18)', subtle: 'rgba(14, 165, 233, 0.10)' },
     };
-    const activePalette = accentPalette[accent] || accentPalette.emerald;
 
+    let activePalette = accentPalette[accent];
+    if (!activePalette && accent && accent.startsWith('#')) {
+      const cleanHex = accent.replace('#', '');
+      const r = parseInt(cleanHex.length === 3 ? cleanHex[0] + cleanHex[0] : cleanHex.slice(0, 2), 16) || 62;
+      const g = parseInt(cleanHex.length === 3 ? cleanHex[1] + cleanHex[1] : cleanHex.slice(2, 4), 16) || 207;
+      const b = parseInt(cleanHex.length === 3 ? cleanHex[2] + cleanHex[2] : cleanHex.slice(4, 6), 16) || 142;
+      activePalette = {
+        accent: accent,
+        hover: accent,
+        border: `rgba(${r}, ${g}, ${b}, 0.35)`,
+        glow: `0 0 16px rgba(${r}, ${g}, ${b}, 0.22)`,
+        subtle: `rgba(${r}, ${g}, ${b}, 0.12)`,
+      };
+    } else if (!activePalette) {
+      activePalette = accentPalette.emerald;
+    }
+
+    // 4. Surfaces styling (Light Mode vs Dark Mode with Custom Background)
     if (customBg) {
       const alpha = opacityVal / 100;
-      root.style.setProperty('--bg-base', `rgba(15, 15, 16, ${alpha})`);
-      root.style.setProperty('--bg-surface', `rgba(21, 21, 22, ${Math.min(1, alpha + 0.05)})`);
-      root.style.setProperty('--bg-elevated', `rgba(28, 28, 31, ${Math.min(1, alpha + 0.10)})`);
-      root.style.setProperty('--bg-overlay', `rgba(34, 34, 37, ${Math.min(1, alpha + 0.15)})`);
+      if (isLight) {
+        root.style.setProperty('--bg-base', `rgba(248, 250, 252, ${alpha})`);
+        root.style.setProperty('--bg-surface', `rgba(255, 255, 255, ${Math.min(1, alpha + 0.08)})`);
+        root.style.setProperty('--bg-elevated', `rgba(241, 245, 249, ${Math.min(1, alpha + 0.12)})`);
+        root.style.setProperty('--bg-overlay', `rgba(226, 232, 240, ${Math.min(1, alpha + 0.15)})`);
+        root.style.setProperty('--border-subtle', `rgba(0, 0, 0, 0.08)`);
+        root.style.setProperty('--border-default', `rgba(0, 0, 0, 0.14)`);
+        root.style.setProperty('--text-primary', `#0f172a`);
+        root.style.setProperty('--text-secondary', `#475569`);
+        root.style.setProperty('--text-muted', `#64748b`);
+      } else {
+        root.style.setProperty('--bg-base', `rgba(15, 15, 16, ${alpha})`);
+        root.style.setProperty('--bg-surface', `rgba(21, 21, 22, ${Math.min(1, alpha + 0.05)})`);
+        root.style.setProperty('--bg-elevated', `rgba(28, 28, 31, ${Math.min(1, alpha + 0.10)})`);
+        root.style.setProperty('--bg-overlay', `rgba(34, 34, 37, ${Math.min(1, alpha + 0.15)})`);
+        root.style.setProperty('--border-subtle', `rgba(255, 255, 255, 0.07)`);
+        root.style.setProperty('--border-default', `rgba(255, 255, 255, 0.12)`);
+        root.style.setProperty('--text-primary', `#eeeef0`);
+        root.style.setProperty('--text-secondary', `#b4b4b8`);
+        root.style.setProperty('--text-muted', `#89898f`);
+      }
       root.style.setProperty('--app-backdrop-blur', `${blurVal}px`);
     } else {
       root.style.removeProperty('--bg-base');
       root.style.removeProperty('--bg-surface');
       root.style.removeProperty('--bg-elevated');
       root.style.removeProperty('--bg-overlay');
+      root.style.removeProperty('--border-subtle');
+      root.style.removeProperty('--border-default');
+      root.style.removeProperty('--text-primary');
+      root.style.removeProperty('--text-secondary');
+      root.style.removeProperty('--text-muted');
       root.style.removeProperty('--app-backdrop-blur');
     }
 
@@ -78,6 +148,7 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
     root.style.setProperty('--accent-subtle', activePalette.subtle);
     root.style.setProperty('--primary', activePalette.accent);
     root.style.setProperty('--primary-hover', activePalette.hover);
+    root.style.setProperty('--border-focus', activePalette.border);
 
     // Font size scaling
     if (fontSize === 'small') {
@@ -207,6 +278,9 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
     sidebarCollapsed,
     setSidebarCollapsed,
     handleLogout,
+    language,
+    setLanguage,
+    t,
   };
 
   const customBg = currentUser?.custom_bg_url;
@@ -215,22 +289,39 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
   return (
     <AppContext.Provider value={ctx}>
       {customBg && (
-        <div
-          data-testid="app-custom-background"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundImage: `url("${customBg}")`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
+        <>
+          <div
+            data-testid="app-custom-background"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundImage: `url("${customBg}")`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              zIndex: 0,
+              pointerEvents: 'none',
+            }}
+          />
+          <div
+            data-testid="app-background-dimmer"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: '#000000',
+              opacity: (currentUser?.bg_dim !== undefined && currentUser?.bg_dim !== null ? currentUser.bg_dim : 0) / 100,
+              zIndex: 0,
+              pointerEvents: 'none',
+              transition: 'opacity 0.15s ease',
+            }}
+          />
+        </>
       )}
       <div
         style={{

@@ -456,24 +456,25 @@
 - **Mã Yêu Cầu**: `FR-020`
 - **Tên Yêu Cầu**: Tùy Chỉnh Cài Đặt Cá Nhân & Cá Nhân Hóa Giao Diện (Update User Preferences & UI Personalization).
 - **Mô Tả**: Cho phép người dùng tùy biến không gian học tập toàn diện:
-  - Chủ đề màu giao diện (`theme_preference`: DARK / LIGHT / SYSTEM).
-  - Ngôn ngữ hiển thị (`language_preference`: vi / en).
+  - Chủ đề màu giao diện (`theme_preference`: DARK / LIGHT / SYSTEM) hỗ trợ cả Dark Mode và Light Mode (với các bề mặt kính sáng frosted glass tương phản cao, chữ hiển thị rõ nét không bị chìm màu).
+  - Ngôn ngữ hiển thị (`language_preference`: vi / en / ja) hỗ trợ chuyển đổi đa ngôn ngữ tức thì giữa Tiếng Việt, English và 日本語 (Japanese).
   - Hình nền không gian học (`custom_bg_url`: URL hình ảnh hoặc ảnh tải trực tiếp từ máy tính lên qua Data URI, tối đa 1000 ký tự).
+  - Độ tối nền che phủ (`bg_dim`: 0% - 100%, mặc định 0%) cho phép giảm độ chói/làm tối hình nền đằng sau để tối ưu hóa độ tương phản và tập trung khi đọc hội thoại.
   - Độ trong suốt của các panel nội dung, sidebar và header che phủ trên hình nền (`bg_opacity`: 20% - 100%, mặc định 90%).
   - Độ mờ kính (`bg_blur`: 0px - 40px, mặc định 12px) tạo hiệu ứng glassmorphism làm nổi bật chữ hội thoại tiếng Nhật trên nền ảnh.
-  - Bảng màu chủ đạo (`accent_color`: emerald, sakura, violet, amber, sky).
+  - Bảng màu chủ đạo (`accent_color`: preset emerald, sakura, violet, amber, sky hoặc mã màu HEX tự do thông qua thanh trượt dải quang phổ RGB Spectrum slider).
   - Kích thước phông chữ & mật độ giao diện (`ui_font_size`: small, medium, large).
 - **Tác Nhân (Actor)**: `ACT-02` (Registered User).
 - **Điều Kiện Tiên Quyết (Preconditions)**: Người dùng đã đăng nhập hợp lệ.
 - **Luồng Chính (Main Flow)**:
-  1. Người dùng vào tab Preferences, chọn Theme, Accent Color, Hình nền (tải ảnh/URL/preset), độ đục Opacity, độ mờ Blur, Cỡ chữ và Ngôn ngữ.
-  2. Giao diện Next.js phản hồi thời gian thực qua biến CSS cục bộ (`--accent`, `--bg-base`, `--app-backdrop-blur`).
+  1. Người dùng vào tab Preferences, chọn Theme, Accent Color (preset hoặc dải màu RGB), Hình nền (tải ảnh/URL/preset), độ tối màn phủ Dim, độ đục Opacity, độ mờ Blur, Cỡ chữ và Ngôn ngữ (Việt, Anh, Nhật).
+  2. Giao diện Next.js phản hồi thời gian thực qua biến CSS cục bộ (`--accent`, `--bg-base`, `--bg-surface`, `--app-backdrop-blur`) và AppContext ngữ cảnh dịch thuật.
   3. Client gửi request `PATCH /api/v1/users/me/preferences` mang payload JSON cấu hình.
-  4. Backend kiểm tra tính hợp lệ dữ liệu (giới hạn min/max opacity, blur, danh mục cho phép accent, cỡ chữ).
+  4. Backend kiểm tra tính hợp lệ dữ liệu (giới hạn min/max opacity, blur, dim, danh mục cho phép accent hoặc hex code regex, cỡ chữ, ngôn ngữ vi/en/ja).
   5. Backend cập nhật bảng `users` và trả về `HTTP 200 OK` chứa toàn bộ tùy chọn đã được lưu.
   6. Client đồng bộ lại App Context để cập nhật bền vững trên toàn bộ ứng dụng.
 - **Luồng Ngoại Lệ (Exception Flow)**:
-  - *EF-01*: Giá trị tùy chọn không nằm trong whitelist hoặc phạm vi hợp lệ (`bg_opacity` ngoài 20..100, `bg_blur` ngoài 0..40, `accent_color` không hợp lệ) -> Trả về `HTTP 422 Unprocessable Entity`.
+  - *EF-01*: Giá trị tùy chọn không nằm trong whitelist hoặc phạm vi hợp lệ (`bg_opacity` ngoài 20..100, `bg_blur` ngoài 0..40, `bg_dim` ngoài 0..100, `accent_color` không hợp lệ, `language_preference` không phải vi/en/ja) -> Trả về `HTTP 422 Unprocessable Entity`.
 - **Điều Kiện Sau (Postconditions)**: Cấu hình cá nhân hóa được lưu trên cơ sở dữ liệu và đồng bộ tức thì trên giao diện người dùng.
 - **Độ Ưu Tiên**: `SHOULD`.
 - **Trạng Thái**: `BASELINED`.

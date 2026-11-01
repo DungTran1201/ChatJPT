@@ -189,16 +189,17 @@ class TestUserManagementAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 422)
 
     def test_update_preferences(self):
-        # Test full UI customization update (FR-020, UC-015)
+        # Test full UI customization update with ja, bg_dim, and custom hex color (FR-020, UC-015)
         response = self.client.patch(
             "/api/v1/users/me/preferences",
             json={
                 "theme_preference": "LIGHT",
-                "language_preference": "en",
+                "language_preference": "ja",
                 "custom_bg_url": "https://images.unsplash.com/photo-japan-bg",
                 "bg_opacity": 80,
                 "bg_blur": 16,
-                "accent_color": "sakura",
+                "bg_dim": 35,
+                "accent_color": "#ff007f",
                 "ui_font_size": "large"
             },
             cookies=self.cookies
@@ -206,21 +207,24 @@ class TestUserManagementAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["theme_preference"], "LIGHT")
-        self.assertEqual(data["language_preference"], "en")
+        self.assertEqual(data["language_preference"], "ja")
         self.assertEqual(data["custom_bg_url"], "https://images.unsplash.com/photo-japan-bg")
         self.assertEqual(data["bg_opacity"], 80)
         self.assertEqual(data["bg_blur"], 16)
-        self.assertEqual(data["accent_color"], "sakura")
+        self.assertEqual(data["bg_dim"], 35)
+        self.assertEqual(data["accent_color"], "#ff007f")
         self.assertEqual(data["ui_font_size"], "large")
 
         # Verify profile reflects updated preferences
         prof_res = self.client.get("/api/v1/users/me", cookies=self.cookies)
         self.assertEqual(prof_res.status_code, 200)
         user_data = prof_res.json()["user"]
+        self.assertEqual(user_data["language_preference"], "ja")
         self.assertEqual(user_data["custom_bg_url"], "https://images.unsplash.com/photo-japan-bg")
         self.assertEqual(user_data["bg_opacity"], 80)
         self.assertEqual(user_data["bg_blur"], 16)
-        self.assertEqual(user_data["accent_color"], "sakura")
+        self.assertEqual(user_data["bg_dim"], 35)
+        self.assertEqual(user_data["accent_color"], "#ff007f")
         self.assertEqual(user_data["ui_font_size"], "large")
 
     def test_update_preferences_validation_errors(self):
@@ -240,7 +244,23 @@ class TestUserManagementAPI(unittest.TestCase):
         )
         self.assertEqual(res2.status_code, 422)
 
-        # Invalid accent color
+        # Invalid bg_dim (> 100)
+        res_dim = self.client.patch(
+            "/api/v1/users/me/preferences",
+            json={"bg_dim": 150},
+            cookies=self.cookies
+        )
+        self.assertEqual(res_dim.status_code, 422)
+
+        # Invalid language (e.g. fr)
+        res_lang = self.client.patch(
+            "/api/v1/users/me/preferences",
+            json={"language_preference": "fr"},
+            cookies=self.cookies
+        )
+        self.assertEqual(res_lang.status_code, 422)
+
+        # Invalid accent color (neither preset nor valid hex)
         res3 = self.client.patch(
             "/api/v1/users/me/preferences",
             json={"accent_color": "neon_rainbow"},

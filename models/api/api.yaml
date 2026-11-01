@@ -279,7 +279,7 @@ apis:
   - id: OP-028
     method: PATCH
     path: /users/me/preferences
-    summary: Update user appearance preferences, wallpaper, layer opacity, blur, accent color, and font size
+    summary: Update user appearance preferences, wallpaper, layer opacity, blur, background darkness dimming, RGB accent color, font size, and trilingual preference (vi, en, ja)
     use_case: UC-015
     source_refs:
     - FR-020

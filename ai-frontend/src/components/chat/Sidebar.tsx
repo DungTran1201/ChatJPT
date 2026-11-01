@@ -130,7 +130,7 @@ export default function Sidebar({
           onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
         >
           <Icon name="plus" size={14} />
-          {!collapsed && <span>New Chat</span>}
+          {!collapsed && <span>{appContext.t ? appContext.t('nav.new_chat') : 'New Chat'}</span>}
         </button>
       </div>
 
@@ -246,7 +246,14 @@ export default function Sidebar({
                 {!collapsed && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1, minWidth: 0 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.label}
+                      {appContext.t ? (
+                        item.key === 'chat' ? appContext.t('nav.kaiwa') :
+                        item.key === 'prompts' ? appContext.t('nav.sensei') :
+                        item.key === 'rules' ? appContext.t('nav.grammar') :
+                        item.key === 'dashboard' ? appContext.t('nav.overview') :
+                        item.key === 'settings' ? appContext.t('nav.settings') :
+                        item.label
+                      ) : item.label}
                     </span>
                     {isLocked && (
                       <span

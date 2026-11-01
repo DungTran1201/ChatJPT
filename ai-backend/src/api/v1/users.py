@@ -40,11 +40,12 @@ class ChangePasswordRequest(BaseModel):
 
 class UpdatePreferencesRequest(BaseModel):
     theme_preference: Optional[str] = Field(None, description="DARK, LIGHT, hoặc SYSTEM")
-    language_preference: Optional[str] = Field(None, description="vi hoặc en")
+    language_preference: Optional[str] = Field(None, description="vi, en hoặc ja")
     custom_bg_url: Optional[str] = Field(None, max_length=1000, description="URL hoặc chuỗi data URI hình nền tùy chỉnh")
     bg_opacity: Optional[int] = Field(None, ge=20, le=100, description="Độ mờ đục của các lớp layer phủ lên nền (20 - 100%)")
     bg_blur: Optional[int] = Field(None, ge=0, le=40, description="Độ mờ kính backdrop-filter blur (0 - 40px)")
-    accent_color: Optional[str] = Field(None, description="Màu chủ đạo (emerald, sakura, violet, amber, sky)")
+    bg_dim: Optional[int] = Field(None, ge=0, le=100, description="Độ tối của hình nền (0 - 100%)")
+    accent_color: Optional[str] = Field(None, max_length=30, description="Màu chủ đạo (emerald, sakura, violet, amber, sky hoặc mã màu HEX #xxxxxx)")
     ui_font_size: Optional[str] = Field(None, description="Cỡ chữ hiển thị (small, medium, large)")
 
 
@@ -91,6 +92,7 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
             "custom_bg_url": current_user.get("custom_bg_url") or "",
             "bg_opacity": current_user.get("bg_opacity") if current_user.get("bg_opacity") is not None else 90,
             "bg_blur": current_user.get("bg_blur") if current_user.get("bg_blur") is not None else 12,
+            "bg_dim": current_user.get("bg_dim") if current_user.get("bg_dim") is not None else 0,
             "accent_color": current_user.get("accent_color") or "emerald",
             "ui_font_size": current_user.get("ui_font_size") or "medium",
             "theme_preference": current_user.get("theme_preference") or "DARK",
@@ -354,11 +356,11 @@ async def update_preferences(
         params.append(theme)
 
     if req.language_preference is not None:
-        lang = req.language_preference.lower()
-        if lang not in ["vi", "en"]:
+        lang = req.language_preference.lower().strip()
+        if lang not in ["vi", "en", "ja"]:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Ngôn ngữ không hợp lệ. Chọn vi hoặc en."
+                detail="Ngôn ngữ không hợp lệ. Chọn vi, en hoặc ja."
             )
         updates.append("language_preference = ?")
         params.append(lang)
@@ -386,15 +388,28 @@ async def update_preferences(
         updates.append("bg_blur = ?")
         params.append(req.bg_blur)
 
-    if req.accent_color is not None:
-        accent = req.accent_color.lower().strip()
-        if accent not in ["emerald", "sakura", "violet", "amber", "sky"]:
+    if req.bg_dim is not None:
+        if req.bg_dim < 0 or req.bg_dim > 100:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Màu chủ đạo không hợp lệ. Chọn emerald, sakura, violet, amber, hoặc sky."
+                detail="Độ tối của hình nền phải từ 0% đến 100%."
             )
-        updates.append("accent_color = ?")
-        params.append(accent)
+        updates.append("bg_dim = ?")
+        params.append(req.bg_dim)
+
+    if req.accent_color is not None:
+        accent = req.accent_color.strip()
+        if accent.lower() in ["emerald", "sakura", "violet", "amber", "sky"]:
+            updates.append("accent_color = ?")
+            params.append(accent.lower())
+        elif re.match(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", accent):
+            updates.append("accent_color = ?")
+            params.append(accent)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Màu chủ đạo không hợp lệ. Chọn preset (emerald, sakura, violet, amber, sky) hoặc mã màu HEX hợp lệ (ví dụ #ec4899)."
+            )
 
     if req.ui_font_size is not None:
         fsize = req.ui_font_size.lower().strip()
@@ -414,7 +429,7 @@ async def update_preferences(
     updated = query_one(
         """
         SELECT theme_preference, language_preference, custom_bg_url,
-               bg_opacity, bg_blur, accent_color, ui_font_size
+               bg_opacity, bg_blur, bg_dim, accent_color, ui_font_size
         FROM users WHERE id = ?
         """,
         (user_id,)
@@ -427,6 +442,7 @@ async def update_preferences(
         "custom_bg_url": updated.get("custom_bg_url") or "",
         "bg_opacity": updated.get("bg_opacity") if updated.get("bg_opacity") is not None else 90,
         "bg_blur": updated.get("bg_blur") if updated.get("bg_blur") is not None else 12,
+        "bg_dim": updated.get("bg_dim") if updated.get("bg_dim") is not None else 0,
         "accent_color": updated.get("accent_color") or "emerald",
         "ui_font_size": updated.get("ui_font_size") or "medium"
     }

@@ -37,10 +37,11 @@
   - `custom_bg_url: Optional[UrlString]` (Đường dẫn hình nền không gian học tập cá nhân hóa, tối đa 1000 ký tự).
   - `bg_opacity: integer` (Độ mờ đục của các lớp layer phủ lên nền, 20..100%, mặc định 90%).
   - `bg_blur: integer` (Độ mờ kính backdrop-filter blur tạo hiệu ứng glassmorphism, 0..40px, mặc định 12px).
-  - `accent_color: AccentPalette` (Màu chủ đạo giao diện: `emerald`, `sakura`, `violet`, `amber`, `sky` - Mặc định `emerald`).
+  - `bg_dim: integer` (Độ tối màn phủ làm dịu nền background dimming, 0..100%, mặc định 0%).
+  - `accent_color: string` (Màu chủ đạo giao diện: preset `emerald`, `sakura`, `violet`, `amber`, `sky` hoặc mã màu HEX tự do `#RRGGBB` qua RGB slider - Mặc định `emerald`).
   - `ui_font_size: UiFontSize` (Mật độ và kích thước phông chữ: `small`, `medium`, `large` - Mặc định `medium`).
   - `theme_preference: ThemeMode` (Chủ đề giao diện: `DARK`, `LIGHT`, `SYSTEM` - Mặc định `DARK`).
-  - `language_preference: LanguageCode` (Ngôn ngữ hiển thị: `vi`, `en` - Mặc định `vi`).
+  - `language_preference: LanguageCode` (Ngôn ngữ hiển thị: `vi`, `en`, `ja` - Mặc định `vi`).
   - `status: UserStatus` (Trạng thái: `ACTIVE`, `DISABLED`).
   - `last_login_at: Optional[DateTime]` (Thời điểm đăng nhập thành công gần nhất).
   - `password_changed_at: Optional[DateTime]` (Thời điểm đổi mật khẩu lần cuối để thu hồi phiên cũ - `SEC-007`).
@@ -52,7 +53,7 @@
   - `unlink_discord(current_password)`: Hủy liên kết tài khoản Discord sau khi xác thực mật khẩu, có chốt chặn bắt buộc `hashed_password IS NOT NULL` chống mất quyền truy cập tài khoản (`FR-041`, `BR-026`, `BR-027`).
   - `change_email(new_email, current_password)`: Đổi email kèm xác thực mật khẩu hiện tại (`BR-008`).
   - `change_password(new_password, current_password)`: Đổi mật khẩu, băm bcrypt, cập nhật `password_changed_at` (`BR-009`).
-  - `update_preferences(theme, language, custom_bg_url, bg_opacity, bg_blur, accent_color, ui_font_size)`: Cập nhật tùy chọn hiển thị, hình nền, độ mờ đục và cá nhân hóa giao diện (`FR-020`, `UC-015`).
+  - `update_preferences(theme, language, custom_bg_url, bg_opacity, bg_blur, bg_dim, accent_color, ui_font_size)`: Cập nhật tùy chọn hiển thị, hình nền, độ mờ đục, độ tối màn phủ nền, dải màu RGB và cá nhân hóa giao diện (`FR-020`, `UC-015`).
   - `verify_password(plain_password)`: Thẩm định mật khẩu hiện tại.
 
 
