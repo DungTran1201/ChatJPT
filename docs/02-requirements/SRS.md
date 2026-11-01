@@ -1,16 +1,16 @@
 # SOFTWARE REQUIREMENTS SPECIFICATION (SRS)
-## Hệ Thống Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)
+## Hệ Thống ChatJPT — Hệ Sinh Thái Hỗ Trợ Học Tiếng Nhật Thông Minh (Japanese Learning Ecosystem)
 
 ---
 
 | Thông Tin Tài Liệu | Chi Tiết |
 | :--- | :--- |
-| **Dự án** | Website Chatbot Trợ Lý Ảo (`ai-chan`) |
+| **Dự án** | ChatJPT — Hệ Sinh Thái Hỗ Trợ Học Tiếng Nhật Tích Hợp Chatbot & Gia Sư Ảo 3D (`ChatJPT`) |
 | **Tài liệu** | Software Requirements Specification (SRS) |
-| **Phiên bản** | v1.0.0-DRAFT |
+| **Phiên bản** | v2.0.0-PIVOT |
 | **Trạng thái** | Review Ready (Đã thẩm định BA / SA / Architect) |
 | **Tác giả** | Senior Business Analyst + System Analyst + Software Architect |
-| **Phân loại thông tin** | `FACT` (Bằng chứng hiện hữu) \| `ASSUMPTION` (Giả định nghiệp vụ) \| `DECISION` (Quyết định thống nhất) \| `OPEN QUESTION` (Câu hỏi mở) \| `TBD` (Chờ làm rõ) |
+| **Phân loại thông tin** | `FACT` (Bằng chứng hiện hữu) | `ASSUMPTION` (Giả định nghiệp vụ) | `DECISION` (Quyết định thống nhất) | `OPEN QUESTION` (Câu hỏi mở) | `TBD` (Chờ làm rõ) |
 | **Quy định ràng buộc** | **NO CODING PHASE** — Chỉ xây dựng tài liệu kỹ thuật và đặc tả yêu cầu |
 
 ---
@@ -37,102 +37,136 @@
 ## 1. Giới Thiệu (Introduction)
 
 ### 1.1 Mục Đích (Purpose)
-Tài liệu **Software Requirements Specification (SRS)** này xác định toàn diện các yêu cầu nghiệp vụ (Business Requirements), yêu cầu chức năng (Functional Requirements), yêu cầu phi chức năng (Non-Functional Requirements), cùng với các quy tắc nghiệp vụ và ràng buộc hệ thống cho dự án **Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)**.
-Tài liệu này đóng vai trò là nguồn sự thật chuẩn (Baseline Requirements) để phục vụ các giai đoạn tiếp theo: System Architecture Design (SAD), API Specification, Database Schema Design, UI/UX Wireframing, Implementation Planning (`/plan`), và Verification/Testing, **tuyệt đối không triển khai mã nguồn (No Coding) trong giai đoạn này**.
+Tài liệu **Software Requirements Specification (SRS)** này xác định toàn diện các yêu cầu nghiệp vụ (Business Requirements), yêu cầu chức năng (Functional Requirements), yêu cầu phi chức năng (Non-Functional Requirements), cùng với các quy tắc nghiệp vụ và ràng buộc hệ thống cho dự án **ChatJPT — Hệ Sinh Thái Hỗ Trợ Học Tiếng Nhật Thông Minh**.
+Tài liệu đóng vai trò là nguồn sự thật chuẩn (Baseline Requirements) để phục vụ việc chuyển đổi sản phẩm, thiết kế kiến trúc sư phạm, hợp đồng API, cấu trúc đề thi/ngữ pháp và kế hoạch kiểm thử chất lượng, **tuyệt đối không triển khai mã nguồn bừa bãi khi chưa thống nhất tài liệu đặc tả**.
 
 ### 1.2 Phạm Vi Tài Liệu (Scope of Document)
-Tài liệu bao quát ranh giới hệ thống ứng dụng web chatbot 3 tầng (`ai-frontend`, `ai-backend`, `ai-infra`), tương tác giữa người dùng và AI Assistant, luồng quản lý phiên làm việc, lưu trữ lịch sử hội thoại, và tích hợp đa nhà cung cấp mô hình ngôn ngữ lớn (LLM Providers).
+Tài liệu bao quát ranh giới hệ sinh thái web học tiếng Nhật 3 tầng (`ai-frontend`, `ai-backend`, `ai-infra`), không gian tương tác giữa học viên và AI Tutor Sensei, sân khấu 3D VRM đồng hành học tập, Studio thiết kế bài giảng dạng Node Graph, và kênh học tập cộng đồng tích hợp qua Discord Bot.
 
 ### 1.3 Tổng Quan Sản Phẩm (Product Overview)
-AI-Chan Assistant là giải pháp cổng thông tin tương tác thông minh trên nền tảng web, cung cấp cho người dùng khả năng trao đổi trực tiếp, giải đáp thông tin, tư vấn nội dung theo ngữ cảnh thời gian thực thông qua công nghệ Generative AI. Hệ thống vận hành độc lập với hạ tầng bảo mật nghiêm ngặt (HTTPS TLS 1.3, rate limit, kiểm soát tải), đảm bảo tính sẵn sàng cao và bảo vệ toàn vẹn thông tin người dùng.
+**ChatJPT** là giải pháp học tiếng Nhật thông minh toàn diện, tích hợp sâu công nghệ Generative AI đa mô hình và nhân vật 3D VRM tương tác sống động:
+- **Trợ lý Sư phạm AI (AI Tutor Sensei)**: Giải thích ngữ pháp cặn kẽ từ N5 đến N1, cung cấp Furigana/Romaji, đóng vai trò Bác sĩ Văn phạm (Grammar Doctor) chẩn đoán và chữa lỗi câu sai, đồng thời mô phỏng đàm thoại Kaiwa phản xạ theo tình huống thực tế.
+- **Gia sư ảo 3D VRM (AI-Chan Sensei Companion)**: Đồng hành cùng người học với cử chỉ tự nhiên, nhịp thở và phản ứng biểu cảm tức thời theo phản hồi bài giảng.
+- **Studio Xây Dựng Bài Học (Project Builder)**: Hỗ trợ người học và giáo viên tự lắp ghép các pipeline học tập (từ vựng, Kanji flashcard, bài tập trắc nghiệm).
+- **Hạ tầng bảo vệ sư phạm & tài nguyên**: Tự động chuyển vùng dự phòng (Failover Gemini -> OpenAI/Claude), rate limit và quản lý định mức token học tập hàng ngày.
 
 ### 1.4 Mục Tiêu Nghiệp Vụ (Business Objectives)
-- **BO-01 (Nâng cao trải nghiệm tương tác)**: Cung cấp giao diện đàm thoại tự nhiên, phản hồi nhanh chóng và mạch lạc cho người dùng cuối.
-- **BO-02 (Tối ưu hóa chi phí & sẵn sàng dịch vụ)**: Cho phép chuyển đổi linh hoạt giữa các nhà cung cấp LLM (Gemini, OpenAI, v.v.), có cơ chế fallback khi một dịch vụ gặp sự cố hạn mức hoặc quá tải.
-- **BO-03 (Bảo toàn ngữ cảnh trao đổi)**: Lưu trữ và phân tách độc lập các phiên hội thoại (conversations) của người dùng nhằm duy trì tính liền mạch trong các tác vụ làm việc dài hạn.
-- **BO-04 (An toàn dữ liệu & Kiểm soát vận hành)**: Ngăn ngừa lạm dụng tài nguyên tính toán (Anti-Abuse/DDoS), bảo vệ bí mật khóa API (API Key Hardening), và minh bạch hóa chi phí tiêu thụ token.
+- **BO-01 (Trải nghiệm học tập trực quan & tức thì)**: Cung cấp giao diện học tập đàm thoại tự nhiên, hỗ trợ hiển thị cấu trúc câu tiếng Nhật kèm Furigana/Romaji và dịch song ngữ, phản hồi luồng ký tự với `TTFT < 2.0s`.
+- **BO-02 (Tạo động lực & Tương tác đàm thoại sống động)**: Mô hình 3D VRM đồng hành xóa bỏ rào cản tâm lý ngại nói tiếng Nhật, hỗ trợ luyện phản xạ đàm thoại tình huống.
+- **BO-03 (Chính xác về mặt sư phạm & Ngữ cảnh văn hóa)**: Thiết lập bộ quy chuẩn bài giảng (Pedagogy Guardrails) để ngăn ngừa AI bịa đặt ngữ pháp hoặc Hán tự sai; phân biệt rõ ngữ cảnh giao tiếp (lịch sự Desu/Masu, thân mật, kính ngữ Keigo).
+- **BO-04 (Tối ưu hóa chi phí & Sẵn sàng cao)**: Điều phối thông minh giữa các mô hình AI, tự động chuyển vùng dự phòng khi gặp sự cố, kiểm soát định mức token qua `quota_manager`.
+- **BO-05 (Cá nhân hóa tiến độ & Bảo vệ dữ liệu học tập)**: Lưu trữ và phân tách độc lập các phiên học, sổ tay câu sai và lộ trình ôn thi của từng học viên theo `BR-002`.
 
 ### 1.5 Bài Toán Cần Giải Quyết (Problem Statement)
-- **Vấn đề hiện tại**: Người dùng cần một trợ lý ảo trực quan trên trình duyệt để tương tác tức thì mà không cần cài đặt phức tạp; đồng thời các hệ thống AI đơn lẻ thường dễ gián đoạn khi nhà cung cấp LLM chạm ngưỡng quota hoặc lỗi mạng.
-- **Nhu cầu giải quyết**: Xây dựng nền tảng web chatbot hỗ trợ phiên hội thoại phân tán, có cơ chế xác thực an toàn, quản lý lịch sử theo từng cá nhân, và có tầng Gateway/Backend đệm kiểm soát an toàn để điều phối request tới các mô hình AI.
+- **Vấn đề thực tế của người học tiếng Nhật**:
+  1. Thiếu môi trường luyện nói (Kaiwa) và phản xạ giao tiếp tự nhiên hàng ngày.
+  2. Khi tự học và làm bài tập, khó tìm được người sửa lỗi câu chi tiết và giải thích vì sao cách dùng từ đó chưa tự nhiên trong văn hóa Nhật.
+  3. Học Hán tự (Kanji) và Ngữ pháp JLPT thường khô khan, dễ nản chí nếu chỉ đọc sách truyền thống.
+  4. Các công cụ dịch thuật AI thông thường chỉ dịch thô mà không đóng vai trò một người thầy giáo giải thích cấu trúc từ vựng, cấp độ JLPT và sắc thái biểu đạt.
+- **Giải pháp của ChatJPT**: Cung cấp một môi trường tương tác toàn diện, nơi học viên được một gia sư ảo AI 3D kiên nhẫn hướng dẫn 24/7, vừa đàm thoại, vừa phân tích lỗi sai, vừa có thể tự do tùy biến lộ trình học theo nhu cầu cá nhân.
 
 ### 1.6 Đối Tượng Đọc Tài Liệu (Intended Audience)
-- **Product Owners & Business Stakeholders**: Thẩm định phạm vi nghiệp vụ và tiêu chí nghiệm thu.
-- **System Architects & Software Engineers**: Sử dụng làm đặc tả đầu vào cho bản vẽ kiến trúc, thiết kế API REST/Streaming và cơ sở dữ liệu.
-- **QA / Test Engineers**: Sử dụng để xây dựng ma trận kiểm thử (Test Plan / Test Cases).
-- **Security & DevOps Engineers**: Sử dụng để rà soát mô hình đe dọa và kiểm soát hạ tầng mạng.
+- **Product Owners & Giáo Viên Cố Vấn Tiếng Nhật**: Thẩm định tính chuẩn xác sư phạm và phạm vi bài học.
+- **System Architects & Software Engineers**: Làm căn cứ thiết kế API, cấu trúc prompts và tích hợp mô hình 3D.
+- **QA / Test Engineers**: Xây dựng ma trận kiểm thử chất lượng câu trả lời và hiệu năng hệ thống.
+- **Security & DevOps Engineers**: Đảm bảo an toàn thông tin cá nhân học viên và chi phí token.
 
 ### 1.7 Định Nghĩa & Thuật Ngữ (Definitions and Terminology)
-- **Conversation (Phiên hội thoại)**: Một luồng trao đổi có chủ đề xác định giữa người dùng và AI, gồm tập hợp các tin nhắn tuần tự.
-- **Message (Tin nhắn)**: Một lượt giao tiếp đơn lẻ từ người dùng (`role: user`) hoặc phản hồi từ trợ lý ảo (`role: assistant`).
-- **LLM Provider**: Nhà cung cấp mô hình AI lớn bên thứ ba (ví dụ: Google Gemini API, OpenAI API).
-- **Fallback**: Cơ chế tự động chuyển hướng gọi API sang nhà cung cấp phụ khi nhà cung cấp chính thất bại hoặc hết hạn mức.
-- **Streaming Response**: Kỹ thuật truyền dữ liệu phản hồi từng từ/ký tự (Server-Sent Events hoặc Chunked Transfer) về trình duyệt để giảm độ trễ hiển thị trực quan (TTFT - Time To First Token).
-- **Rate Limiting**: Cơ chế giới hạn tần suất gửi yêu cầu trong một đơn vị thời gian nhằm bảo vệ hệ thống trước tấn công hoặc lạm dụng.
+- **JLPT (Japanese-Language Proficiency Test)**: Kỳ thi năng lực tiếng Nhật quốc tế (gồm 5 cấp độ từ N5 sơ cấp đến N1 cao cấp).
+- **Kaiwa (会話)**: Kỹ năng đàm thoại / hội thoại tiếng Nhật trong ngữ cảnh thực tế.
+- **Furigana / Romaji**: Cách phiên âm chữ Hán sang chữ Hiragana nhỏ phía trên hoặc ký tự Latinh hỗ trợ người mới học.
+- **Kanji (漢字)**: Chữ Hán tiếng Nhật, bao gồm âm On, âm Kun, bộ thủ và số nét.
+- **Keigo (敬語)**: Hệ thống kính ngữ tiếng Nhật gồm Kính ngữ (Sonkeigo), Khiêm nhường ngữ (Kenjougo) và Lịch sự ngữ (Teineigo).
+- **Grammar Doctor**: Tính năng AI chuyên trách chẩn đoán lỗi ngữ pháp trong câu của học viên và đưa ra phương án sửa chuẩn người bản xứ.
+- **Learning Session**: Một buổi học / phiên trò chuyện chuyên biệt (theo chủ đề JLPT, từ vựng, hoặc tình huống giao tiếp).
+- **VRM Companion**: Mô hình nhân vật 3D avatar đại diện cho gia sư AI-Chan Sensei tương tác thời gian thực trên WebGL.
+- **Fallback**: Cơ chế tự động chuyển đổi sang nhà cung cấp phụ khi API AI chính bị gián đoạn.
 
 ### 1.8 Tài Liệu Tham Khảo (References)
-- Bằng chứng mã nguồn hiện có: [main.py](file:///c:/Users/PC/Project/ai-chan/ai-backend/src/main.py), [router.py](file:///c:/Users/PC/Project/ai-chan/ai-backend/src/api/v1/router.py), [client.py](file:///c:/Users/PC/Project/ai-chan/ai-backend/llm/client.py).
-- Bằng chứng hạ tầng hiện có: [docker-compose.yml](file:///c:/Users/PC/Project/ai-chan/ai-infra/compose/docker-compose.yml), [nginx.conf](file:///c:/Users/PC/Project/ai-chan/ai-infra/docker/nginx/nginx.conf).
-- Khảo sát dữ liệu hiện hữu: [current-db-observations.md](file:///c:/Users/PC/Project/ai-chan/docs/00-discovery/current-db-observations.md).
-- Quy tắc hệ sinh thái Antigravity: [core.md](file:///c:/Users/PC/Project/ai-chan/.agents/rules/core.md), [security.md](file:///c:/Users/PC/Project/ai-chan/.agents/rules/security.md).
+- Bằng chứng mã nguồn: [main.py](file:///c:/Users/PC/Project/ChatJPT/ai-backend/src/main.py), [router.py](file:///c:/Users/PC/Project/ChatJPT/ai-backend/src/api/v1/router.py), [chat_turn_manager.py](file:///c:/Users/PC/Project/ChatJPT/ai-backend/src/services/chat_turn_manager.py).
+- Canonical Model: [models/context/system-context.yaml](file:///c:/Users/PC/Project/ChatJPT/models/context/system-context.yaml), [models/requirements/requirements.yaml](file:///c:/Users/PC/Project/ChatJPT/models/requirements/requirements.yaml).
+- Quy tắc điều hành: [AGENTS.md](file:///c:/Users/PC/Project/ChatJPT/AGENTS.md), [.agents/rules/core.md](file:///c:/Users/PC/Project/ChatJPT/.agents/rules/core.md).
 
 ---
 
 ## 2. Mô Tả Tổng Quan Hệ Thống (Overall Description)
 
 ### 2.1 Góc Nhìn Sản Phẩm (Product Perspective)
-Hệ thống AI-Chan hoạt động độc lập theo kiến trúc 3 tầng chuẩn mực:
+Hệ thống ChatJPT vận hành độc lập theo kiến trúc 3 tầng:
 ```
-[Client Browser] 
+[Client Browser (Web & 3D VRM)] 
       │ HTTPS (TLS 1.3)
       ▼
 [ai-infra: Nginx Ingress Gateway] (Rate limit: 10r/s API, 30r/s UI; SSL Termination)
       ├────────────────────────┬────────────────────────┐
       │ Proxy (Port 3000)      │ Proxy (Port 8000)      │
       ▼                        ▼                        ▼
-[ai-frontend (Next.js)]   [ai-backend (FastAPI)]   [PostgreSQL 16 & Redis 7]
+[ai-frontend (Next.js 16)] [ai-backend (FastAPI)]   [PostgreSQL 16 & Redis 7]
                                │
-                               ├─► Primary: Gemini API
-                               └─► Fallback: OpenAI API
+                               ├─► Primary: Gemini API (Japanese Grammar & Fast Inference)
+                               ├─► Secondary: OpenAI API (Complex Reasoning & Test Gen)
+                               └─► Nuance: Claude API (Kaiwa & Cultural Keigo)
 ```
-- **Tầng Trình Diễn (`ai-frontend`)**: Giao diện Next.js cung cấp UI tương tác chat, quản trị sidebar phiên hội thoại.
-- **Tầng Xử Lý Nghiệp Vụ (`ai-backend`)**: Xử lý logic nghiệp vụ, điều phối AI, kiểm soát bảo mật ứng dụng.
-- **Tầng Lưu Trữ & Hạ Tầng (`ai-infra`)**: Đóng gói Nginx Gateway, PostgreSQL (lưu thực thể quan hệ: User, Conversation, Message) và Redis (lưu session cache/tần suất).
+- **Tầng Trình Diễn (`ai-frontend`)**: Giao diện Next.js cung cấp UI tương tác học tập, sân khấu 3D VRM avatar, studio project graph và sidebar quản trị phiên học.
+- **Tầng Xử Lý Nghiệp Vụ (`ai-backend`)**: Xử lý logic sư phạm, điều phối AI tiếng Nhật, kiểm soát định mức token và bảo mật ứng dụng.
+- **Tầng Lưu Trữ & Hạ Tầng (`ai-infra`)**: Nginx Gateway, PostgreSQL (lưu User, Conversations, Messages, Project Graphs, Prompts) và Redis.
 
 ### 2.2 Các Khối Chức Năng Chính (Product Functions)
-1. **Xác thực & Danh tính (Identity & Authentication)**: Đăng ký, đăng nhập, bảo vệ phiên qua JWT/Secure Cookie, đăng xuất.
-2. **Không Gian Trò Chuyện (Chat Workspace)**: Nhập prompt, gửi tin nhắn, nhận phản hồi (hỗ trợ hiển thị Markdown, code snippets).
-3. **Quản Lý Phiên Hội Thoại (Conversation Lifecycle)**: Khởi tạo đoạn chat mới, đổi tên, lưu trữ danh sách, xóa cuộc trò chuyện.
-4. **Điều Phối AI Đa Nền Tảng (Multi-Provider AI Orchestration)**: Tự động phân luồng tới model AI mặc định hoặc người dùng chọn, xử lý dự phòng lỗi.
-5. **Giám Sát Vận Hành & Bảo Vệ Tài Nguyên (Protection & Telemetry)**: Giới hạn lưu lượng chống spam, ghi log chi phí token và vết kiểm toán.
+1. **Xác thực & Danh tính Học Viên (Identity & Authentication)**: Đăng ký, đăng nhập mật khẩu bcrypt, tích hợp Discord OAuth2, bảo vệ phiên bằng JWT/Secure Cookie.
+2. **Không Gian Học Tập Đàm Thoại (Japanese Learning Chat Workspace)**:
+   - Nhập prompt tiếng Nhật/Việt, nhận phản hồi sư phạm thời gian thực qua Server-Sent Events (SSE).
+   - Hiển thị Markdown kèm Furigana, Romaji và bảng tra cứu Kanji.
+   - Chế độ **Grammar Doctor**: Tự động phát hiện lỗi sai trợ từ (は/が, に/で), thể động từ (Te, Ta, Nai, Bị động, Sai khiến) và gợi ý cách sửa.
+3. **Sân Khấu Gia Sư Ảo 3D VRM (3D VRM Sensei Companion)**:
+   - Nhân vật 3D avatar (AI-Chan Sensei) hiện diện trực tiếp trên màn hình học.
+   - Hỗ trợ chế độ Workspace (thu nhỏ góc màn hình) và chế độ Companion (toàn màn hình xoay 360 độ).
+   - Động cơ cử động tự nhiên (thở, chớp mắt, gật đầu, vẫy tay khi học viên trả lời bài).
+4. **Studio Xây Dựng Bài Học Dạng Node Graph (Project Workflows)**:
+   - Giáo viên hoặc học viên tự tạo đồ thị luồng học: `Web/Discord Input -> Model AI -> Rules sư phạm -> Output`.
+   - Kết nối với thư viện 32 công cụ thực tế (Jisho lookup, Text File Import).
+5. **Thư Viện System Prompts & Quy Tắc Học Tập (Prompts & Rules Library)**:
+   - Kho prompt mẫu theo cấp độ JLPT (N5, N4, N3, N2, N1) và theo tình huống giao tiếp đời sống / công sở.
+   - 4 chế độ kích hoạt quy tắc (`always_on`, `model_decision`, `glob`, `manual`).
+6. **Điều Phối AI Đa Nền Tảng & Failover (Multi-Provider AI Orchestration)**:
+   - Tự động chuyển đổi mượt mà giữa Google Gemini, OpenAI và Anthropic Claude khi gặp sự cố quota hoặc nghẽn mạng (`BR-005`).
+7. **Bot Học Tập Cộng Đồng Discord (Discord Study Bot)**:
+   - Tích hợp bot Discord tham gia vào các server học tiếng Nhật, hỗ trợ slash commands, daily vocabulary & kanji quiz.
+8. **Giám Sát Tài Nguyên & Hạn Ngạch Học Tập (Telemetry & Quota Guard)**:
+   - Giới hạn tốc độ chống spam, theo dõi lượng token tiêu thụ và cảnh báo khi chạm định mức học tập hàng ngày.
 
 ### 2.3 Đặc Điểm & Nhóm Người Dùng (User Classes and Characteristics)
-- **Guest (Khách vãng lai)**:
-  - *Mô tả*: Người dùng truy cập website nhưng chưa thực hiện đăng nhập.
-  - *Đặc quyền*: Được xem trang giới thiệu; có thể trải nghiệm chat thử nghiệm có giới hạn nghiêm ngặt `[ASSUMPTION]` hoặc bắt buộc chuyển hướng tới trang đăng nhập để lưu trữ phiên `[DECISION]`.
-- **Registered User (Người dùng đã đăng ký)**:
-  - *Mô tả*: Người dùng cá nhân đã xác thực tài khoản.
-  - *Đặc quyền*: Khởi tạo nhiều conversation, lưu toàn bộ lịch sử trò chuyện cá nhân, tùy chỉnh thông tin tài khoản cơ bản.
-- **Administrator (Quản trị viên hệ thống) `[FUTURE SCOPE]`**:
-  - *Mô tả*: Người vận hành hệ thống nội bộ.
-  - *Đặc quyền*: Quản lý danh mục model, theo dõi nhật ký hệ thống, thống kê token tiêu thụ.
+- **Guest (Khách vãng lai / Học viên trải nghiệm)**:
+  - *Mô tả*: Người dùng mới truy cập website lần đầu.
+  - *Đặc quyền*: Xem Landing page giới thiệu, làm quen với 3D VRM Sensei, trải nghiệm chat thử nghiệm có giới hạn lượt câu hỏi.
+- **Japanese Learner (Học viên tiếng Nhật chính thức)**:
+  - *Mô tả*: Người học tiếng Nhật tự do hoặc đang ôn thi JLPT (N5 -> N1).
+  - *Đặc quyền*: Khởi tạo không giới hạn các phiên học theo chủ đề, lưu trữ toàn bộ lịch sử trò chuyện và sổ tay câu sai, tùy biến API key cá nhân.
+- **Japanese Educator / Content Creator (Giáo viên / Người tạo bài giảng)**:
+  - *Mô tả*: Giáo viên tiếng Nhật hoặc người sáng tạo nội dung giáo dục.
+  - *Đặc quyền*: Sử dụng Project Builder Studio để thiết kế pipeline bài học chuyên sâu, tạo thư viện prompt riêng và chia sẻ kịch bản học.
+- **Discord Community Learner (Học viên cộng đồng Discord)**:
+  - *Mô tả*: Thành viên trong các server Discord học tiếng Nhật có cài đặt ChatJPT Bot.
+  - *Đặc quyền*: Tương tác đố vui, tra cứu từ vựng và nhận thông báo học tập trực tiếp trong Discord.
+- **System Administrator (Quản trị viên hệ thống)**:
+  - *Mô tả*: Đội ngũ vận hành hệ thống kỹ thuật.
+  - *Đặc quyền*: Quản lý danh mục model AI, giám sát telemetry độ trễ TTFT, cấu hình định mức quota hệ thống.
 
 ### 2.4 Môi Trường Vận Hành (Operating Environment)
-- **Client**: Trình duyệt hiện đại hỗ trợ ECMAScript 6+ và Fetch API Streams (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+).
-- **Máy chủ Backend**: Python 3.11+, Uvicorn ASGI Server, FastAPI.
-- **Máy chủ Frontend**: Node.js 18+ LTS, Next.js 14 runtime.
-- **Hạ tầng Container**: Docker Engine 24+, Docker Compose v2.
+- **Client Web Browser**: Trình duyệt hiện đại hỗ trợ WebGL 2.0 (cho 3D VRM), ES2022 và Fetch API Streams (Chrome 90+, Edge 90+, Firefox 88+, Safari 14+).
+- **Backend Server**: Python 3.10+, Uvicorn ASGI Server, FastAPI.
+- **Frontend Server**: Node.js 18+ LTS, Next.js 16 App Router.
+- **Hạ Tầng Container**: Docker Engine 24+, Docker Compose v2.
 
 ### 2.5 Ràng Buộc Hệ Thống (System Constraints)
-- **CST-01 (Bảo mật Khóa API)**: Tuyệt đối không bao giờ trả API Key của các nhà cung cấp AI về phía Client/Browser. Mọi cuộc gọi AI đều phải thông qua Gateway Backend.
-- **CST-02 (Ràng buộc Mạng & Cổng)**: Mọi giao tiếp từ Internet chỉ được phép đi qua Nginx cổng 443 (HTTPS) và 80 (chuyển hướng sang 443). Các port 3000, 8000, 5432, 6379 phải đóng kín trong mạng nội bộ docker network khi đưa lên môi trường sản xuất.
-- **CST-03 (Chính sách Không Code trong Phase này)**: Mọi yêu cầu phát sinh phải được biểu diễn bằng tài liệu phân tích, không sửa đổi source code trong pha này.
+- **CST-01 (Bảo mật Khóa API)**: Tuyệt đối không bao giờ trả API Key của các nhà cung cấp AI về phía Client/Browser. Mọi cuộc gọi AI đều phải thông qua Gateway Backend và khóa cá nhân được mã hóa AES-256-GCM.
+- **CST-02 (Ràng buộc Mạng & Cổng)**: Mọi giao tiếp từ Internet chỉ được phép đi qua Nginx cổng 443 (HTTPS) và 80. Các port 3000, 8000, 5432, 6379 đóng kín trong docker network khi production.
+- **CST-03 (Tính chuẩn xác sư phạm tiếng Nhật)**: Câu trả lời của AI phải tuân thủ chuẩn ngữ pháp tiếng Nhật quy chuẩn, hạn chế tối đa ảo giác (hallucination) về Hán tự hoặc giải thích sai cấp độ JLPT.
 
 ### 2.6 Giả Định & Sự Phụ Thuộc (Assumptions and Dependencies)
-- **DEP-01**: Tính khả dụng của API từ bên thứ ba (Google Cloud AI Platform / OpenAI API).
-- **DEP-02**: Hệ thống cơ sở dữ liệu PostgreSQL 16 và Redis hoạt động ổn định trên hạ tầng máy chủ cục bộ hoặc Docker host.
-- **ASM-01**: Kết nối Internet của máy chủ luôn thông suốt tới các máy chủ API LLM ở nước ngoài.
-- **ASM-02**: Mỗi phiên hội thoại của người dùng lưu trữ dữ liệu văn bản (text/markdown) là trọng tâm; tính năng tải tệp đa phương tiện (file upload) được đưa vào phạm vi tương lai.
+- **DEP-01**: Tính sẵn sàng của các API LLM ngoại vi (Google Gemini API, OpenAI API, Anthropic API).
+- **DEP-02**: Hệ cơ sở dữ liệu SQLite (dev) / PostgreSQL 16 (prod) hoạt động ổn định.
+- **ASM-01**: Học viên có kết nối Internet ổn định để nhận luồng dữ liệu Server-Sent Events (SSE) liên tục.
+- **ASM-02**: Trình duyệt của học viên có hỗ trợ tăng tốc phần cứng WebGL để hiển thị mô hình 3D VRM mượt mà (>= 30 FPS).
 
 ---
 
@@ -140,52 +174,65 @@ Hệ thống AI-Chan hoạt động độc lập theo kiến trúc 3 tầng chu�
 
 | Phân Loại | Mã Hạng Mục | Mô Tả Chi Tiết |
 | :--- | :--- | :--- |
-| **IN SCOPE** *(Bắt buộc hoàn thiện đặc tả và xây dựng trong pha hiện tại)* | **SC-IN-01** | **Xác thực tài khoản cơ bản**: Đăng ký (Email/Password), Đăng nhập, Đăng xuất, Lưu trữ phiên an toàn qua JWT. |
-| | **SC-IN-02** | **Quản lý phiên hội thoại (Conversations)**: Tạo mới, liệt kê danh sách, xem chi tiết, đổi tên tự động/thủ công, xóa conversation. |
-| | **SC-IN-03** | **Tương tác đàm thoại AI**: Gửi tin nhắn, nhận phản hồi đầy đủ từ AI Assistant, hiển thị định dạng văn bản Markdown và code block. |
-| | **SC-IN-04** | **Phối hợp AI Model & Fallback**: Backend điều phối gọi Gemini (mặc định) và tự động fallback sang OpenAI khi lỗi. |
-| | **SC-IN-05** | **Bảo vệ ứng dụng & Rate Limiting**: Thực thi giới hạn tốc độ tại tầng Nginx và tầng FastAPI (`app_rate_limiter`). |
+| **IN SCOPE** *(Bắt buộc hoàn thiện trong phiên bản ChatJPT)* | **SC-IN-01** | **Xác thực học viên**: Đăng ký (Email/Password), Đăng nhập, Đăng nhập Discord OAuth2, Bảo vệ phiên qua JWT HttpOnly. |
+| | **SC-IN-02** | **Quản lý phiên học tập (Learning Sessions)**: Tạo mới, liệt kê danh sách, đổi tên theo chủ đề (JLPT N5-N1, Kaiwa), xóa phiên học. |
+| | **SC-IN-03** | **Trợ lý AI Sư Phạm (AI Tutor Sensei)**: Phân tích câu, sửa lỗi ngữ pháp (Grammar Doctor), phân tích Kanji, sinh ví dụ song ngữ Nhật - Việt qua SSE stream. |
+| | **SC-IN-04** | **Sân khấu 3D VRM Sensei Companion**: Avatar 3D tương tác biểu cảm, chuyển động tự nhiên (thở, chớp mắt, cử chỉ động viên). |
+| | **SC-IN-05** | **Điều phối AI Đa Nền Tảng & Failover**: Gọi Gemini (mặc định), tự động chuyển vùng dự phòng sang OpenAI/Claude khi lỗi hoặc hết quota (`BR-005`). |
+| | **SC-IN-06** | **Studio Pipeline Bài Học (Project Builder)**: Kéo thả các node bài giảng, liên kết model, prompt và rules kiểm tra ngữ pháp. |
+| | **SC-IN-07** | **Bảo vệ ứng dụng & Quota học tập**: Giới hạn tốc độ chống spam, kiểm soát định mức token học tập hàng ngày (`quota_manager`). |
+| | **SC-IN-08** | **Tích hợp Discord Study Bot**: Nhắc học hàng ngày, tra cứu từ vựng và đố vui Kanji trong server Discord. |
 | **OUT OF SCOPE** *(Tuyệt đối không thực hiện trong giai đoạn này)* | **SC-OUT-01** | Tích hợp cổng thanh toán trực tuyến hoặc mua gói thành viên (Payment / Subscription billing). |
 | | **SC-OUT-02** | Xây dựng ứng dụng di động bản địa (Native Mobile Apps cho iOS / Android). |
 | | **SC-OUT-03** | Tự huấn luyện (Fine-tuning / Pre-training) mô hình AI riêng trên máy chủ cục bộ. |
-| | **SC-OUT-04** | Tích hợp voice/âm thanh thời gian thực (Real-time Speech-to-Speech). |
-| **FUTURE SCOPE** *(Được thiết kế mở nhưng chỉ phát triển ở các giai đoạn sau)* | **SC-FUT-01** | **Tải lên & Xử lý tệp (File Upload / RAG Document Analysis)**: Tải file PDF, DOCX để AI phân tích ngữ cảnh. |
-| | **SC-FUT-02** | **Cổng Quản Trị Hệ Thống (Admin Dashboard)**: Giao diện quản trị số lượng người dùng, quản lý prompt mẫu, theo dõi chi phí API. |
-| | **SC-FUT-03** | **Đăng nhập Mạng xã hội (OAuth2 Social Login)**: Google, GitHub, Discord authentication. |
-| | **SC-FUT-04** | **Chia sẻ cuộc trò chuyện công khai (Public Conversation Sharing)**: Xuất bản permalink cho đoạn chat. |
-| **UNKNOWN / TBD** *(Nội dung chờ xác nhận từ phía Business Owner)* | **SC-TBD-01** | Có cho phép Guest (người chưa đăng nhập) trò chuyện với hạn mức số câu hỏi nhất định (ví dụ 3 lượt) hay bắt buộc 100% phải Login trước khi chat? |
-| | **SC-TBD-02** | Giới hạn tối đa số lượng ký tự trên mỗi prompt và số lượng tin nhắn lưu trong một phiên chat là bao nhiêu? |
+| | **SC-OUT-04** | Đàm thoại âm thanh hai chiều thời gian thực (Full Duplex Speech-to-Speech latency cực thấp). |
+| **FUTURE SCOPE** *(Lộ trình phát triển tiếp theo)* | **SC-FUT-01** | **Voice Chat luyện phát âm với Sensei**: Nhận diện giọng nói tiếng Nhật và phát âm phản hồi tự nhiên qua Speech-to-Text / Text-to-Speech. |
+| | **SC-FUT-02** | **RAG Giáo trình PDF tiếng Nhật**: Tải lên giáo trình Minna no Nihongo, Soumatome để AI tra cứu bài tập chuẩn sách giáo khoa. |
+| | **SC-FUT-03** | **Chế độ thi thử JLPT bấm giờ & Bảng xếp hạng**: Làm bài thi mẫu N5-N1 có đếm ngược thời gian và chấm điểm tự động. |
+| | **SC-FUT-04** | **Chia sẻ template bài học cộng đồng**: Xuất bản và nhập các pipeline học tập do giáo viên cộng đồng thiết kế. |
+| **UNKNOWN / TBD** *(Vấn đề chờ thống nhất)* | **SC-TBD-01** | Khách vãng lai (Guest) được chat thử tối đa bao nhiêu câu hỏi tiếng Nhật trước khi bắt buộc phải đăng nhập? (Đề xuất: 3 câu/phiên). |
+| | **SC-TBD-02** | Mức định mức token miễn phí hàng ngày cho học viên là bao nhiêu? (Đề xuất: 50,000 token/ngày). |
 
 ---
 
 ## 4. Các Bên Liên Quan & Tác Nhân (Stakeholders & Actors)
 
 ### 4.1 Danh Sách Stakeholders
-- **Product Owner (PO)**: Người quyết định chiến lược, duyệt phạm vi tính năng và mức độ ưu tiên.
-- **End Users**: Người dùng cuối trực tiếp tương tác với trợ lý ảo.
-- **Development & Architecture Team**: Chịu trách nhiệm chuyển hóa SRS thành kiến trúc và mã nguồn an toàn.
-- **Infrastructure & Security Team**: Giám sát vận hành cụm máy chủ và bảo đảm an toàn dữ liệu.
+- **Product Owner (PO)**: Định hướng chiến lược phát triển sản phẩm ChatJPT, phê duyệt tính năng và lộ trình.
+- **Cố Vấn Sư Phạm Tiếng Nhật (Japanese Academic Advisor)**: Thẩm định độ chính xác của các prompt mẫu, cấu trúc ngữ pháp và cấp độ JLPT.
+- **Học Viên Tiếng Nhật (End Users / Learners)**: Người trực tiếp thụ hưởng giá trị, học tập và luyện phản xạ giao tiếp.
+- **Giáo Viên / Người Tạo Nội Dung (Educators)**: Khai thác Studio Project Builder để số hóa bài giảng.
+- **Đội Ngũ Kiến Trúc & Phát Triển (DevOps, Fullstack, AI Engineers)**: Hiện thực hóa và bảo trì nền tảng kỹ thuật.
 
 ### 4.2 Danh Sách Actors
 ```
-           ┌───────────────────────┐
-           │        Actors         │
-           └───────────┬───────────┘
-                       │
-       ┌───────────────┼───────────────┐
-       ▼               ▼               ▼
- ┌───────────┐   ┌───────────┐   ┌───────────┐
- │   Guest   │   │Registered │   │System AI  │
- │           │   │   User    │   │ Provider  │
- └───────────┘   └───────────┘   └───────────┘
+           ┌──────────────────────────────────────────────┐
+           │              ChatJPT Actors                  │
+           └──────────────────────┬───────────────────────┘
+                                  │
+      ┌───────────────────────────┼───────────────────────────┐
+      ▼                           ▼                           ▼
+┌───────────┐               ┌───────────┐               ┌───────────┐
+│   Guest   │               │ Japanese  │               │ Japanese  │
+│ (Trial)   │               │  Learner  │               │ Educator  │
+└─────┬─────┘               └─────┬─────┘               └─────┬─────┘
+      │                           │                           │
+      ├───────────────────────────┴───────────────────────────┤
+      ▼                                                       ▼
+┌───────────┐                                           ┌───────────┐
+│  Discord  │                                           │ External  │
+│ Community │                                           │AI Provider│
+└───────────┘                                           └───────────┘
 ```
 
 | Actor ID | Tên Tác Nhân | Trách Nhiệm & Quyền Hạn | Tương Tác Với Hệ Thống |
 | :--- | :--- | :--- | :--- |
-| **ACT-01** | **Guest** (Khách vãng lai) | Người dùng chưa xác thực truy cập vào website. | Xem giao diện Landing Page, xem form đăng nhập/đăng ký. `[OPEN QUESTION]`: Có được chat thử hay không. |
-| **ACT-02** | **Registered User** (Người dùng chính thức) | Người dùng đã có tài khoản và đăng nhập hợp lệ. | Tạo, đổi tên, xóa conversation; gửi tin nhắn; nhận và đọc câu trả lời của AI; đăng xuất. |
-| **ACT-03** | **External AI Provider** (Hệ thống AI đối tác) | Dịch vụ AI đám mây (Google Gemini, OpenAI). | Tiếp nhận prompt và ngữ cảnh từ Backend; sinh câu trả lời và thông tin số lượng token. |
-| **ACT-04** | **System Background Scheduler** | Bộ tiến trình ngầm của hệ thống (Cron/Worker). | Dọn dẹp token hết hạn, thống kê dữ liệu nhật ký không đồng bộ. |
+| **ACT-01** | **Guest (Khách vãng lai)** | Người dùng chưa đăng nhập muốn tìm hiểu nền tảng. | Xem Landing page, trải nghiệm thử thách ngữ pháp cơ bản có giới hạn lượt câu hỏi. |
+| **ACT-02** | **Japanese Learner (Học viên)** | Học viên chính thức đã xác thực tài khoản. | Tạo phiên học, gửi câu hỏi ngữ pháp, luyện Kaiwa với 3D VRM Sensei, lưu sổ tay câu sai, quản lý API key cá nhân. |
+| **ACT-03** | **Japanese Educator (Giáo viên)** | Người tạo bài giảng hoặc trợ giảng. | Thiết kế workflow bài học trên Project Builder Canvas, tạo prompts chuyên đề, gắn kết rules kiểm tra bài. |
+| **ACT-04** | **Discord Community Learner** | Thành viên trong cộng đồng Discord. | Tương tác qua ChatJPT Discord Bot, tham gia giải đố Kanji và nhận từ vựng hàng ngày. |
+| **ACT-05** | **External AI Provider** | Đám mây AI đối tác (Google Gemini, OpenAI, Claude). | Nhận prompt sư phạm, trả về luồng token phân tích ngữ pháp và câu trả lời tiếng Nhật. |
+| **ACT-06** | **System Background Scheduler** | Tiến trình ngầm hệ thống. | Tự động làm mới hạn ngạch quota token hàng ngày, dọn dẹp session hết hạn. |
 
 ---
 

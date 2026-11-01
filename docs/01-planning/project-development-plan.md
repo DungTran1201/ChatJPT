@@ -1,143 +1,160 @@
 # KẾ HOẠCH PHÁT TRIỂN DỰ ÁN TỔNG THỂ (MASTER PROJECT DEVELOPMENT PLAN)
-## Dự Án: Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)
+## Dự Án: ChatJPT — Hệ Sinh Thái Hỗ Trợ Học Tiếng Nhật Thông Minh (Japanese Learning Ecosystem)
 
 ---
 
 | Thông Tin Kế Hoạch | Chi Tiết |
 | :--- | :--- |
-| **Dự án** | Website Chatbot Trợ Lý Ảo (`ai-chan`) |
+| **Dự án** | ChatJPT — Hệ Sinh Thái Hỗ Trợ Học Tiếng Nhật Tích Hợp Chatbot & Gia Sư Ảo 3D (`ChatJPT`) |
 | **Mã tài liệu** | `PDP-001` |
-| **Phiên bản** | v1.0.0-BASELINE |
+| **Phiên bản** | v2.0.0-PIVOT |
 | **Vai trò xây dựng** | Senior Business Analyst + Product Manager + Solution Architect |
-| **Đầu vào chính** | [docs/SRS.md](file:///c:/Users/PC/Project/ai-chan/docs/SRS.md), Hiện trạng Codebase 3 tầng (`ai-backend`, `ai-frontend`, `ai-infra`) |
-| **Quy định ràng buộc** | **GIAI ĐOẠN PLANNING THUẦN TÚY — KHÔNG VIẾT SOURCE CODE** |
+| **Đầu vào chính** | Khảo sát hiện trạng kiến trúc 3 tầng (`ai-backend`, `ai-frontend`, `ai-infra`), [models/context/system-context.yaml](file:///c:/Users/PC/Project/ChatJPT/models/context/system-context.yaml), [docs/02-requirements/SRS.md](file:///c:/Users/PC/Project/ChatJPT/docs/02-requirements/SRS.md) |
+| **Quy định ràng buộc** | **GIAI ĐOẠN PLANNING & ĐẶC TẢ TỔNG QUAN — TUÂN THỦ NGUYÊN TẮC SOURCE OF TRUTH & ID TRACEABILITY** |
 
 ---
 
-## 1. Tổng Quan Dự Án & Mục Tiêu Nghiệp Vụ
+## 1. Tổng Quan Dự Án & Mục Tiêu Nghiệp Vụ (Project Overview & Business Objectives)
 
 ### 1.1 Tổng Quan Dự Án (Project Overview)
-Dự án **AI-Chan Assistant** hướng đến việc xây dựng một hệ thống website chatbot đàm thoại thông minh đa tầng, cung cấp cho người dùng môi trường tương tác mượt mà, lưu trữ lịch sử cuộc trò chuyện an toàn, và tận dụng sức mạnh của các mô hình ngôn ngữ lớn (Generative AI) tiên tiến nhất thông qua cơ chế điều phối đa nhà cung cấp có khả năng tự phục hồi (Multi-Provider AI Orchestration with Failover).
+Dự án **ChatJPT** là bước chuyển đổi chiến lược từ bộ khung starter đàm thoại chung sang **Hệ sinh thái nền tảng hỗ trợ học tiếng Nhật toàn diện (All-in-One Japanese Learning Ecosystem)**. 
+Dự án kế thừa và phát huy tối đa các năng lực kỹ thuật đã được xây dựng sẵn trong kiến trúc cũ:
+1. **Kiến trúc full-stack 3 tầng containerized**: FastAPI backend bất đồng bộ, Next.js frontend hiện đại, reverse proxy Nginx và hệ thống lưu trữ bền vững.
+2. **Trợ lý AI Sư Phạm Đa Nền Tảng (Pedagogical AI Orchestrator)**: Khai thác sức mạnh của các mô hình LLM hàng đầu (Gemini, OpenAI, Claude) với cơ chế tự phục hồi (Multi-Provider Failover) để đóng vai trò **Gia sư ảo tiếng Nhật thông minh** (AI Tutor Sensei) có khả năng sửa lỗi câu, phân tích ngữ pháp theo cấp độ JLPT từ N5 đến N1, giải nghĩa Hán tự (Kanji) và đàm thoại phản xạ (Kaiwa).
+3. **Gia sư ảo 3D VRM tương tác sống động (AI-Chan Sensei Companion)**: Ứng dụng Three.js và `@pixiv/three-vrm` để tạo sân khấu tương tác 3D chân thực, mô phỏng cử chỉ động viên, chớp mắt và nhịp thở tự nhiên, xóa bỏ cảm giác cô đơn khi tự học ngoại ngữ.
+4. **Studio Xây Dựng Bài Giảng Dạng Đồ Thị (Node-based Project Builder)**: Cho phép giáo viên và học viên tự thiết kế các pipeline học tập chuyên đề linh hoạt (`Văn bản đầu vào -> Model AI -> Rules kiểm tra -> Output giải thích song ngữ`).
+5. **Hệ thống Discord Study Bot tích hợp**: Mở rộng môi trường học tập ra cộng đồng Discord thông qua bot tự động nhắc học, đố vui Kanji và giải nghĩa nhanh từ vựng.
 
 ### 1.2 Mục Tiêu Nghiệp Vụ Trọng Tâm (Business Objectives)
-- **BO-01 (Trải nghiệm tương tác)**: Đảm bảo thời gian phản hồi nhanh, trực quan thông qua streaming văn bản và định dạng Markdown/Code syntax.
-- **BO-02 (Tối ưu sẵn sàng & Chi phí)**: Sử dụng Google Gemini làm nhà cung cấp chính với chi phí tối ưu, tự động chuyển vùng dự phòng sang OpenAI khi gặp sự cố quota hoặc nghẽn mạng.
-- **BO-03 (Bảo toàn ngữ cảnh & Danh tính)**: Quản lý người dùng tập trung, phân tách và lưu trữ các phiên trò chuyện độc lập theo quyền sở hữu của từng cá nhân.
-- **BO-04 (An toàn dữ liệu & Phòng thủ lạm dụng)**: Ngăn chặn triệt để lộ API Key, chống tấn công tiêm nhiễm câu lệnh (Prompt Injection), áp dụng Rate Limiting 2 tầng (Ingress Nginx và Application FastAPI).
+- **BO-01 (Trải nghiệm học tập trực quan & tức thì)**: Cung cấp giao diện học tiếng Nhật thân thiện, hiển thị cấu trúc câu rõ ràng (Furigana, Romaji, Hán tự, giải thích ngữ pháp tiếng Việt), phản hồi luồng ký tự qua Server-Sent Events với độ trễ bắt đầu `TTFT < 2.0s`.
+- **BO-02 (Tạo động lực & Tương tác đàm thoại sống động)**: Sử dụng mô hình 3D VRM Gia sư ảo đồng hành trong suốt quá trình học, mang lại phản xạ tương tác tự nhiên trong các kịch bản đàm thoại tình huống (Roleplay Kaiwa).
+- **BO-03 (Chính xác về mặt sư phạm & Ngữ cảnh văn hóa)**: Thiết lập bộ luật (Pedagogy Guardrails & Rules Library) nhằm kiểm soát chất lượng câu trả lời của AI, đảm bảo giải thích đúng ngữ pháp quy chuẩn JLPT, phân biệt rõ các sắc thái kính ngữ (Keigo, Sonkeigo, Kenjougo) và bối cảnh giao tiếp người Nhật.
+- **BO-04 (Tính sẵn sàng cao & Tối ưu ngân sách token)**: Tận dụng Google Gemini làm engine chính với chi phí tiết kiệm, tự động chuyển vùng sang OpenAI/Claude khi quá tải; tích hợp bộ kiểm soát định mức hàng ngày (`quota_manager`) ngăn ngừa lạm dụng chi phí.
+- **BO-05 (Cá nhân hóa tiến độ & Cô lập dữ liệu)**: Bảo đảm dữ liệu lịch sử hội thoại, nhật ký học tập, sổ tay câu sai của mỗi học viên được phân tách tuyệt đối theo quyền sở hữu (`BR-002`).
 
 ---
 
 ## 2. Chiến Lược Triển Khai Dự Án (Development Strategy)
 
-Dự án áp dụng mô hình phát triển **Incremental, Dependency-Aware, Risk-First & Documentation-Driven Delivery**:
-1. **Tài Liệu Dẫn Dắt (Documentation-Driven)**: Mọi tính năng kỹ thuật bắt buộc phải có thiết kế kiến trúc (SAD), hợp đồng API (OpenAPI) và mô hình dữ liệu trước khi bắt đầu viết code.
-2. **Nhận Thức Phụ Thuộc (Dependency-Aware)**: Chỉ triển khai tầng cao (UI, AI chat) khi tầng nền tảng (Database, Authentication, Identity Management) đã hoàn tất và kiểm thử thành công.
-3. **Ưu Tiên Rủi Ro Hàng Đầu (Risk-First)**: Các hạng mục bảo vệ khóa API, quản lý chi phí token, chống DDoS/Abuse và cơ chế Failover của AI được thiết kế và kiểm soát ngay từ phase nền tảng, không để dồn vào cuối dự án.
-4. **Bàn Giao Tăng Dần & Có Thể Kiểm Chứng (Testable Incremental Delivery)**: Mỗi phase kết thúc bằng một tập Artifact hoàn chỉnh và có bộ kiểm tra nghiệm thu cụ thể theo Acceptance Criteria.
+Dự án áp dụng mô hình **Incremental, Dependency-Aware, Risk-First & Documentation-Driven Delivery**:
+1. **Kế thừa kiến trúc (Architecture Reusability)**: Tận dụng 100% khung sườn backend FastAPI, frontend Next.js, database SQLite/PostgreSQL, middleware telemetry và demo supervisor đã được hoàn thiện và khóa baseline.
+2. **Tài liệu dẫn dắt (Documentation-Driven)**: Mọi điều chỉnh từ khái niệm chung sang bài toán học tiếng Nhật phải được đồng bộ hóa từ Mô hình chuẩn máy đọc (`models/`) sang Tài liệu con người (`docs/`) và Biểu đồ hình chiếu (`diagrams/`).
+3. **Ưu tiên rủi ro sư phạm & an toàn AI (Risk-First Pedagogical Guardrails)**: Thiết lập quy tắc phòng chống ảo giác (hallucination) trong việc phân tích chữ Hán và ngữ pháp trước khi mở rộng tính năng đàm thoại tự do.
+4. **Bàn giao kiểm chứng được (Testable Milestones)**: Từng cột mốc đều có bộ tiêu chí nghiệm thu (Acceptance Criteria) và kịch bản kiểm thử tự động rõ ràng.
 
 ---
 
-## 3. Phạm Vi Phát Triển (Project Scope)
+## 3. Phạm Vi Phát Triển Hệ Thống (Project Scope)
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        AI-CHAN PROJECT SCOPE                           │
-├───────────────────────────────────┬────────────────────────────────────┤
-│ IN SCOPE (MVP Release)            │ OUT OF SCOPE                       │
-│ - Xác thực: Đăng ký, Đăng nhập,  │ - Cổng thanh toán (Billing)        │
-│   Đăng xuất, JWT Session.         │ - Mobile Apps (iOS/Android Native) │
-│ - Quản lý Conversation: Tạo,      │ - Huấn luyện Model riêng           │
-│   Liệt kê, Đổi tên, Xóa.          │ - Đàm thoại âm thanh Real-time     │
-│ - Tương tác Chat & Streaming.     ├────────────────────────────────────┤
-│ - Multi-Provider AI Fallback.     │ FUTURE SCOPE                       │
-│ - 2-Tier Rate Limiting & Nginx.   │ - Upload file/RAG tài liệu         │
-│                                   │ - Admin Portal quản trị prompt     │
-│                                   │ - Đăng nhập OAuth2 Social          │
-└───────────────────────────────────┴────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           CHATJPT SYSTEM SCOPE                                  │
+├──────────────────────────────────────┬──────────────────────────────────────────┤
+│ IN SCOPE (MVP Release)               │ OUT OF SCOPE (Giai Đoạn Này)             │
+│ - Xác thực: Email/Password & Discord │ - Cổng thanh toán khóa học (Billing/     │
+│   OAuth2 an toàn, bảo vệ phiên JWT.  │   Subscription Gateway).                 │
+│ - Gia sư AI Tiếng Nhật (AI Tutor):   │ - Ứng dụng di động bản địa (Native       │
+│   • Phân tích câu & sửa lỗi văn phạm │   Mobile App iOS/Android).               │
+│     (Grammar Doctor).                │ - Tự pre-train/fine-tune LLM riêng       │
+│   • Tra cứu & phân tích Hán tự Kanji │   trên máy chủ cục bộ.                   │
+│   • Luyện đàm thoại Kaiwa phản xạ.   │ - Đàm thoại thoại 2 chiều âm thanh       │
+│   • Phân loại lộ trình JLPT N5 - N1. │   thời gian thực (Speech-to-Speech).     │
+│ - Sân khấu 3D VRM Sensei Companion:  ├──────────────────────────────────────────┤
+│   Mô phỏng nhịp thở, chớp mắt, cử    │ FUTURE SCOPE (Lộ Trình Tương Lai)        │
+│   chỉ động viên theo câu trả lời AI. │ - Đàm thoại giọng nói 2 chiều AI Sensei  │
+│ - Studio Project Builder: Xây dựng   │   (Tích hợp Web Speech API / Whisper).   │
+│   pipeline bài giảng dạng Node Graph.│ - RAG tài liệu PDF giáo trình học        │
+│ - Thư viện Prompts & Rules học tập:  │   (Minna no Nihongo, Soumatome, v.v.).   │
+│   Chế độ kích hoạt linh hoạt 4 tầng. │ - Thi thử JLPT bấm giờ & Bảng xếp hạng   │
+│ - Quản lý API Key người dùng (AES) & │   vinh danh học viên (Leaderboard).      │
+│   bộ đếm định mức token hàng ngày.   │ - Chia sẻ công khai bài giảng/pipeline   │
+│ - Discord Study Bot: Slash commands, │   học tập trong cộng đồng (Community     │
+│   daily quiz từ vựng và Kanji.       │   Template Hub).                         │
+└──────────────────────────────────────┴──────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Các Năng Lực Cốt Lõi (Core Capabilities)
+## 4. Các Nhóm Năng Lực Cốt Lõi (Core Capabilities)
 
-| Nhóm Năng Lực | Mã Năng Lực | Yêu Cầu SRS Liên Quan | Độ Ưu Tiên | Trạng Thái Kế Hoạch |
+| Nhóm Năng Lực | Mã Năng Lực | Yêu Cầu SRS & Quy Tắc | Độ Ưu Tiên | Trạng Thái Hiện Tại |
 | :--- | :--- | :--- | :--- | :--- |
-| **Kiến Trúc & Nền Tảng Dữ Liệu** | `CAP-FOUNDATION` | Toàn bộ kiến trúc 3 tầng, NFRs | `Must Have` | Ready for Design |
-| **Xác Thực & Danh Tính** | `CAP-AUTH` | `FR-001`, `FR-002`, `FR-003`, `BR-001` | `Must Have` | Planned (Phase 02) |
-| **Quản Lý Phiên Hội Thoại** | `CAP-CONV` | `FR-004`, `FR-005`, `FR-006`, `FR-007`, `BR-002` | `Must Have` | Planned (Phase 03) |
-| **Tương Tác Chat & AI Engine** | `CAP-CHAT-AI` | `FR-008`, `FR-009`, `FR-010`, `FR-011`, `BR-005` | `Must Have` | Planned (Phase 04) |
-| **Bảo Vệ & Phòng Thủ An Ninh** | `CAP-SEC-PERF` | `BR-006`, `NFR-SEC-01..05`, `NFR-PERF-01..03` | `Must Have` | Continuous |
-| **Vận Hành & Quan Sát** | `CAP-OPS` | `NFR-OBS-01`, `NFR-REL-01..03` | `Should Have`| Planned (Phase 06) |
+| **Kiến Trúc & Hạ Tầng Cơ Sở** | `CAP-FOUNDATION` | Kiến trúc 3 tầng, `ARCH-001`, `ADR-002` | `Must Have` | **READY / BASELINED** |
+| **Xác Thực & Quản Lý Học Viên** | `CAP-AUTH` | `FR-001..003`, `FR-027..028`, `BR-001` | `Must Have` | **IMPLEMENTED** |
+| **Quản Lý Phiên Học & Lịch Sử** | `CAP-CONV` | `FR-004..007`, `FR-012`, `BR-002` | `Must Have` | **IMPLEMENTED** |
+| **Trợ Lý AI Sư Phạm Tiếng Nhật** | `CAP-JAPANESE-AI` | `FR-008..011`, `FR-013..014`, `BR-005` | `Must Have` | **ENHANCED WITH JAPANESE PROMPTS** |
+| **Gia Sư Ảo 3D VRM Đồng Hành** | `CAP-VRM-TUTOR` | `FR-048..056`, `BR-035`, `ADR-013` | `Must Have` | **IMPLEMENTED** |
+| **Studio Pipeline Bài Giảng** | `CAP-PROJECT-STUDIO` | `FR-057`, `BR-036..039`, `ADR-014` | `Must Have` | **IMPLEMENTED** |
+| **Thư Viện Công Cụ & Quy Tắc Học** | `CAP-TOOLS-RULES` | 32 Tools, 4 Activation Modes, PolicyGate | `Must Have` | **IMPLEMENTED** |
+| **Quản Lý API Key & Quota Học Tập** | `CAP-RES-MGMT` | `FR-029..034`, `BR-019..021`, `SEC-015` | `Must Have` | **IMPLEMENTED** |
+| **Bot Học Tập Cộng Đồng Discord** | `CAP-DISCORD-BOT` | `FR-044..046`, `BR-031..034`, Multi-bot | `Should Have`| **IMPLEMENTED** |
 
 ---
 
-## 5. Phân Kỳ Phát Triển (Development Phases Overview)
-
-Dự án được phân rã thành **6 Phase logic tuần tự**:
+## 5. Phân Kỳ Phát Triển Hệ Thống (Development Phases)
 
 ```mermaid
 graph LR
-    P01[Phase 01: Kiến Trúc & Thiết Kế Nền Tảng] --> P02[Phase 02: Xác Thực & Quản Lý Người Dùng]
-    P02 --> P03[Phase 03: Quản Lý Phiên Hội Thoại]
-    P03 --> P04[Phase 04: Tương Tác Chat & Điều Phối AI]
-    P04 --> P05[Phase 05: Kiểm Thử Toàn Diện & Tối Ưu An Ninh]
-    P05 --> P06[Phase 06: Triển Khai Sản Phẩm & Vận Hành]
+    P01[Phase 01: Kiến Trúc & Thiết Kế Nền Tảng Học Tiếng Nhật] --> P02[Phase 02: Xác Thực & Quản Lý Hồ Sơ Học Viên]
+    P02 --> P03[Phase 03: Vòng Đời Phiên Học & Sổ Tay Câu Sai]
+    P03 --> P04[Phase 04: Bộ Điều Phối AI Sư Phạm & Sân Khấu 3D VRM]
+    P04 --> P05[Phase 05: Studio Pipeline Bài Giảng & Discord Study Bot]
+    P05 --> P06[Phase 06: Kiểm Thử Toàn Diện, Tối Ưu Quota & Phát Hành]
 ```
 
-- **Phase 01 (System Architecture & Foundation Design)**: Xây dựng System Architecture Document (SAD), mô hình thực thể quan hệ cơ sở dữ liệu (PostgreSQL Schema), hợp đồng giao tiếp OpenAPI, cấu hình môi trường chuẩn.
-- **Phase 02 (Authentication & User Management)**: Hiện thực hóa năng lực đăng ký, đăng nhập mật khẩu băm an toàn, cấp phát và thu hồi JWT/Session Cookie, Middleware xác thực tại Backend.
-- **Phase 03 (Conversation Lifecycle & Persistence)**: Hiện thực hóa bảng lưu trữ conversation, API CRUD cuộc trò chuyện, phân quyền cô lập dữ liệu theo `user_id`, tích hợp Sidebar giao diện Frontend.
-- **Phase 04 (Chat Interaction & AI Orchestration)**: Tích hợp hoàn chỉnh luồng gửi tin nhắn, lưu vết `messages`, gọi LLM Manager, cơ chế tự động Fallback Gemini -> OpenAI, và tính năng Streaming phản hồi ra UI.
-- **Phase 05 (Security Hardening, Testing & Quality Assurance)**: Kiểm thử tải, rà soát mô hình đe dọa (Threat Modeling), kiểm tra rò rỉ secret, đo đạc TTFT và tỷ lệ chịu lỗi.
-- **Phase 06 (Deployment, Observability & Release Readiness)**: Tinh chỉnh cấu hình Production Docker Compose, bảo mật SSL TLS 1.3, thiết lập cấu hình ghi nhật ký tập trung và sổ tay vận hành (Runbook).
+- **Phase 01 (System Architecture & Japanese Pedagogy Models)**: Chuẩn hóa System Context, Canonical Models và bộ danh mục System Prompts chuyên ngành tiếng Nhật (JLPT N5-N1, Kaiwa, Grammar Doctor).
+- **Phase 02 (Authentication & Student Profile Management)**: Xác thực tài khoản, hỗ trợ đăng nhập Discord OAuth2 cho học viên cộng đồng, bảo vệ thông tin học viên qua JWT Cookie và mã hóa mật khẩu bcrypt.
+- **Phase 03 (Learning Session Lifecycle & Data Isolation)**: Quản lý các phiên hội thoại học tập theo từng chủ đề (Văn phạm, Từ vựng, Kanji, Đàm thoại), cách ly dữ liệu cá nhân theo `BR-002`.
+- **Phase 04 (Japanese AI Orchestrator & 3D VRM Sensei Companion)**: Kích hoạt bộ điều phối AI đa nhà cung cấp, streaming phản hồi phân tích ngữ pháp tiếng Nhật ra giao diện, kết nối động cơ chuyển động tự nhiên của mô hình 3D VRM.
+- **Phase 05 (Project Learning Studio & Discord Study Bot)**: Cung cấp giao diện trực quan cho giáo viên tạo pipeline bài học, kết nối bot Discord phục vụ học nhóm.
+- **Phase 06 (Testing, Quota Optimization & Release Readiness)**: Kiểm toán truy vết, xác thực độ trễ TTFT < 2s, kiểm tra an toàn dữ liệu và đóng gói bản phát hành.
 
 ---
 
-## 6. Kế Hoạch Các Cột Mốc (Milestones Plan)
+## 6. Kế Hoạch Các Cột Mốc Bàn Giao (Milestones Plan)
 
-| Mã Mốc | Tên Cột Mốc | Mục Tiêu Đạt Được | Tiêu Chí Nghiệm Thu Thoát Mốc |
+| Mã Mốc | Tên Cột Mốc | Mục Tiêu Bàn Giao Cụ Thể | Tiêu Chí Nghiệm Thu Thoát Mốc |
 | :---: | :--- | :--- | :--- |
-| **M01** | **Architecture & Design Baseline** | Hoàn tất toàn bộ tài liệu thiết kế hệ thống, API Contract, DB Schema và kế hoạch kiểm thử. | Đạt Quality Gate G2 (Design Ready), 0 open blockers. |
-| **M02** | **Identity & Security Core Ready** | Người dùng có thể đăng ký, đăng nhập, bảo vệ phiên qua JWT; các API được bảo vệ bởi auth middleware. | Vượt qua bộ kiểm thử `AC-001`, mật khẩu băm an toàn. |
-| **M03** | **Conversation Foundation Ready** | Khởi tạo, đổi tên, lưu trữ và xóa cuộc trò chuyện hoạt động ổn định trên cả UI và API. | Vượt qua bộ kiểm thử `AC-002`, bảo đảm cách ly dữ liệu `BR-002`. |
-| **M04** | **AI Chat MVP Ready** | Chatbot phản hồi mượt mà, hỗ trợ streaming, hiển thị Markdown và tự động fallback khi lỗi provider. | Vượt qua bộ kiểm thử `AC-003` & `AC-004`. |
-| **M05** | **Production Release Candidate** | Toàn bộ cụm Docker Ingress Nginx HTTPS hoạt động ổn định, đạt kiểm thử bảo mật và tải đồng thời. | Vượt qua `AC-005`, Quality Gate G6 (Release Ready). |
+| **M01** | **Japanese Architecture & Docs Baseline** | Hoàn tất cập nhật bộ tài liệu tổng quan, phạm vi, tác nhân, system context và yêu cầu hệ sinh thái học tiếng Nhật. | Kiểm toán tính toàn vẹn 0 lỗi qua `tools/validators/run_all.py`. |
+| **M02** | **Student Identity & Personalization Ready**| Học viên đăng ký, đăng nhập tài khoản an toàn; cấu hình API Key cá nhân (nếu có) được mã hóa AES-256-GCM. | Vượt qua bài kiểm tra xác thực và mã hóa bí mật. |
+| **M03** | **Interactive Learning Session Foundation** | Quản lý danh sách các buổi học trên Sidebar, phân tách phiên học theo chủ đề ôn thi JLPT và Kaiwa. | Bảo đảm bất biến cách ly dữ liệu `BR-002`. |
+| **M04** | **AI Tutor Sensei & 3D Companion Live** | Chatbot tiếng Nhật phân tích câu chính xác, stream mượt mà, avatar 3D VRM biểu cảm đồng bộ và tự động fallback model khi nghẽn mạng. | Độ trễ bắt đầu stream TTFT < 2.0s (`NFR-003`). |
+| **M05** | **Full Ecosystem & Discord Study Release** | Studio Project Builder và Discord Study Bot hoạt động đồng bộ, hoàn tất đóng gói chạy thử qua `run-demo.bat`. | Vượt qua toàn bộ bộ kiểm thử tích hợp và nghiệm thu phát hành. |
 
 ---
 
-## 7. Định Nghĩa Sản Phẩm Tối Thiểu (MVP Definition)
+## 7. Định Nghĩa Sản Phẩm Tối Thiểu (MVP Definition for ChatJPT)
 
-Sản phẩm MVP (Minimum Viable Product) được định nghĩa là **tập hợp năng lực tối thiểu nhưng đầy đủ để mang lại giá trị nghiệp vụ hoàn chỉnh** cho người dùng:
-- **Bao gồm trong MVP**:
-  1. Giao diện Web tương thích đa màn hình (Desktop & Mobile).
-  2. Đăng ký & Đăng nhập bằng Email/Password (JWT authentication).
-  3. Quản lý danh sách các cuộc trò chuyện trên Sidebar (Tạo mới, Đổi tên, Xóa).
-  4. Trò chuyện văn bản với AI Assistant (Định dạng Markdown, Code highlighting, Streaming phản hồi).
-  5. Cơ chế chuyển đổi dự phòng Gemini -> OpenAI đảm bảo dịch vụ không gián đoạn.
-  6. Rate limiting 2 lớp ngăn chặn lạm dụng tài nguyên.
-- **Loại trừ khỏi MVP (Để lại Post-MVP / Future)**:
-  - Tải lên tệp tài liệu PDF/Docx để phân tích (RAG).
-  - Đăng nhập qua mạng xã hội (Google/GitHub/Discord).
-  - Quản trị viên quản lý danh mục prompt hoặc bảng thống kê tài chính nâng cao.
+Sản phẩm MVP mang lại giá trị cốt lõi tức thì cho người học tiếng Nhật:
+1. **Không gian học đàm thoại tiếng Nhật (Japanese Learning Chat Workspace)**:
+   - Hỗ trợ nhập và hiển thị chữ Nhật (Hiragana, Katakana, Kanji, Romaji).
+   - Chế độ **Grammar Doctor**: Phân tích lỗi ngữ pháp trong câu của học viên, giải thích nguyên nhân và đưa ra câu mẫu chuẩn tự nhiên.
+   - Chế độ **JLPT Assistant**: Giải thích điểm ngữ pháp N5 đến N1 kèm ví dụ song ngữ.
+2. **Gia sư ảo 3D VRM tương tác sống động**:
+   - Nhân vật 3D anime (AI-Chan Sensei) hiện diện trực tiếp trên màn hình học tập, hỗ trợ 2 chế độ (Workspace và Fullscreen Companion).
+3. **Thư viện mẫu Prompt học tập & Quy tắc chuẩn mực**:
+   - Cung cấp sẵn các prompt mẫu luyện Kaiwa (Đi combini, Hỏi đường, Phỏng vấn xin việc baito, Nói chuyện bạn bè).
+4. **Hệ thống giám sát tài nguyên & Quota học tập**:
+   - Hiển thị lượng token tiêu thụ và cảnh báo khi chạm định mức học tập hàng ngày.
+5. **Cơ chế chuyển vùng dự phòng AI tự động**:
+   - Bảo đảm quá trình học tập của học viên không bị gián đoạn giữa chừng khi một API nhà cung cấp gặp sự cố.
 
 ---
 
-## 8. Quản Trị Rủi Ro Cốt Lõi (Critical Risks Summary)
+## 8. Quản Trị Rủi Ro Trọng Tâm (Critical Risks & Mitigations)
 
-| Mã Rủi Ro | Phân Loại | Mô Tả | Mức Độ | Chiến Lược Giảm Thiểu |
+| Mã Rủi Ro | Phân Loại | Mô Tả Rủi Ro | Mức Độ | Biện Pháp Giảm Thiểu Kỹ Thuật |
 | :---: | :--- | :--- | :---: | :--- |
-| **RSK-AI-01** | AI External | Nhà cung cấp AI chính (Gemini) chạm hạn mức quota hoặc mất kết nối. | **HIGH** | Triển khai tự động chuyển vùng dự phòng (Fallback) sang OpenAI đã tích hợp sẵn trong mã nguồn. |
-| **RSK-SEC-01** | Bảo Mật | Lộ lọt API Key ra phía Client/Browser hoặc trong mã nguồn mở. | **CRITICAL** | Cô lập toàn bộ lệnh gọi API qua Backend; kiểm tra bằng công cụ hook `sensitive-file-guard.py`. |
-| **RSK-COST-01**| Tài Chính | Người dùng spam prompt dài dẫn đến cạn kiệt ngân sách token. | **HIGH** | Áp dụng giới hạn 4,000 ký tự (`BR-003`), rate limit 60 req/phút/IP và cắt ngắn ngữ cảnh quá hạn. |
-| **RSK-PERF-01**| Hiệu Năng | Độ trễ phản hồi đàm thoại AI quá lâu làm suy giảm trải nghiệm. | **MEDIUM** | Bắt buộc sử dụng Streaming chunk-by-chunk qua ReadableStream để TTFT < 2.0s. |
+| **RSK-PED-01** | Sư Phạm / AI | AI sinh thông tin sai lệch về ngữ pháp hoặc bịa đặt cách đọc Kanji hiếm (Hallucination). | **HIGH** | Cài đặt Prompt Guardrail nghiêm ngặt: yêu cầu AI trích dẫn cấp độ JLPT, cung cấp Furigana chuẩn và nêu rõ nếu là cách dùng thông tục. |
+| **RSK-AI-01** | Dịch Vụ AI | Nhà cung cấp chính (Gemini) bị giới hạn rate limit hoặc gián đoạn mạng. | **HIGH** | Kích hoạt tự động chuyển vùng dự phòng sang OpenAI/Claude đã tích hợp sẵn trong backend orchestrator (`BR-005`). |
+| **RSK-SEC-01** | Bảo Mật | Học viên nhập thông tin nhạy cảm hoặc rò rỉ API key cá nhân. | **CRITICAL** | Toàn bộ khóa API lưu trữ trong cơ sở dữ liệu đều được mã hóa AES-256-GCM (`SEC-015`), mặt nạ hóa khi hiển thị trên giao diện. |
+| **RSK-COST-01**| Chi Phí | Học viên thực hiện spam câu hỏi dài gây cạn kiệt ngân sách token. | **HIGH** | Thực thi trần giới hạn độ dài tin nhắn 4,000 ký tự (`BR-003`), rate limit 60 req/phút/IP và bộ quản lý định mức hàng ngày. |
+| **RSK-PERF-01**| Hiệu Năng | Render 3D VRM gây giật lag trên máy cấu hình yếu của học viên. | **MEDIUM** | Tối ưu hóa WebGL Three.js, hỗ trợ nút thu gọn 3D Stage về chế độ Minimal Workspace chỉ hiển thị khung chat văn bản. |
 
 ---
 
-## 9. Khuyến Nghị Giai Đoạn Tiếp Theo (Recommended Next Phase)
+## 9. Khuyến Nghị Hành Động Kỹ Thuật Tiếp Theo (Next Steps)
 
-Sau khi hoàn thành và phê duyệt bộ tài liệu kế hoạch này trong `docs/01-planning/`, dự án **chưa được phép lập trình ngay**, mà cần chuyển sang:
-> **PHASE 01: SYSTEM ARCHITECTURE & SYSTEM DESIGN**
-> - Soạn thảo **System Architecture Document (SAD)** tại `docs/07-architecture/`.
-> - Đặc tả **OpenAPI 3.1 Specification** tại `docs/08-api/openapi.yaml`.
-> - Thiết kế **Conceptual & Logical Data Models** tại `models/domain/` và `docs/05-domain/`.
-> - Xây dựng **Sequence Diagrams** cho các luồng nghiệp vụ tại `diagrams/sequence/`.
+1. Cập nhật tài liệu đặc tả yêu cầu **[docs/02-requirements/SRS.md](file:///c:/Users/PC/Project/ChatJPT/docs/02-requirements/SRS.md)** để chuyển đổi các use case và yêu cầu chức năng sang bài toán học tiếng Nhật.
+2. Chuẩn hóa thư viện prompts tiếng Nhật trong cơ sở dữ liệu và thư mục `models/` (JLPT N5-N1 prompts, Kaiwa roleplay scenarios).
+3. Duy trì kiểm toán tính nhất quán của hệ thống tài liệu qua lệnh kiểm tra tự động `python tools/validators/run_all.py`.

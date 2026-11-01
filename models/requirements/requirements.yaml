@@ -1,9 +1,9 @@
 version: "1.0"
 metadata:
-  project: "ai-chan"
-  domain: "Website Chatbot Trợ Lý Ảo"
+  project: "ChatJPT"
+  domain: "Hệ Sinh Thái Hỗ Trợ Học Tiếng Nhật & AI Virtual Sensei"
   status: "BASELINED"
-  last_updated: "2026-10-07"
+  last_updated: "2026-11-01"
   canonical_model: true
 
 requirements:

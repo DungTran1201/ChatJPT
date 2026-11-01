@@ -1,9 +1,9 @@
 # Hệ Thống Hồ Sơ Kỹ Thuật Toàn Diện (Master Documentation Index)
-## Dự Án: Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)
+## Dự Án: ChatJPT — Hệ Sinh Thái Hỗ Trợ Học Tiếng Nhật Thông Minh (ChatJPT)
 
 ---
 
-Chào mừng bạn đến với hệ thống tài liệu kỹ thuật hoàn chỉnh của dự án **Website Chatbot Trợ Lý Ảo (AI-Chan)**.
+Chào mừng bạn đến với hệ thống tài liệu kỹ thuật hoàn chỉnh của dự án **ChatJPT — Nền Tảng Hỗ Trợ Học Tiếng Nhật Tích Hợp AI Chatbot & Gia Sư Ảo 3D**.
 Toàn bộ tài liệu được tổ chức theo quy chuẩn vòng đời kỹ thuật nghiêm ngặt (Engineering Lifecycle Pipeline) từ **Phase 00** đến **Phase 14**, đảm bảo tính truy vết 2 chiều khép kín, tuân thủ nguyên tắc Nguồn chân lý (Source of Truth), và phân tách tuyệt đối giữa Mô hình chuẩn (`models/`) và Bản chiếu tài liệu (`docs/`).
 
 ---
@@ -35,28 +35,28 @@ docs/
 
 | Giai Đoạn | Tên Giai Đoạn Kỹ Thuật | Canonical Model | Tài Liệu Chi Tiết | Trạng Thái Quản Trị |
 | :--- | :--- | :--- | :--- | :--- |
-| **Phase 00** | [Khảo Sát & Khám Phá Dự Án](file:///c:/Users/PC/Project/ai-chan/docs/00-discovery/README.md) | `N/A` | [README.md](file:///c:/Users/PC/Project/ai-chan/docs/00-discovery/README.md) | **`APPROVED`** |
-| **Phase 01** | [Kế Hoạch Dự Án & Phân Rã Công Việc](file:///c:/Users/PC/Project/ai-chan/docs/01-planning/README.md) | `N/A` | [README.md](file:///c:/Users/PC/Project/ai-chan/docs/01-planning/README.md) | **`APPROVED`** |
-| **Phase 02** | [Đặc Tả Yêu Cầu Kỹ Thuật (SRS)](file:///c:/Users/PC/Project/ai-chan/docs/02-requirements/README.md) | `models/requirements/` | [SRS.md](file:///c:/Users/PC/Project/ai-chan/docs/02-requirements/SRS.md) | **`APPROVED`** |
-| **Phase 03** | [Quy Trình Nghiệp Vụ (BPMN)](file:///c:/Users/PC/Project/ai-chan/docs/03-business-process/README.md) | `models/process/` | [README.md](file:///c:/Users/PC/Project/ai-chan/docs/03-business-process/README.md) | **`APPROVED`** |
-| **Phase 04** | [Mô Hình Trường Hợp Sử Dụng (Use Cases)](file:///c:/Users/PC/Project/ai-chan/docs/04-use-cases/README.md) | `models/context/` | [README.md](file:///c:/Users/PC/Project/ai-chan/docs/04-use-cases/README.md) | **`APPROVED`** |
-| **Phase 05** | [Phân Tích Hệ Thống & Biên Giới](file:///c:/Users/PC/Project/ai-chan/docs/05-system-analysis/README.md) | `models/context/` | [README.md](file:///c:/Users/PC/Project/ai-chan/docs/05-system-analysis/README.md) | **`APPROVED`** |
-| **Phase 06** | [Kiến Trúc Hệ Thống (SAD & ADR)](file:///c:/Users/PC/Project/ai-chan/docs/06-architecture/README.md) | `models/architecture/` | [sad.md](file:///c:/Users/PC/Project/ai-chan/docs/06-architecture/sad.md) | **`APPROVED`** |
-| **Phase 07** | [Mô Hình Miền & Thiết Kế Thực Thể (DDD)](file:///c:/Users/PC/Project/ai-chan/docs/07-domain/README.md) | `models/domain/` | [domain-model.md](file:///c:/Users/PC/Project/ai-chan/docs/07-domain/domain-model.md) | **`APPROVED`** |
-| **Phase 08** | [Hợp Đồng Giao Tiếp API & Tích Hợp](file:///c:/Users/PC/Project/ai-chan/docs/08-api/README.md) | `models/api/api.yaml` | [api-specifications.md](file:///c:/Users/PC/Project/ai-chan/docs/08-api/api-specifications.md) | **`APPROVED`** |
-| **Phase 09** | [Mô Hình Hành Vi Động (Sequence & State)](file:///c:/Users/PC/Project/ai-chan/docs/09-behavior/README.md) | `models/interaction/` | [sequence-diagrams.md](file:///c:/Users/PC/Project/ai-chan/docs/09-behavior/sequence-diagrams.md) | **`APPROVED`** |
-| **Phase 10** | [Đặc Tả An Ninh & Mô Hình Đe Dọa STRIDE](file:///c:/Users/PC/Project/ai-chan/docs/10-security/README.md) | `models/security/` | [security-specification.md](file:///c:/Users/PC/Project/ai-chan/docs/10-security/security-specification.md) | **`APPROVED`** |
-| **Phase 11** | [Trải Nghiệm Người Dùng & Giao Diện (UX)](file:///c:/Users/PC/Project/ai-chan/docs/11-ux/README.md) | `models/ux/ux.yaml` | [information-architecture.md](file:///c:/Users/PC/Project/ai-chan/docs/11-ux/information-architecture.md) | **`APPROVED`** |
-| **Phase 12** | [Kiểm Thử & Đảm Bảo Chất Lượng (QA)](file:///c:/Users/PC/Project/ai-chan/docs/12-testing/README.md) | `models/testing/testing.yaml`| [test-cases.md](file:///c:/Users/PC/Project/ai-chan/docs/12-testing/test-cases.md) | **`APPROVED`** |
-| **Phase 13** | [Vận Hành & Triển Khai (Operations)](file:///c:/Users/PC/Project/ai-chan/docs/13-operations/README.md) | `models/deployment/deployment.yaml` | [deployment-guide.md](file:///c:/Users/PC/Project/ai-chan/docs/13-operations/deployment-guide.md) | **`APPROVED`** |
-| **Phase 14** | [Quản Trị Vòng Đời Hồ Sơ Kỹ Thuật](file:///c:/Users/PC/Project/ai-chan/docs/14-governance/README.md) | `N/A` | [documentation-governance.md](file:///c:/Users/PC/Project/ai-chan/docs/14-governance/documentation-governance.md) | **`APPROVED`** |
+| **Phase 00** | [Khảo Sát & Khám Phá Dự Án](file:///c:/Users/PC/Project/ChatJPT/docs/00-discovery/README.md) | `N/A` | [README.md](file:///c:/Users/PC/Project/ChatJPT/docs/00-discovery/README.md) | **`APPROVED`** |
+| **Phase 01** | [Kế Hoạch Dự Án & Phân Rã Công Việc](file:///c:/Users/PC/Project/ChatJPT/docs/01-planning/README.md) | `N/A` | [README.md](file:///c:/Users/PC/Project/ChatJPT/docs/01-planning/README.md) | **`APPROVED`** |
+| **Phase 02** | [Đặc Tả Yêu Cầu Kỹ Thuật (SRS)](file:///c:/Users/PC/Project/ChatJPT/docs/02-requirements/README.md) | `models/requirements/` | [SRS.md](file:///c:/Users/PC/Project/ChatJPT/docs/02-requirements/SRS.md) | **`APPROVED`** |
+| **Phase 03** | [Quy Trình Nghiệp Vụ (BPMN)](file:///c:/Users/PC/Project/ChatJPT/docs/03-business-process/README.md) | `models/process/` | [README.md](file:///c:/Users/PC/Project/ChatJPT/docs/03-business-process/README.md) | **`APPROVED`** |
+| **Phase 04** | [Mô Hình Trường Hợp Sử Dụng (Use Cases)](file:///c:/Users/PC/Project/ChatJPT/docs/04-use-cases/README.md) | `models/context/` | [README.md](file:///c:/Users/PC/Project/ChatJPT/docs/04-use-cases/README.md) | **`APPROVED`** |
+| **Phase 05** | [Phân Tích Hệ Thống & Biên Giới](file:///c:/Users/PC/Project/ChatJPT/docs/05-system-analysis/README.md) | `models/context/` | [README.md](file:///c:/Users/PC/Project/ChatJPT/docs/05-system-analysis/README.md) | **`APPROVED`** |
+| **Phase 06** | [Kiến Trúc Hệ Thống (SAD & ADR)](file:///c:/Users/PC/Project/ChatJPT/docs/06-architecture/README.md) | `models/architecture/` | [sad.md](file:///c:/Users/PC/Project/ChatJPT/docs/06-architecture/sad.md) | **`APPROVED`** |
+| **Phase 07** | [Mô Hình Miền & Thiết Kế Thực Thể (DDD)](file:///c:/Users/PC/Project/ChatJPT/docs/07-domain/README.md) | `models/domain/` | [domain-model.md](file:///c:/Users/PC/Project/ChatJPT/docs/07-domain/domain-model.md) | **`APPROVED`** |
+| **Phase 08** | [Hợp Đồng Giao Tiếp API & Tích Hợp](file:///c:/Users/PC/Project/ChatJPT/docs/08-api/README.md) | `models/api/api.yaml` | [api-specifications.md](file:///c:/Users/PC/Project/ChatJPT/docs/08-api/api-specifications.md) | **`APPROVED`** |
+| **Phase 09** | [Mô Hình Hành Vi Động (Sequence & State)](file:///c:/Users/PC/Project/ChatJPT/docs/09-behavior/README.md) | `models/interaction/` | [sequence-diagrams.md](file:///c:/Users/PC/Project/ChatJPT/docs/09-behavior/sequence-diagrams.md) | **`APPROVED`** |
+| **Phase 10** | [Đặc Tả An Ninh & Mô Hình Đe Dọa STRIDE](file:///c:/Users/PC/Project/ChatJPT/docs/10-security/README.md) | `models/security/` | [security-specification.md](file:///c:/Users/PC/Project/ChatJPT/docs/10-security/security-specification.md) | **`APPROVED`** |
+| **Phase 11** | [Trải Nghiệm Người Dùng & Giao Diện (UX)](file:///c:/Users/PC/Project/ChatJPT/docs/11-ux/README.md) | `models/ux/ux.yaml` | [information-architecture.md](file:///c:/Users/PC/Project/ChatJPT/docs/11-ux/information-architecture.md) | **`APPROVED`** |
+| **Phase 12** | [Kiểm Thử & Đảm Bảo Chất Lượng (QA)](file:///c:/Users/PC/Project/ChatJPT/docs/12-testing/README.md) | `models/testing/testing.yaml`| [test-cases.md](file:///c:/Users/PC/Project/ChatJPT/docs/12-testing/test-cases.md) | **`APPROVED`** |
+| **Phase 13** | [Vận Hành & Triển Khai (Operations)](file:///c:/Users/PC/Project/ChatJPT/docs/13-operations/README.md) | `models/deployment/deployment.yaml` | [deployment-guide.md](file:///c:/Users/PC/Project/ChatJPT/docs/13-operations/deployment-guide.md) | **`APPROVED`** |
+| **Phase 14** | [Quản Trị Vòng Đời Hồ Sơ Kỹ Thuật](file:///c:/Users/PC/Project/ChatJPT/docs/14-governance/README.md) | `N/A` | [documentation-governance.md](file:///c:/Users/PC/Project/ChatJPT/docs/14-governance/documentation-governance.md) | **`APPROVED`** |
 
 ---
 
 ## 3. Khóa Baseline Tài Liệu (Documentation Baseline)
 
 Hồ sơ baseline chính thức được tổng hợp và khóa tại tệp:
-👉 [docs/documentation-baseline.md](file:///c:/Users/PC/Project/ai-chan/docs/documentation-baseline.md)
+👉 [docs/documentation-baseline.md](file:///c:/Users/PC/Project/ChatJPT/docs/documentation-baseline.md)
 
 ---
 
@@ -71,12 +71,12 @@ Hồ sơ baseline chính thức được tổng hợp và khóa tại tệp:
 
 | Nhánh Tính Năng | Thư Mục Hồ Sơ Chi Tiết | Mô Tả Trọng Tâm | Trạng Thái Quản Trị |
 | :--- | :--- | :--- | :---: |
-| **Quản Lý Project (Project Management MVP)** | [docs/features/project-management/](file:///c:/Users/PC/Project/ai-chan/docs/features/project-management/README.md) | Xây dựng đồ thị Node-based trực quan (Web Input → Model → Output), quản lý 3 trạng thái (`active`, `stop`, `deactive`), kiểm soát hạn ngạch `MAX_ACTIVE_PROJECTS`, và thực thi chat thời gian thực từ Trang Chủ. | **`PROPOSED`** |
-| **Development Orchestrator (External Projects)** | [docs/development-orchestrator/](file:///c:/Users/PC/Project/ai-chan/docs/development-orchestrator/README.md) | Điều phối coding agent Antigravity (`agy`) trên repository ngoài dự án AI-Chan, Runner daemon outbound an toàn, quản lý tác vụ, live stream events, diffs và tích hợp launcher `run-demo.bat`. | **`APPROVED`** |
-| **Hệ Thống Upload File Dùng Chung (Chat & Skills)** | [docs/features/chat-file-upload/](file:///c:/Users/PC/Project/ai-chan/docs/features/chat-file-upload/README.md) | Hạ tầng tải lên tệp tin dùng chung (Chat, Project Chat, Skills), lưu trữ hash an toàn, chống path traversal, xác thực magic bytes và tích hợp provider adapter. | **`IMPLEMENTED`** |
-| **Quản Lý Công Cụ (Tool Management & Registry)** | [docs/features/tool-management/](file:///c:/Users/PC/Project/ai-chan/docs/features/tool-management/README.md) | Thư viện Tool Registry UI, vòng đời cấu hình tool, catalog 32 tools thực tế (Web, File, FAISS, Data Utilities), PolicyGate/SSRF phòng thủ, tích hợp Project Graph và 16 biểu đồ Mermaid chuẩn hóa. | **`SPECIFIED`** |
-| **Quản Lý Quy Tắc (Rules Management MVP)** | [docs/features/rules-management/](file:///c:/Users/PC/Project/ai-chan/docs/features/rules-management/README.md) | Quản lý thư viện Rules tập trung (Rules Library), trình soạn thảo Markdown live preview (Rule Editor), 4 chế độ kích hoạt chuẩn Antigravity (always_on, model_decision, glob, manual), phân định CRUD vs Runtime, 16 biểu đồ Mermaid chuẩn hóa và 20 test cases. | **`PROPOSED`** |
-| **Quản Lý API Keys & Tích Hợp (User Settings)** | [docs/features/api-keys-management/](file:///c:/Users/PC/Project/ai-chan/docs/features/api-keys-management/README.md) | Quản lý API Key cá nhân trong Settings, mã hóa AES-256-GCM tại nghỉ, thứ tự ưu tiên Personal > System .env, kiểm tra kết nối (Ping/Health Check) tức thì, khử nhiễm secret và hỗ trợ cập nhật nguyên tử biến toàn cục cho Admin. | **`IMPLEMENTED`** |
-| **Nhập Tệp Văn Bản (Skills, Rules, Prompts)** | [docs/features/text-file-import/](file:///c:/Users/PC/Project/ai-chan/docs/features/text-file-import/README.md) | Nhập trực tiếp tệp văn bản cục bộ (.md, .txt, .json, .yaml...) vào Skills, Rules và System Prompts, khử UTF-8 BOM, từ chối nhị phân, phân tích YAML frontmatter, xem trước an toàn và phát hiện trùng lặp. | **`IMPLEMENTED`** |
+| **Quản Lý Project (Project Management MVP)** | [docs/features/project-management/](file:///c:/Users/PC/Project/ChatJPT/docs/features/project-management/README.md) | Xây dựng đồ thị Node-based trực quan (Web Input → Model → Output), quản lý 3 trạng thái (`active`, `stop`, `deactive`), kiểm soát hạn ngạch `MAX_ACTIVE_PROJECTS`, và thực thi chat thời gian thực từ Trang Chủ. | **`PROPOSED`** |
+| **Development Orchestrator (External Projects)** | [docs/development-orchestrator/](file:///c:/Users/PC/Project/ChatJPT/docs/development-orchestrator/README.md) | Điều phối coding agent Antigravity (`agy`) trên repository ngoài dự án AI-Chan, Runner daemon outbound an toàn, quản lý tác vụ, live stream events, diffs và tích hợp launcher `run-demo.bat`. | **`APPROVED`** |
+| **Hệ Thống Upload File Dùng Chung (Chat & Skills)** | [docs/features/chat-file-upload/](file:///c:/Users/PC/Project/ChatJPT/docs/features/chat-file-upload/README.md) | Hạ tầng tải lên tệp tin dùng chung (Chat, Project Chat, Skills), lưu trữ hash an toàn, chống path traversal, xác thực magic bytes và tích hợp provider adapter. | **`IMPLEMENTED`** |
+| **Quản Lý Công Cụ (Tool Management & Registry)** | [docs/features/tool-management/](file:///c:/Users/PC/Project/ChatJPT/docs/features/tool-management/README.md) | Thư viện Tool Registry UI, vòng đời cấu hình tool, catalog 32 tools thực tế (Web, File, FAISS, Data Utilities), PolicyGate/SSRF phòng thủ, tích hợp Project Graph và 16 biểu đồ Mermaid chuẩn hóa. | **`SPECIFIED`** |
+| **Quản Lý Quy Tắc (Rules Management MVP)** | [docs/features/rules-management/](file:///c:/Users/PC/Project/ChatJPT/docs/features/rules-management/README.md) | Quản lý thư viện Rules tập trung (Rules Library), trình soạn thảo Markdown live preview (Rule Editor), 4 chế độ kích hoạt chuẩn Antigravity (always_on, model_decision, glob, manual), phân định CRUD vs Runtime, 16 biểu đồ Mermaid chuẩn hóa và 20 test cases. | **`PROPOSED`** |
+| **Quản Lý API Keys & Tích Hợp (User Settings)** | [docs/features/api-keys-management/](file:///c:/Users/PC/Project/ChatJPT/docs/features/api-keys-management/README.md) | Quản lý API Key cá nhân trong Settings, mã hóa AES-256-GCM tại nghỉ, thứ tự ưu tiên Personal > System .env, kiểm tra kết nối (Ping/Health Check) tức thì, khử nhiễm secret và hỗ trợ cập nhật nguyên tử biến toàn cục cho Admin. | **`IMPLEMENTED`** |
+| **Nhập Tệp Văn Bản (Skills, Rules, Prompts)** | [docs/features/text-file-import/](file:///c:/Users/PC/Project/ChatJPT/docs/features/text-file-import/README.md) | Nhập trực tiếp tệp văn bản cục bộ (.md, .txt, .json, .yaml...) vào Skills, Rules và System Prompts, khử UTF-8 BOM, từ chối nhị phân, phân tích YAML frontmatter, xem trước an toàn và phát hiện trùng lặp. | **`IMPLEMENTED`** |
 
 

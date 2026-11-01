@@ -1,39 +1,56 @@
 version: "1.0"
 system:
-  name: "ai-chan-platform"
+  name: "chatjpt-japanese-learning-platform"
+  description: "Ecosystem for Japanese Learning Support with AI Chatbot and 3D VRM Companion Tutor"
   boundary: "ai-frontend, ai-backend (src + llm), ai-infra"
 actors:
   - id: ACT-001
-    name: "End User"
+    name: "Japanese Learner"
     type: "human"
-    description: "Interacts with website via ai-frontend web UI"
+    description: "Interacts with ChatJPT to study JLPT (N5-N1), practice Kaiwa, analyze Kanji, and chat with AI Tutor Sensei"
   - id: ACT-002
+    name: "Japanese Educator / Content Creator"
+    type: "human"
+    description: "Builds structured learning pipelines, prompts, and lesson workflows via Project Builder"
+  - id: ACT-003
+    name: "Discord Community Learner"
+    type: "human"
+    description: "Participates in daily quizzes, vocabulary practice, and group study via ChatJPT Discord Bot"
+  - id: ACT-004
     name: "System Admin"
     type: "human"
     description: "Manages deployments, configurations, and observability via ai-infra"
 external_systems:
   - id: EXT-001
-    name: "OpenAI API"
-    type: "llm-provider"
-  - id: EXT-002
     name: "Google Gemini API"
     type: "llm-provider"
+    role: "Primary Japanese reasoning, multilingual grammar explanation, and fast streaming"
+  - id: EXT-002
+    name: "OpenAI API"
+    type: "llm-provider"
+    role: "Secondary & failover LLM for advanced JLPT test generation and complex grammar checks"
   - id: EXT-003
     name: "Anthropic Claude API"
     type: "llm-provider"
+    role: "Nuanced Japanese contextual dialogue, Keigo, and cultural explanations"
   - id: EXT-004
+    name: "Discord Gateway API"
+    type: "community-platform"
+    role: "Interactive study bot gateway, slash commands, and study notifications"
+  - id: EXT-005
     name: "Ollama Local Service"
     type: "local-llm"
+    role: "Offline / local Japanese language model execution"
 interactions:
-  - from: "End User"
+  - from: "Japanese Learner"
     to: "ai-frontend"
-    action: "Web interaction, prompt input, markdown view"
+    action: "Study session, Kaiwa roleplay, Kanji lookups, 3D VRM tutor interaction"
   - from: "ai-frontend"
     to: "ai-backend-src"
-    action: "REST API, SSE streaming, session state"
+    action: "REST API, SSE streaming, learning session state, quiz submissions"
   - from: "ai-backend-src"
     to: "ai-backend-llm"
-    action: "Prompt dispatch, tool invocation, token count"
+    action: "Prompt dispatch, Japanese pedagogy guardrails, token accounting"
   - from: "ai-backend-llm"
     to: "external_systems"
     action: "API key authenticated chat completions & streaming"
@@ -43,4 +60,4 @@ trust_boundaries:
   - id: TB-002
     name: "Internal Network (Frontend to Backend / DB / Redis)"
   - id: TB-003
-    name: "Outbound HTTPS to External LLM Providers"
+    name: "Outbound HTTPS to External LLM Providers & Discord API"
