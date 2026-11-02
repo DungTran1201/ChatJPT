@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import JapaneseInterlinearView from '@/components/chat/JapaneseInterlinearView';
+import GrammarBreakdownCard from '@/components/chat/GrammarBreakdownCard';
 import { isPredominantlyJapanese } from '@/utils/japaneseParser';
 
 import { AttachmentItem } from '@/services/attachmentService';
@@ -97,7 +98,19 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
           );
         }
 
-        const paragraphs = part.split('\n\n');
+        // 1. Separate Breakdown Section if present
+        const breakdownRegex = /(?:^|\n)(?:---\s*)?(#{1,3}\s+(?:🔍\s*)?(?:Phân tích Ngữ pháp|文法・語彙分析|Vocabulary & Grammar|Phân tích từ vựng)[\s\S]*)$/i;
+        const breakdownMatch = part.match(breakdownRegex);
+
+        let mainPart = part;
+        let breakdownRaw: string | null = null;
+
+        if (breakdownMatch) {
+          mainPart = part.slice(0, breakdownMatch.index).trim();
+          breakdownRaw = breakdownMatch[1].trim();
+        }
+
+        const paragraphs = mainPart ? mainPart.split('\n\n') : [];
         return (
           <React.Fragment key={index}>
             {paragraphs.map((para, pIdx) => {
@@ -118,30 +131,37 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                 );
               }
 
-              // 2. Grammar & Vocabulary breakdown heading
-              if (/^#{1,3}\s+(🔍\s*)?(Phân tích Ngữ pháp|文法・語彙分析|Vocabulary & Grammar)/i.test(trimmed)) {
-                if (!showBreakdown) return null;
-                const headingText = trimmed.replace(/^#{1,3}\s+/, '');
+              // 2. Standalone Translation Paragraph in user language (e.g. "(Bản dịch: ...)" or "(Dịch: ...)" or "(...)")
+              const transMatch = trimmed.match(/^[\(（]\s*(?:Bản dịch|Dịch)?\s*:?\s*(.*)[\)）]$/i);
+              if (transMatch && !isPredominantlyJapanese(trimmed)) {
+                if (!showTranslation) return null;
+                const cleanTrans = transMatch[1].trim();
                 return (
                   <div
                     key={pIdx}
                     style={{
+                      fontSize: '0.88rem',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1.5,
+                      margin: '0.2rem 0 0.8rem 0',
+                      fontStyle: 'normal',
                       display: 'flex',
-                      alignItems: 'center',
+                      alignItems: 'flex-start',
                       gap: '8px',
-                      marginTop: '1.25rem',
-                      marginBottom: '0.6rem',
-                      padding: '8px 12px',
-                      background: 'rgba(16, 185, 129, 0.08)',
-                      border: '1px solid rgba(16, 185, 129, 0.25)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: 'var(--accent, #10b981)',
-                      fontSize: '0.95rem',
-                      fontWeight: 600,
                     }}
                   >
-                    <span>🔍</span>
-                    <span>{headingText}</span>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: '3px',
+                        height: '16px',
+                        backgroundColor: 'var(--accent, #22c55e)',
+                        borderRadius: '2px',
+                        flexShrink: 0,
+                        marginTop: '2px',
+                      }}
+                    />
+                    <span style={{ color: 'var(--text-primary)' }}>{cleanTrans}</span>
                   </div>
                 );
               }
@@ -185,7 +205,7 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                 );
               }
 
-              // 5. Numbered items (e.g. "1. **～つかまつります**" or "2. **千変万化**")
+              // 5. Numbered items
               if (/^\d+\.\s+/.test(trimmed)) {
                 const lines = trimmed.split('\n');
                 return (
@@ -202,8 +222,8 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                     {lines.map((ln, lnIdx) => {
                       const cleanLn = ln.trim();
                       if (!cleanLn) return null;
-                      if (cleanLn.startsWith('- ')) {
-                        const bulletText = cleanLn.replace(/^- /, '');
+                      if (cleanLn.startsWith('- ') || cleanLn.startsWith('• ')) {
+                        const bulletText = cleanLn.replace(/^[-•]\s*/, '');
                         return (
                           <div key={lnIdx} style={{ margin: '0.3rem 0 0.3rem 1rem', fontSize: '0.9rem', lineHeight: 1.55 }}>
                             • {renderInline(bulletText)}
@@ -256,6 +276,11 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                 </p>
               );
             })}
+
+            {/* Framed Grammar & Vocabulary Breakdown Section */}
+            {breakdownRaw && showBreakdown && (
+              <GrammarBreakdownCard rawText={breakdownRaw} />
+            )}
           </React.Fragment>
         );
       })}

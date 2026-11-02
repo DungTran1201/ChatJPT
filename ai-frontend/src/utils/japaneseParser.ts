@@ -128,6 +128,50 @@ export const COMMON_VOCAB_MAP: Record<string, { furigana: string; romaji: string
   'ありがとう': { furigana: 'ありがとう', romaji: 'arigatou' },
   'ございます': { furigana: 'ございます', romaji: 'gozaimasu' },
   'つかまつります': { furigana: 'つかまつります', romaji: 'tsukamatsurimasu' },
+  '大丈夫': { furigana: 'だいじょうぶ', romaji: 'daijoubu' },
+  '一緒': { furigana: 'いっしょ', romaji: 'issho' },
+  '一歩': { furigana: 'いっぽ', romaji: 'ippo' },
+  '楽しく': { furigana: 'たのしく', romaji: 'tanoshiku' },
+  '楽しい': { furigana: 'たのしい', romaji: 'tanoshii' },
+  'しましょう': { furigana: 'しましょう', romaji: 'shimashou' },
+  '大和': { furigana: 'やまと', romaji: 'yamato' },
+  '国': { furigana: 'くに', romaji: 'kuni' },
+  '来た': { furigana: 'きた', romaji: 'kita' },
+  '桜': { furigana: 'さくら', romaji: 'sakura' },
+  '桜先生': { furigana: 'さくらせんせい', romaji: 'sakurasensei' },
+  'ビジネス': { furigana: 'ビジネス', romaji: 'bijinesu' },
+  '場': { furigana: 'ば', romaji: 'ba' },
+  '正確': { furigana: 'せいかく', romaji: 'seikaku' },
+  '品格': { furigana: 'ひんかく', romaji: 'hinkaku' },
+  'ある': { furigana: 'ある', romaji: 'aru' },
+  '言葉遣い': { furigana: 'ことばづかい', romaji: 'kotobazukai' },
+  'こそが': { furigana: 'こそが', romaji: 'kosoga' },
+  '最大': { furigana: 'さいだい', romaji: 'saidai' },
+  '信頼': { furigana: 'しんらい', romaji: 'shinrai' },
+  '生みます': { furigana: 'うみます', romaji: 'umimasu' },
+  '生む': { furigana: 'うむ', romaji: 'umu' },
+  '皆': { furigana: 'みな', romaji: 'mina' },
+  '皆様': { furigana: 'みなさま', romaji: 'minasama' },
+  '高度': { furigana: 'こうど', romaji: 'koudo' },
+  '上級': { furigana: 'じょうきゅう', romaji: 'joukyuu' },
+  '表現': { furigana: 'ひょうげん', romaji: 'hyougen' },
+  '習得': { furigana: 'しゅうとく', romaji: 'shuutoku' },
+  'できる': { furigana: 'できる', romaji: 'dekiru' },
+  'よう': { furigana: 'よう', romaji: 'you' },
+  '全力': { furigana: 'ぜんりょく', romaji: 'zenryoku' },
+  'サポート': { furigana: 'サポート', romaji: 'sapooto' },
+  'いたします': { furigana: 'いたします', romaji: 'itashimasu' },
+  'いたす': { furigana: 'いたす', romaji: 'itasu' },
+  '竜': { furigana: 'りゅう', romaji: 'ryuu' },
+  '竜先生': { furigana: 'りゅうせんせい', romaji: 'ryuusensei' },
+  '葵': { furigana: 'あおい', romaji: 'aoi' },
+  '健二': { furigana: 'けんじ', romaji: 'kenji' },
+  '頑張りましょう': { furigana: 'がんばりましょう', romaji: 'ganbarimashou' },
+  '的確': { furigana: 'てきかく', romaji: 'tekikaku' },
+  'ずつ': { furigana: 'ずつ', romaji: 'zutsu' },
+  'よろしく': { furigana: 'よろしく', romaji: 'yoroshiku' },
+  'お願いします': { furigana: 'おねがいします', romaji: 'onegaishimasu' },
+  'お願い': { furigana: 'おねがい', romaji: 'onegai' },
 };
 
 export interface JapaneseToken {
@@ -221,15 +265,21 @@ export function hasJapaneseText(text: string): boolean {
  */
 export function isPredominantlyJapanese(text: string): boolean {
   if (!text || !text.trim()) return false;
-  const trimmed = text.trim();
+  let trimmed = text.trim();
 
   // If text starts with markdown headers, blockquotes, horizontal rules, or bullet lists
   if (/^(#{1,6}\s|>\s|---|\*\*\*)/.test(trimmed)) return false;
 
+  // If line ends with parenthesized translation, e.g. "大丈夫ですよ... (Bản dịch: Không sao đâu...)"
+  const trailingTransMatch = trimmed.match(/^(.*?)\s*[\(（](?:Bản dịch|Dịch)?\s*:?\s*[^\)）]+[\)）]\s*$/i);
+  if (trailingTransMatch && trailingTransMatch[1].trim()) {
+    trimmed = trailingTransMatch[1].trim();
+  }
+
   // Explicit ruby markup or grammar highlight in dialogue is Japanese
   if (/\[[^\]]+\]\([^)]+\)|<ruby>|\{[^\}]+\}\[g-/.test(trimmed)) {
     // If it's a list item starting with "- *Sắc thái:*" or "- *Ý nghĩa:*", it is an explanation
-    if (/^[-*]\s+\*(Sắc thái|Ý nghĩa|Lưu ý|Giải thích|Nuance|Meaning):\*/i.test(trimmed)) {
+    if (/^[-*•]\s+\*(Sắc thái|Ý nghĩa|Lưu ý|Giải thích|Nuance|Meaning):\*/i.test(trimmed)) {
       return false;
     }
     return true;
@@ -270,7 +320,20 @@ export function speakJapaneseSpeech(text: string): void {
  * Parse a raw text paragraph into structured Japanese Interlinear blocks
  */
 export function parsePedagogicalBlocks(text: string): JapaneseSentenceBlock[] {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  // First normalize and expand lines that have both Japanese dialogue AND inline translation
+  const rawLines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const lines: string[] = [];
+
+  for (const rawLine of rawLines) {
+    const inlineMatch = rawLine.match(/^(.*?)\s*[\(（](?:Bản dịch|Dịch)?\s*:?\s*([^\)）]+)[\)）]\s*$/i);
+    if (inlineMatch && hasJapaneseText(inlineMatch[1])) {
+      lines.push(inlineMatch[1].trim());
+      lines.push(`(Bản dịch: ${inlineMatch[2].trim()})`);
+    } else {
+      lines.push(rawLine);
+    }
+  }
+
   const blocks: JapaneseSentenceBlock[] = [];
 
   let i = 0;
@@ -287,26 +350,25 @@ export function parsePedagogicalBlocks(text: string): JapaneseSentenceBlock[] {
           (nextLine.startsWith('(') && nextLine.endsWith(')')) ||
           (nextLine.startsWith('（') && nextLine.endsWith('）')) ||
           (nextLine.toLowerCase().startsWith('bản dịch:') || nextLine.toLowerCase().startsWith('dịch:')) ||
-          (!hasJapaneseText(nextLine) && nextLine.length > 2 && !nextLine.startsWith('#') && !nextLine.startsWith('-'))
+          (!hasJapaneseText(nextLine) && nextLine.length > 2 && !nextLine.startsWith('#') && !nextLine.startsWith('-') && !nextLine.startsWith('•') && !nextLine.startsWith('*'))
         ) {
           translation = nextLine
-            .replace(/^[\(（]/, '')
+            .replace(/^[\(（]\s*(?:Bản dịch|Dịch)?\s*:?\s*/i, '')
             .replace(/[\)）]$/, '')
-            .replace(/^(Bản dịch|Dịch):\s*/i, '')
             .trim();
           i++; // Consume translation line
         }
       }
 
-      // Check inline translation at the end of the current line
-      const inlineTransMatch = currentLine.match(/[\(（]([^\)）]+)[\)）]$/);
-      let japanesePart = currentLine;
-      if (inlineTransMatch && !translation && !inlineTransMatch[1].includes('[') && !isPredominantlyJapanese(inlineTransMatch[1])) {
-        translation = inlineTransMatch[1].replace(/^(Bản dịch|Dịch):\s*/i, '').trim();
-        japanesePart = currentLine.slice(0, inlineTransMatch.index).trim();
+      // Check inline translation at the end of the current line if not found
+      if (!translation) {
+        const inlineTransMatch = currentLine.match(/[\(（]([^\)）]+)[\)）]$/);
+        if (inlineTransMatch && !inlineTransMatch[1].includes('[') && !isPredominantlyJapanese(inlineTransMatch[1])) {
+          translation = inlineTransMatch[1].replace(/^(?:Bản dịch|Dịch):\s*/i, '').trim();
+        }
       }
 
-      const tokens = tokenizeJapaneseLine(japanesePart);
+      const tokens = tokenizeJapaneseLine(currentLine);
       blocks.push({
         tokens,
         translation,

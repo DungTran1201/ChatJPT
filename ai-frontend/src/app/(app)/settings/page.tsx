@@ -9,6 +9,7 @@ import { useApp } from '@/context/AppContext';
 import ApiKeysTab from '@/components/settings/ApiKeysTab';
 import EmbeddedModelCard from '@/components/settings/EmbeddedModelCard';
 import JapaneseInterlinearView from '@/components/chat/JapaneseInterlinearView';
+import GrammarBreakdownCard from '@/components/chat/GrammarBreakdownCard';
 
 interface UserProfile {
   response_show_translation?: boolean;
@@ -1996,13 +1997,35 @@ export default function SettingsPage() {
 
               {/* Interlinear Preview Component */}
               <JapaneseInterlinearView
-                content={`{はい}[g-green] {どうぞ}[g-orange]\n(Của bạn đây)\n\nもっと たくさん [欲しい](ほしい) ん です けど\n(Tôi muốn nhiều hơn cơ)\n\nこれ だけ いただく わ\n(Tôi chỉ xin thế này thôi)`}
+                content={`{はい}[g-green] {どうぞ}[g-green]\n(Của bạn đây)\n\nもっと たくさん [欲しい](ほしい) ん です けど\n(Tôi muốn nhiều hơn cơ)\n\nこれ だけ いただく わ\n(Tôi chỉ xin thế này thôi)`}
                 showTranslation={responseShowTranslation}
                 showFurigana={responseShowFurigana}
                 highlightGrammar={responseHighlightGrammar}
                 showRomaji={responseShowRomaji}
                 showAudio={responseAudioSpeech}
               />
+
+              {/* Framed Grammar & Vocabulary Breakdown Live Preview (Tied to responseGrammarBreakdown switch) */}
+              {responseGrammarBreakdown && (
+                <div style={{ marginTop: '1.25rem' }}>
+                  <GrammarBreakdownCard
+                    items={[
+                      {
+                        term: '【〜たい / 欲しい】',
+                        category: 'Nguyện vọng',
+                        meaning: 'Diễn tả mong muốn của bản thân ("muốn có / muốn làm gì").',
+                        nuance: 'Thường kết hợp với trợ từ が, diễn đạt cảm xúc một cách tự nhiên, lịch thiệp.',
+                      },
+                      {
+                        term: '【〜けど】',
+                        category: 'Liên từ nối',
+                        meaning: 'Tuy nhiên, nhưng mà...',
+                        nuance: 'Đặt ở cuối câu để ngắt câu mềm mại (kết thúc mở), tạo sự khiêm nhường, tránh nói cụt lủn trong văn hóa Kaiwa.',
+                      },
+                    ]}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Form Controls */}

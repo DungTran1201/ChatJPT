@@ -268,14 +268,19 @@ async def stream_message_endpoint(
             )
         if current_user.get("response_show_translation", 1):
             formatting_rules.append(
-                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu hoặc đoạn thoại tiếng Nhật BẮT BUỘC PHẢI CÓ dòng dịch nghĩa sang {lang_label} đặt ngay bên dưới, định dạng trong ngoặc: `(Bản dịch: ...)` hoặc `(... )`. Nhắc lại: Bắt buộc 100% bằng {lang_label}, không được sót câu nào sang tiếng Anh."
+                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu thoại tiếng Nhật BẮT BUỘC PHẢI CÓ dòng dịch nghĩa sang {lang_label} đặt ngay bên dưới trên một dòng riêng biệt (XUỐNG DÒNG, TUYỆT ĐỐI KHÔNG VIẾT CHUNG DÒNG VỚI CÂU TIẾNG NHẬT), định dạng: `(Bản dịch: ...)`. Bắt buộc 100% bằng {lang_label}, không được sót câu nào sang tiếng Anh."
             )
         if current_user.get("response_grammar_breakdown", 1):
             formatting_rules.append(
-                f"- PHÂN TÍCH TỪ VỰNG & NGỮ PHÁP: Ở cuối câu trả lời, hãy tạo khối phân tích riêng biệt ngăn cách bởi `---` và tiêu đề `### 🔍 Phân tích Ngữ pháp & Từ vựng`. Liệt kê các mục theo dạng:\n"
-                f"1. **Cấu trúc/Từ vựng**\n"
-                f"- *Ý nghĩa:* Giải thích bằng {lang_label}\n"
-                f"- *Sắc thái:* Phân tích sư phạm bằng {lang_label}\n"
+                f"- PHÂN TÍCH TỪ VỰNG & NGỮ PHÁP (ĐÓNG KHUNG CẤU TRÚC RÕ RÀNG):\n"
+                f"Ở cuối câu trả lời, hãy tạo khối phân tích riêng biệt ngăn cách bởi một dòng kẻ `---` và tiêu đề `### 🔍 Phân tích Ngữ pháp & Từ vựng`.\n"
+                f"Mỗi điểm ngữ pháp hoặc từ vựng trọng tâm BẮT BUỘC PHẢI ĐƯỢC ĐÁNH SỐ VÀ CÓ TIÊU ĐỀ RÕ RÀNG, tuyệt đối không liệt kê bullet rời rạc không có chủ thể:\n"
+                f"1. **【Cấu trúc/Từ vựng】** *(Phân loại / Cấp độ)*\n"
+                f"- *Ý nghĩa:* Giải thích cụ thể bằng {lang_label}\n"
+                f"- *Sắc thái:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}\n\n"
+                f"2. **【Cấu trúc/Từ vựng tiếp theo】** *(Phân loại / Cấp độ)*\n"
+                f"- *Ý nghĩa:* Giải thích cụ thể bằng {lang_label}\n"
+                f"- *Sắc thái:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}"
             )
 
         if formatting_rules:
