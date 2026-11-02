@@ -52,7 +52,12 @@ entities:
   - role: enum(USER, ASSISTANT)
   - content: string
   - model_used: string (FK -> AgentModel.id)
+  - tokens_prompt: integer
+  - tokens_completion: integer
+  - source: enum(WEB, DISCORD)
+  - status: enum(PENDING, STREAMING, COMPLETED, ERROR, ABORTED, FAILED)
   - created_at: timestamp
+  - updated_at: timestamp
 - name: AgentModel
   aggregate_root: true
   attributes:

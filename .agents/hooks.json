@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python c:/Users/PC/Project/ChatJPT/tools/hooks/pre_command_guard.py",
+            "command": "python ../tools/hooks/pre_command_guard.py",
             "timeout": 10
           }
         ]
@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python c:/Users/PC/Project/ChatJPT/tools/hooks/sensitive_file_guard.py",
+            "command": "python ../tools/hooks/sensitive_file_guard.py",
             "timeout": 10
           }
         ]
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python c:/Users/PC/Project/ChatJPT/tools/hooks/post_doc_write_check.py",
+            "command": "python ../tools/hooks/post_doc_write_check.py",
             "timeout": 10
           }
         ]
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python c:/Users/PC/Project/ChatJPT/tools/hooks/post_model_write_check.py",
+            "command": "python ../tools/hooks/post_model_write_check.py",
             "timeout": 10
           }
         ]
@@ -64,7 +64,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "python tools/hooks/stop_readiness_check.py",
+        "command": "python ../tools/hooks/stop_readiness_check.py",
         "timeout": 10
       }
     ]

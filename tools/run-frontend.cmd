@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Resolve repository root (parent of tools/)
+:: Resolve root directory from script location
 pushd "%~dp0.."
 set "REPO_ROOT=%CD%"
 popd
@@ -38,6 +38,10 @@ echo ======================================================================
 echo.
 
 set "NPM_CMD=npm.cmd"
+where npm.cmd >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    if exist "C:\Program Files\nodejs\npm.cmd" set "PATH=C:\Program Files\nodejs;%APPDATA%\npm;!PATH!"
+)
 where npm.cmd >nul 2>&1
 if %ERRORLEVEL% neq 0 set "NPM_CMD=npm"
 

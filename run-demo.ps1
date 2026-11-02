@@ -78,7 +78,8 @@ function Append-SupervisorLog {
     try {
         $timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
         Add-Content -Path $SupervisorLog -Value "[$timestamp] $Text" -Encoding utf8 -ErrorAction SilentlyContinue
-    } catch {}
+    }
+    catch {}
 }
 
 function Write-Header {
@@ -148,7 +149,8 @@ function Stop-DemoServices {
 
                     if ($item -is [int] -or $item -is [string]) {
                         $procId = [int]$item
-                    } elseif ($item -and $item.pid) {
+                    }
+                    elseif ($item -and $item.pid) {
                         $procId = [int]$item.pid
                         if ($item.service) { $serviceLabel = $item.service }
                     }
@@ -170,20 +172,24 @@ function Stop-DemoServices {
                             }
                             if ($stopped) {
                                 Write-Success "Stopped $serviceLabel (PID: $procId)"
-                            } else {
+                            }
+                            else {
                                 Write-Warn "Could not verify termination of $serviceLabel (PID: $procId)"
                             }
-                        } else {
+                        }
+                        else {
                             Write-Info "$serviceLabel already exited (PID: $procId not running)."
                         }
                     }
                 }
             }
-        } catch {
+        }
+        catch {
             Write-Warn "Could not parse $PidFile : $_"
         }
         Remove-Item $PidFile -Force -ErrorAction SilentlyContinue
-    } else {
+    }
+    else {
         Write-Info "No active .demo_pids.json file found."
     }
 
@@ -214,6 +220,34 @@ if ($Stop) {
 # ── 3. PREFLIGHT ENVIRONMENT & DEPENDENCY CHECKS ──────────────────────────────
 Write-Header "ChatJPT Preflight Diagnostics"
 
+# Auto-heal PATH for Node.js / Git if session has stale environment
+if (-not (Get-Command node -ErrorAction SilentlyContinue) -or -not (Get-Command git -ErrorAction SilentlyContinue)) {
+    try {
+        $regMachinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+        $regUserPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
+        $candidatePaths = @(
+            "C:\Program Files\nodejs",
+            "$env:LOCALAPPDATA\Programs\nodejs",
+            "C:\Program Files (x86)\nodejs",
+            "$env:APPDATA\npm",
+            "C:\Program Files\Git\cmd",
+            "C:\Program Files\Git\bin"
+        )
+        $additions = @()
+        foreach ($p in (($regMachinePath, $regUserPath -join ";") -split ";") + $candidatePaths) {
+            if ($p -and (Test-Path $p) -and ($env:PATH -split ";" -notcontains $p) -and ($additions -notcontains $p)) {
+                $additions += $p
+            }
+        }
+        if ($additions.Count -gt 0) {
+            $env:PATH = ($additions -join ";") + ";" + $env:PATH
+        }
+    }
+    catch {
+        # Fall back silently if registry cannot be read
+    }
+}
+
 # 3.1 Python Discovery & Version Validation
 $PythonExe = $null
 $VenvPython = Join-Path $RepoRoot "ai-backend\.venv\Scripts\python.exe"
@@ -221,13 +255,15 @@ if (Test-Path $VenvPython) {
     $PythonExe = $VenvPython
     $pyVer = & $PythonExe --version 2>&1
     Write-Success "Python Interpreter: $pyVer (found in ai-backend\.venv)"
-} else {
+}
+else {
     $SysPython = Get-Command python -ErrorAction SilentlyContinue
     if ($SysPython) {
         $PythonExe = $SysPython.Source
         $pyVer = & $PythonExe --version 2>&1
         Write-Success "Python Interpreter: $pyVer (system PATH)"
-    } else {
+    }
+    else {
         Write-Fail "Python not found. Please install Python 3.10+ or set up ai-backend\.venv."
         exit 1
     }
@@ -245,7 +281,8 @@ if ($pyVer -match "Python\s+3\.(\d+)") {
 $pyDepCheck = & $PythonExe -c "import fastapi, uvicorn, pydantic, httpx" 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Warn "Core Python packages missing in $PythonExe. Run: pip install -r ai-backend/requirements.txt"
-} else {
+}
+else {
     Write-Success "Python Dependencies: Core packages (fastapi, uvicorn, pydantic, httpx) verified."
 }
 
@@ -260,7 +297,8 @@ if ($NodeCmd) {
             Write-Warn "Node.js $nodeVer is below recommended Node 18+."
         }
     }
-} else {
+}
+else {
     Write-Fail "Node.js not found on PATH. Next.js frontend requires Node.js 18+."
     exit 1
 }
@@ -269,7 +307,8 @@ $NpmCmd = Get-Command npm -ErrorAction SilentlyContinue
 if ($NpmCmd) {
     $npmVer = & npm --version
     Write-Success "npm: v$npmVer"
-} else {
+}
+else {
     Write-Fail "npm not found on PATH."
     exit 1
 }
@@ -279,7 +318,8 @@ $GitCmd = Get-Command git -ErrorAction SilentlyContinue
 if ($GitCmd) {
     $gitVer = & git --version
     Write-Success "Git: $gitVer"
-} else {
+}
+else {
     Write-Warn "Git not found on PATH. Git isolation and diffing features will be unavailable."
 }
 
@@ -288,7 +328,8 @@ $AgyPath = $null
 $SysAgy = Get-Command agy -ErrorAction SilentlyContinue
 if ($SysAgy) {
     $AgyPath = $SysAgy.Source
-} else {
+}
+else {
     $CandidateAgy = Join-Path $env:LOCALAPPDATA "agy\bin\agy.exe"
     if (Test-Path $CandidateAgy) {
         $AgyPath = $CandidateAgy
@@ -304,13 +345,16 @@ if ($AgyPath) {
         $modelCheck = & $AgyPath models 2>&1
         if ($LASTEXITCODE -eq 0 -and $modelCheck -match "(gemini|claude|gpt)") {
             Write-Success "Antigravity CLI Auth: READY (Authenticated, available models verified)"
-        } else {
+        }
+        else {
             Write-Warn "Antigravity CLI Auth: UNVERIFIED (Check API keys or run 'agy' interactive login)"
         }
-    } catch {
+    }
+    catch {
         Write-Warn "Antigravity CLI Auth: Could not verify models ($_)"
     }
-} else {
+}
+else {
     Write-Warn "Antigravity CLI ('agy') not found on PATH or %LOCALAPPDATA%\agy\bin\agy.exe."
     Write-Info "AI-Chan will run in operator mode. To enable external coding agents, install Antigravity CLI."
 }
@@ -322,11 +366,13 @@ if (-not (Test-Path $BackendEnv)) {
     if (Test-Path $BackendEnvExample) {
         Copy-Item $BackendEnvExample $BackendEnv
         Write-Success "Initialized ai-backend\.env from .env.example."
-    } else {
+    }
+    else {
         Set-Content -Path $BackendEnv -Value "# AI-Chan Backend Environment`nENVIRONMENT=development`nLOG_LEVEL=INFO`n"
         Write-Success "Created basic ai-backend\.env configuration."
     }
-} else {
+}
+else {
     Write-Success "Configuration found: ai-backend\.env (verified without exposing secrets)"
 }
 
@@ -386,7 +432,8 @@ if ($SingleConsole) {
         -RedirectStandardError (Join-Path $LogDir "backend.err.log") `
         -NoNewWindow `
         -PassThru
-} else {
+}
+else {
     $backendCmdScript = Join-Path $RepoRoot "tools\run-backend.cmd"
     $backendProc = Start-Process -FilePath "cmd.exe" `
         -ArgumentList "/k `"`"$backendCmdScript`" $BackendPort `"$PythonExe`"`"" `
@@ -414,12 +461,14 @@ for ($i = 0; $i -lt $maxRetries; $i++) {
             $serviceStatus["backend"].Status = "READY"
             break
         }
-    } catch {}
+    }
+    catch {}
 }
 
 if ($serviceStatus["backend"].Status -eq "READY") {
     Write-Success "FastAPI Backend is READY (HTTP 200 OK - Health API Healthy)"
-} elseif ($serviceStatus["backend"].Status -ne "FAILED") {
+}
+elseif ($serviceStatus["backend"].Status -ne "FAILED") {
     $serviceStatus["backend"].Status = "FAILED"
     Write-Fail "Backend did not respond within $maxRetries seconds. Check logs\backend.log for details."
 }
@@ -438,7 +487,8 @@ if ($SingleConsole) {
         -RedirectStandardError (Join-Path $LogDir "frontend.err.log") `
         -NoNewWindow `
         -PassThru
-} else {
+}
+else {
     $frontendCmdScript = Join-Path $RepoRoot "tools\run-frontend.cmd"
     $frontendProc = Start-Process -FilePath "cmd.exe" `
         -ArgumentList "/k `"`"$frontendCmdScript`" $FrontendPort `"$PythonExe`"`"" `
@@ -466,12 +516,14 @@ for ($i = 0; $i -lt $maxRetries; $i++) {
             $serviceStatus["frontend"].Status = "READY"
             break
         }
-    } catch {}
+    }
+    catch {}
 }
 
 if ($serviceStatus["frontend"].Status -eq "READY") {
     Write-Success "Next.js Frontend is READY (HTTP 200 OK)"
-} elseif ($serviceStatus["frontend"].Status -ne "FAILED") {
+}
+elseif ($serviceStatus["frontend"].Status -ne "FAILED") {
     $serviceStatus["frontend"].Status = "DEGRADED"
     Write-Warn "Frontend did not respond within $maxRetries seconds. It may still be compiling, check logs\frontend.log."
 }
@@ -509,7 +561,8 @@ if ($hasCriticalFailure) {
         Write-Host "  * Next.js Frontend: Review logs\frontend.log and verify Node.js dependencies (run 'npm install' in ai-frontend)." -ForegroundColor Yellow
     }
     Write-Host "`nPress Ctrl+C or run 'run-demo.bat --stop' to shut down partial processes.`n" -ForegroundColor Cyan
-} else {
+}
+else {
     Write-Header "ChatJPT Platform is Live!"
     Write-Host "Service Status Overview:" -ForegroundColor Cyan
     foreach ($k in $serviceStatus.Keys) {
@@ -551,7 +604,8 @@ try {
             break
         }
     }
-} finally {
+}
+finally {
     Write-Info "Supervisor terminating; shutting down all demo service processes..."
     Stop-DemoServices
 }

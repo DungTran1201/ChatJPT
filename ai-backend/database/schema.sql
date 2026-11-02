@@ -94,12 +94,25 @@ CREATE TABLE IF NOT EXISTS messages (
     model_used VARCHAR(100),
     tokens_prompt INTEGER DEFAULT 0,
     tokens_completion INTEGER DEFAULT 0,
+    source VARCHAR(20) DEFAULT 'WEB',
+    status VARCHAR(20) NOT NULL DEFAULT 'COMPLETED' CHECK (status IN ('PENDING', 'STREAMING', 'COMPLETED', 'ERROR', 'ABORTED', 'FAILED')),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_conv_created ON messages(conversation_id, created_at ASC);
+CREATE INDEX IF NOT EXISTS idx_messages_status ON messages(status);
+CREATE INDEX IF NOT EXISTS idx_messages_source ON messages(source);
+CREATE INDEX IF NOT EXISTS idx_messages_updated_at ON messages(updated_at);
+
+CREATE TRIGGER IF NOT EXISTS trg_messages_updated_at
+AFTER UPDATE ON messages
+FOR EACH ROW
+BEGIN
+    UPDATE messages SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+END;
 
 
 -- ------------------------------------------------------------------------------

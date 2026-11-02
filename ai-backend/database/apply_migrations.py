@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent
 MIGRATIONS_DIR = BASE_DIR / "migrations"
 
 def run_migration():
-    for db_path in [BASE_DIR / "app.db", BASE_DIR.parent / "app.db"]:
+    for db_path in [BASE_DIR / "app.db", BASE_DIR.parent / "app.db", BASE_DIR / "test_app.db"]:
         if not db_path.exists():
             continue
         print(f"Applying migration to {db_path}...")
@@ -252,6 +252,36 @@ def run_migration():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_skills_source_skill_id ON skills(user_id, source_provider, source_skill_id)")
         conn.commit()
         print(f"Applied 020 migration successfully to {db_path.name}.")
+
+        # 19. Apply 021_message_status_and_timestamps.sql (Message status & updated_at)
+        msg_cols = [c[1] for c in cur.execute("PRAGMA table_info(messages)").fetchall()]
+        if "status" not in msg_cols:
+            print(f"Adding status column to messages in {db_path.name}...")
+            cur.execute("ALTER TABLE messages ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'COMPLETED'")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_status ON messages(status)")
+        if "updated_at" not in msg_cols:
+            print(f"Adding updated_at column to messages in {db_path.name}...")
+            cur.execute("ALTER TABLE messages ADD COLUMN updated_at TIMESTAMP")
+            cur.execute("UPDATE messages SET updated_at = created_at WHERE updated_at IS NULL")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_updated_at ON messages(updated_at)")
+        cur.execute("""
+            CREATE TRIGGER IF NOT EXISTS trg_messages_insert_updated_at
+            AFTER INSERT ON messages
+            WHEN new.updated_at IS NULL
+            BEGIN
+                UPDATE messages SET updated_at = new.created_at WHERE id = new.id;
+            END;
+        """)
+        cur.execute("""
+            CREATE TRIGGER IF NOT EXISTS trg_messages_updated_at
+            AFTER UPDATE ON messages
+            FOR EACH ROW
+            BEGIN
+                UPDATE messages SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+            END;
+        """)
+        conn.commit()
+        print(f"Applied 021 migration successfully to {db_path.name}.")
 
         # Verify active tables
         tables = [r[0] for r in cur.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
