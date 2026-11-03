@@ -168,3 +168,15 @@ interactions:
   - UC-045
   - UC-046
   - UC-047
+- id: SEQ-017
+  scenario: Local Reference Material Inline Streaming and RAG Pedagogical Knowledge
+    Retrieval
+  participants:
+  - 'ACT-02: Learner'
+  - Next.js ExamView (/exams)
+  - FastAPI ExamRouter (/api/v1/exams)
+  - RagExamService (RAG Knowledge Engine)
+  - Local File Storage (reference_materials/)
+  source_refs:
+  - FR-077
+  - UC-047

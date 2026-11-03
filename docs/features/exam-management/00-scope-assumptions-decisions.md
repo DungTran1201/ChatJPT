@@ -31,3 +31,15 @@
 - **`DEC-EXAM-001`**: Tổ chức giao diện thành 2 tab trực quan tại route `/exams`: "Kho Đề Thi (Exam Bank)" và "Tài Liệu Tham Khảo (Reference Materials)".
 - **`DEC-EXAM-002`**: Seed sẵn 6 thư mục Google Drive chính thức từ người dùng vào CSDL `reference_materials` với cờ `is_system_preset = 1`.
 - **`DEC-EXAM-003`**: Cho phép thi thử online với bộ câu hỏi có chấm điểm tự động và lời giải thích chi tiết mang phong cách Sensei.
+
+
+
+---
+
+## 4. Quyết Định Mở Rộng: Tải Cục Bộ & Kiến Trúc RAG (`DEC-019`)
+- **Vấn đề**: Việc chỉ gắn link Google Drive khiến giao diện phụ thuộc nền tảng bên ngoài, người học không thể làm bài hoặc xem trực tiếp trên ứng dụng, đồng thời AI Model không thể đọc hiểu dữ liệu để trả lời (phải đoán mò).
+- **Quyết định (`DEC-019`)**:
+  1. Tải toàn bộ 90+ tệp tài liệu và đề thi từ 6 thư mục Google Drive về máy chủ nội bộ (`ai-backend/data/reference_materials/`), phân loại theo N5, N4, N3, N2, N1 và Kaiwa với tổng dung lượng 1.58 GB.
+  2. Xây dựng dịch vụ phục vụ tệp trực tuyến (`/api/v1/exams/materials/view/{id}`) cho phép xem trực tiếp tệp PDF ngay trong ứng dụng qua Document Reader Modal.
+  3. Cung cấp API tải tệp cục bộ (`/api/v1/exams/materials/download/{id}`).
+  4. Số hóa toàn bộ tri thức ngữ pháp, từ vựng và câu hỏi thành tập dữ liệu RAG chuẩn hóa (`/api/v1/exams/rag/search`) giúp AI Sensei truy xuất câu trả lời chính xác, dẫn chứng cụ thể từ giáo trình thay vì suy đoán mơ hồ.

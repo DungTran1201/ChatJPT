@@ -9,3 +9,4 @@
 | **Gian lận đáp án khi làm bài thi** | Thấp | `CTRL-EXAM-03`: Endpoint `GET /api/v1/exams/{id}` chỉ trả về câu hỏi và 4 lựa chọn, **không trả về trường `correct_option`** hay `explanation` trước khi nộp bài. |
 | **SQL Injection qua bộ lọc tìm kiếm** | Cao | `CTRL-EXAM-04`: Sử dụng hoàn toàn Parameterized Query với DB driver của SQLite / SQLAlchemy. |
 | **Độ dài câu hỏi và giới hạn số điểm** | Thấp | `CTRL-EXAM-05`: Pydantic Model xác thực độ dài câu hỏi tối đa 2000 ký tự, thời lượng 1 - 360 phút (`BR-045`). |
+

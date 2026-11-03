@@ -30,3 +30,4 @@
 | `FR-076` | `UC-046` | `COMP-001`, `COMP-002` | `OP-060` | `Exam`, `ExamQuestion` | Exam Runner Modal | `TC-EXAM-004` |
 | `FR-077` | `UC-047` | `COMP-001`, `COMP-002` | `OP-061`, `OP-062` | `ReferenceMaterial` | `/exams` (Materials Tab) | `TC-EXAM-005` |
 | `FR-078` | `UC-047` | `COMP-001` | `OP-061` | `ReferenceMaterial` | Pinned Card Widget | `TC-EXAM-005` |
+

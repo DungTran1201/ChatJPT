@@ -42,3 +42,4 @@
 - **Acceptance Criteria**:
   - `AC-047-1`: Toàn bộ 6 link Google Drive do người dùng cung cấp hiển thị chính xác và truy cập được 100%.
   - `AC-047-2`: Thẻ Tae Kim Guide hiển thị tóm lược ngữ pháp và link tra cứu chuyên sâu.
+

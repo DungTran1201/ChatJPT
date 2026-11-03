@@ -73,3 +73,34 @@ graph TD
     MT -.->|1-Click Open| GD
     MT -.->|Reference Link| TK
 ```
+
+## 4. Sequence Diagram: Tải & Xem Tệp Cục Bộ và Tra Cứu RAG (`SEQ-017`)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Learner as Học Viên / Trình Duyệt
+    participant UI as ExamManagementPage (Next.js)
+    participant API as ExamRouter (/api/v1/exams)
+    participant RAG as RagExamService
+    participant LocalDisk as Local Storage (reference_materials/)
+
+    Note over Learner,LocalDisk: Kịch Bản 1: Xem Tệp Giáo Trình Trực Tiếp (In-App PDF Viewer)
+    Learner->>UI: Bấm "Xem trên Web" ở tài liệu N5/N4
+    UI->>API: GET /api/v1/exams/materials/view/{id}
+    API->>LocalDisk: Kiểm tra tệp .pdf tồn tại
+    LocalDisk-->>API: Stream bytes (FileResponse)
+    API-->>UI: 200 OK (Content-Type: application/pdf, Content-Disposition: inline)
+    UI->>UI: Mở In-App Document Viewer Modal (iframe)
+    UI-->>Learner: Hiển thị giao diện đọc sách toàn màn hình
+
+    Note over Learner,LocalDisk: Kịch Bản 2: Tra Cứu Kiến Thức Sư Phạm RAG
+    Learner->>UI: Nhập từ khóa (vd: "thể te") vào Tab Trợ Lý RAG
+    UI->>API: GET /api/v1/exams/rag/search?q=thể te&level=N5
+    API->>RAG: RagExamService.search_rag(query, level)
+    RAG->>RAG: Phân tích ngữ cảnh & tìm kiếm chunk tri thức
+    RAG-->>API: Danh sách kết quả (topic, content, source)
+    API-->>UI: 200 OK (JSON results)
+    UI-->>Learner: Hiển thị thẻ kiến thức có dẫn nguồn giáo trình
+```
+

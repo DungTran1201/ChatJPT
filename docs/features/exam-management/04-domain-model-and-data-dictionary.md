@@ -71,15 +71,18 @@
 ### Bảng `reference_materials`
 | Cột | Kiểu | Ràng Buộc | Ý Nghĩa |
 | :--- | :--- | :--- | :--- |
-| `id` | `VARCHAR(36)` | `PRIMARY KEY` | Định danh tài liệu |
-| `title` | `VARCHAR(255)` | `NOT NULL` | Tên tài liệu |
-| `description` | `TEXT` | `NULLABLE` | Mô tả tài liệu |
-| `category` | `VARCHAR(50)` | `CHECK(JLPT_N5..N1, KAIWA, GRAMMAR_GUIDE, VOCABULARY_DICT)` | Chuyên mục tài liệu |
-| `level` | `VARCHAR(20)` | `DEFAULT 'ALL'` | Cấp độ (`N5`..`N1`, `ALL`) |
-| `source_type` | `VARCHAR(50)` | `DEFAULT 'GOOGLE_DRIVE'` | Loại nguồn tài liệu |
-| `external_url` | `VARCHAR(1000)`| `NOT NULL` | Đường dẫn liên kết |
-| `author` | `VARCHAR(100)` | `NULLABLE` | Tác giả / Nguồn tài liệu |
-| `file_type` | `VARCHAR(20)` | `DEFAULT 'folder'` | Định dạng tệp |
-| `tags` | `VARCHAR(255)` | `NULLABLE` | Thẻ tìm kiếm |
-| `is_pinned` | `BOOLEAN` | `DEFAULT 0` | Đánh dấu ghim |
-| `is_system_preset`| `BOOLEAN` | `DEFAULT 1` | Tài liệu mẫu hệ thống |
+| id | VARCHAR(36) | PRIMARY KEY | Định danh tài liệu |
+| 	itle | VARCHAR(255) | NOT NULL | Tên tài liệu |
+| description | TEXT | NULLABLE | Mô tả tài liệu |
+| category | VARCHAR(50) | CHECK(JLPT_N5..N1, KAIWA, GRAMMAR_GUIDE, VOCABULARY_DICT) | Chuyên mục tài liệu |
+| level | VARCHAR(20) | DEFAULT 'ALL' | Cấp độ (N5..N1, ALL) |
+| source_type | VARCHAR(50) | CHECK(LOCAL_FILE, GOOGLE_DRIVE, WEB) | Loại nguồn (DEC-019: LOCAL_FILE lưu trữ tệp cục bộ trên máy chủ) |
+| external_url | VARCHAR(1000)| NOT NULL | Đường dẫn cục bộ local://n5/... hoặc URL gốc |
+| uthor | VARCHAR(100) | NULLABLE | Tác giả / Nguồn phát hành |
+| ile_type | VARCHAR(20) | DEFAULT 'folder' | Định dạng tệp (pdf, older, web) |
+| 	ags | VARCHAR(255) | NULLABLE | Thẻ tìm kiếm |
+| is_pinned | BOOLEAN | DEFAULT 0 | Đánh dấu ghim |
+| is_system_preset| BOOLEAN | DEFAULT 1 | Tài liệu mẫu hệ thống |
+
+> [!NOTE] Cấu Trúc Kho Lưu Trữ Tệp Cục Bộ (DEC-019)
+> Tệp giáo trình được lưu trữ vật lý tại thư mục i-backend/data/reference_materials/{level}/. Hệ thống tự động tính toán dung lượng tệp (size_display), xác thực định dạng PDF và phục vụ inline viewing qua /api/v1/exams/materials/view/{id} và tải về qua /api/v1/exams/materials/download/{id}.

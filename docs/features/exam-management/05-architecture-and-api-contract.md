@@ -90,3 +90,36 @@
 
 ### `POST /api/v1/exams/materials` (`OP-062`)
 - **Mục đích**: Tạo mới liên kết tài liệu tham khảo.
+
+### `GET /api/v1/exams/materials/view/{material_id}` (`OP-063`)
+- **Mục đích**: Stream trực tiếp tệp PDF giáo trình cục bộ (`LOCAL_FILE`) cho trình duyệt xem inline.
+- **Path Param**: `material_id` (string).
+- **Phản hồi**: File response với `Content-Type: application/pdf` và `Content-Disposition: inline; filename="..."`.
+
+### `GET /api/v1/exams/materials/download/{material_id}` (`OP-064`)
+- **Mục đích**: Tải tệp tài liệu cục bộ về máy người dùng dưới dạng đính kèm (Attachment).
+- **Path Param**: `material_id` (string).
+- **Phản hồi**: File response với `Content-Disposition: attachment; filename="..."`.
+
+### `GET /api/v1/exams/rag/search` (`OP-065`)
+- **Mục đích**: Tìm kiếm ngữ liệu sư phạm RAG (ngữ pháp, từ vựng, mẫu câu giao tiếp) đã lập chỉ mục từ kho tài liệu.
+- **Query Params**: `q` (string, required), `level` (optional), `limit` (default: 5).
+- **Phản hồi (200 OK)**:
+```json
+{
+  "query": "te form",
+  "level": "N5",
+  "total": 1,
+  "results": [
+    {
+      "id": "rag_n5_001",
+      "level": "N5",
+      "category": "GRAMMAR",
+      "topic": "Động từ thể Te (~てください / ~ています)",
+      "content": "Thể て (Te-form) là nền tảng quan trọng nhất trong sơ cấp...",
+      "source": "Tae Kim's Guide & Minna no Nihongo I"
+    }
+  ]
+}
+```
+

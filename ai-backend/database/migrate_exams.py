@@ -501,3 +501,4 @@ def migrate_and_seed():
 
 if __name__ == "__main__":
     migrate_and_seed()
+

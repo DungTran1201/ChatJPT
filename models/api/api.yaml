@@ -458,3 +458,24 @@ apis:
     source_refs:
     - FR-077
     - FR-078
+  - id: OP-063
+    method: GET
+    path: /exams/materials/view/{id}
+    summary: Stream local reference material PDF for inline in-browser preview
+    use_case: UC-047
+    source_refs:
+    - FR-077
+  - id: OP-064
+    method: GET
+    path: /exams/materials/download/{id}
+    summary: Download local reference material as attachment
+    use_case: UC-047
+    source_refs:
+    - FR-077
+  - id: OP-065
+    method: GET
+    path: /exams/rag/search
+    summary: Query pedagogical RAG knowledge base for grammar, rules, and vocabulary references
+    use_case: UC-047
+    source_refs:
+    - FR-077

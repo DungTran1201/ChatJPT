@@ -25,3 +25,4 @@
 ### `TC-EXAM-004`: Nộp bài thi và nhận kết quả
 - **Input**: Gửi `POST /api/v1/exams/exam_seed_n5_full/submit` kèm payload đáp án.
 - **Expected Result**: HTTP 200, trả về tổng số câu hỏi, số câu đúng, điểm số và chi tiết giải thích cho từng câu.
+

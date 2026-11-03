@@ -344,14 +344,42 @@ export interface ReferenceMaterialItem {
   description?: string | null;
   category: MaterialCategory;
   level: string;
-  source_type: 'GOOGLE_DRIVE' | 'WEB_GUIDE' | 'ONLINE_DICT' | string;
+  source_type: 'LOCAL_FILE' | 'GOOGLE_DRIVE' | 'WEB_GUIDE' | 'ONLINE_DICT' | string;
   external_url: string;
   author?: string | null;
-  file_type: 'folder' | 'website' | 'document' | string;
+  file_type: 'pdf' | 'folder' | 'website' | 'document' | string;
   tags?: string | null;
   is_pinned: boolean;
   is_system_preset: boolean;
+  is_local_available?: boolean;
+  size_display?: string;
+  view_url?: string;
+  download_url?: string;
   user_id?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface RagExample {
+  jp: string;
+  vi: string;
+}
+
+export interface RagKnowledgeItem {
+  id: string;
+  title: string;
+  level: string;
+  category: string;
+  tags: string[];
+  summary: string;
+  content: string;
+  examples?: RagExample[];
+  relevance_score?: number;
+}
+
+export interface RagSearchResponse {
+  query: string;
+  level: string;
+  total: number;
+  results: RagKnowledgeItem[];
 }

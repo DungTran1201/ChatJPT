@@ -52,3 +52,8 @@ ai-backend/database/uploads/
 # VoiceVox Core Engine Binaries & Models (Gigabyte Assets)
 ai-backend/voicevox_core/*
 !ai-backend/voicevox_core/README.md
+
+# Exam & Learning Reference Materials (1.58GB PDFs downloaded from Google Drive)
+ai-backend/data/reference_materials/*
+!ai-backend/data/reference_materials/README.md
+

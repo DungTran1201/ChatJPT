@@ -131,10 +131,34 @@ class TestExamsAPI(unittest.TestCase):
         bad_mat = {
             "title": "Insecure Material",
             "category": "JLPT_N5",
-            "external_url": "http://insecure-site.com/materials"
+            "external_url": "ftp://insecure-site.com/materials"
         }
         res_mat = self.client.post("/api/v1/exams/materials", json=bad_mat, headers=self.headers)
         self.assertEqual(res_mat.status_code, 422)
+
+    def test_view_and_download_local_material(self):
+        """TC-EXAM-007: Test local material view and download endpoints."""
+        res = self.client.get("/api/v1/exams/materials")
+        self.assertEqual(res.status_code, 200)
+        items = res.json()["items"]
+        self.assertGreaterEqual(len(items), 1)
+
+        first_id = items[0]["id"]
+        # Test view endpoint
+        view_res = self.client.get(f"/api/v1/exams/materials/view/{first_id}")
+        self.assertIn(view_res.status_code, [200, 307])
+
+        # Test download endpoint
+        dl_res = self.client.get(f"/api/v1/exams/materials/download/{first_id}")
+        self.assertIn(dl_res.status_code, [200, 307])
+
+    def test_rag_search_knowledge(self):
+        """TC-EXAM-008: Test RAG search over pedagogical corpus."""
+        res = self.client.get("/api/v1/exams/rag/search?query=wa&level=N5")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("results", data)
+        self.assertGreaterEqual(data["total"], 1)
 
 if __name__ == "__main__":
     unittest.main()

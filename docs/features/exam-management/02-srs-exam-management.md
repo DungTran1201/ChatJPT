@@ -33,3 +33,4 @@ Tài liệu đặc tả yêu cầu phần mềm cho phân hệ Quản Lý Kho Đ
 - **`NFR-EXAM-01` (Latency)**: API trả về danh mục đề thi và tài liệu < 100ms.
 - **`NFR-EXAM-02` (Usability)**: Giao diện chuyển đổi 2 tabs mượt mà, hỗ trợ Dark/Light theme đồng bộ theo cài đặt hệ thống.
 - **`NFR-EXAM-03` (Responsiveness)**: Tương thích hoàn hảo trên cả máy tính bàn (Desktop) và thiết bị di động.
+

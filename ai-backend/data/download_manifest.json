@@ -1,0 +1,968 @@
+{
+  "N5": [
+    {
+      "name": "More actions",
+      "safe_name": "More actions.pdf",
+      "id": "1k1ajNPkuJffS3Zeem4qcsUUK3uy8jX1y",
+      "local_path": "ai-backend/data/reference_materials/n5/More actions.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1820
+    },
+    {
+      "name": "Modified 28 thg 8",
+      "safe_name": "Modified 28 thg 8.pdf",
+      "id": "1yTK3LoY30W2-4_lyDsNGRt8DZ6AbtQTw",
+      "local_path": "ai-backend/data/reference_materials/n5/Modified 28 thg 8.pdf",
+      "file_type": "pdf",
+      "success": false,
+      "size_bytes": 0
+    },
+    {
+      "name": "Modified 25 thg 5",
+      "safe_name": "Modified 25 thg 5.pdf",
+      "id": "10UEk-yKcKYr2Canrm1MVRY3sT1zY0pTe",
+      "local_path": "ai-backend/data/reference_materials/n5/Modified 25 thg 5.pdf",
+      "file_type": "pdf",
+      "success": false,
+      "size_bytes": 0
+    },
+    {
+      "name": "Modified 18 thg 10",
+      "safe_name": "Modified 18 thg 10.pdf",
+      "id": "1FWw2qlwtDCvoS_cwjRSlNDAqCzArMj7A",
+      "local_path": "ai-backend/data/reference_materials/n5/Modified 18 thg 10.pdf",
+      "file_type": "pdf",
+      "success": false,
+      "size_bytes": 0
+    },
+    {
+      "name": "Modified 18 thg 10",
+      "safe_name": "Modified 18 thg 10.pdf",
+      "id": "1b-xqLdbkbVOEFcM-Y4KLBNYIxN4oRUBX",
+      "local_path": "ai-backend/data/reference_materials/n5/Modified 18 thg 10.pdf",
+      "file_type": "pdf",
+      "success": false,
+      "size_bytes": 0
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_pho-tu-tu-dong-tu-tha-dong-tu-trong-tieng-nhat.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_pho-tu-tu-dong-tu-tha-dong-tu-trong-tieng-nhat.pdf",
+      "id": "1aEZ1dW_vemW-QTqWN4nuEDv56aAgEaBR",
+      "local_path": "ai-backend/data/reference_materials/n5/[Tailieutiengnhat.net]_pho-tu-tu-dong-tu-tha-dong-tu-trong-tieng-nhat.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1736346
+    },
+    {
+      "name": "120 Kanji cơ bản sơ cấp.pdf",
+      "safe_name": "120 Kanji cơ bản sơ cấp.pdf",
+      "id": "14W8PNctkx7JzrcIY46vWKizNBg9pnXSz",
+      "local_path": "ai-backend/data/reference_materials/n5/120 Kanji cơ bản sơ cấp.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2791010
+    },
+    {
+      "name": "160-kanji-n5-n4 (kèm luyện viết, minh họa).pdf",
+      "safe_name": "160-kanji-n5-n4 (kèm luyện viết, minh họa).pdf",
+      "id": "1ZmHT65DqHiAhPbtV9mm4dnXAltLOfkrc",
+      "local_path": "ai-backend/data/reference_materials/n5/160-kanji-n5-n4 (kèm luyện viết, minh họa).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 14916244
+    },
+    {
+      "name": "214 bộ thủ bằng hình ảnh.pdf",
+      "safe_name": "214 bộ thủ bằng hình ảnh.pdf",
+      "id": "1agNWlqkZtj0jNDB3mhXijIDtmxxRzI_H",
+      "local_path": "ai-backend/data/reference_materials/n5/214 bộ thủ bằng hình ảnh.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 13292972
+    },
+    {
+      "name": "Tong-hop-tu-vung-N5.pdf",
+      "safe_name": "Tong-hop-tu-vung-N5.pdf",
+      "id": "1HwhB7oVplLuukt9vyu0P15QpRmd-xFMi",
+      "local_path": "ai-backend/data/reference_materials/n5/Tong-hop-tu-vung-N5.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 14864620
+    },
+    {
+      "name": "Từ vựng N5.pdf",
+      "safe_name": "Từ vựng N5.pdf",
+      "id": "1v3EkaYur5yEKRpT1k42oL9OWwkF-CT-l",
+      "local_path": "ai-backend/data/reference_materials/n5/Từ vựng N5.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 51362733
+    }
+  ],
+  "N4": [
+    {
+      "name": "Đề thi N4 .pdf",
+      "safe_name": "Đề thi N4 .pdf",
+      "id": "1bXKJuGDmE01BlH4_F4o05clLzWycnk_F",
+      "local_path": "ai-backend/data/reference_materials/n4/Đề thi N4 .pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1350609
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_63-mau-cau-ngu-phap-n4.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_63-mau-cau-ngu-phap-n4.pdf",
+      "id": "1y9ENPAz4ZswXAWIYBVrTHsfYlJAzgnDZ",
+      "local_path": "ai-backend/data/reference_materials/n4/[Tailieutiengnhat.net]_63-mau-cau-ngu-phap-n4.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 481104
+    },
+    {
+      "name": "70 cặp tha động từ- tự động từ n4.pdf",
+      "safe_name": "70 cặp tha động từ- tự động từ n4.pdf",
+      "id": "1yyPNIbmIO9ihyl21dWuVxCbr6GuoZyS8",
+      "local_path": "ai-backend/data/reference_materials/n4/70 cặp tha động từ- tự động từ n4.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1556643
+    },
+    {
+      "name": "214 bộ thủ bằng hình ảnh.pdf",
+      "safe_name": "214 bộ thủ bằng hình ảnh.pdf",
+      "id": "1TFCFq-N3E1ZwwhYCfZZHH9OCZYmNo6tX",
+      "local_path": "ai-backend/data/reference_materials/n4/214 bộ thủ bằng hình ảnh.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 13292972
+    },
+    {
+      "name": "bo_de_thi_thu_ky_thi_nang_luc_tieng_nhat_n4_2984.pdf",
+      "safe_name": "bo_de_thi_thu_ky_thi_nang_luc_tieng_nhat_n4_2984.pdf",
+      "id": "1oW92rJXOjpYOYy4AYRqKa2xl8b8U8_Ji",
+      "local_path": "ai-backend/data/reference_materials/n4/bo_de_thi_thu_ky_thi_nang_luc_tieng_nhat_n4_2984.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 34033601
+    },
+    {
+      "name": "Đề thi N4 (2).pdf",
+      "safe_name": "Đề thi N4 (2).pdf",
+      "id": "1jT7q8YnwytZsoJH0Y6we92PPz5gZ9Fh5",
+      "local_path": "ai-backend/data/reference_materials/n4/Đề thi N4 (2).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1712419
+    },
+    {
+      "name": "flashcard-kanji-n4.pdf",
+      "safe_name": "flashcard-kanji-n4.pdf",
+      "id": "1-olWxqm55GJcWoq4i7VriAnCJZOwJOUd",
+      "local_path": "ai-backend/data/reference_materials/n4/flashcard-kanji-n4.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2369825
+    },
+    {
+      "name": "Goukaku_Dekiru_N4.5 (Đề thi).zip Compressed archive",
+      "safe_name": "Goukaku_Dekiru_N4.5 (Đề thi).zip Compressed archive.pdf",
+      "id": "1nKf2dVLhBrmrkcJKsN63-Q8vvIUdgedg",
+      "local_path": "ai-backend/data/reference_materials/n4/Goukaku_Dekiru_N4.5 (Đề thi).zip Compressed archive.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2485
+    },
+    {
+      "name": "Goukaku_Dekiru_N4.5.pdf",
+      "safe_name": "Goukaku_Dekiru_N4.5.pdf",
+      "id": "1QpIjR-6aTLvEvbg2gjoDcoQ1Q-at0XVi",
+      "local_path": "ai-backend/data/reference_materials/n4/Goukaku_Dekiru_N4.5.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2471
+    },
+    {
+      "name": "Kanji look and learn.pdf",
+      "safe_name": "Kanji look and learn.pdf",
+      "id": "1_UX2zFm-ef8mXFny3V4YMDC61-fFSHTg",
+      "local_path": "ai-backend/data/reference_materials/n4/Kanji look and learn.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2470
+    },
+    {
+      "name": "Kanji Master N4.pdf",
+      "safe_name": "Kanji Master N4.pdf",
+      "id": "1DkS_IT4KTLoyp8QWJkOlXyZtG202S6WG",
+      "local_path": "ai-backend/data/reference_materials/n4/Kanji Master N4.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 40762434
+    },
+    {
+      "name": "Luyện Dịch Minna no II - Topikku 25..pdf",
+      "safe_name": "Luyện Dịch Minna no II - Topikku 25..pdf",
+      "id": "1HiGc3ADKbMNyNzWCuQEAlykrzwvYTn7f",
+      "local_path": "ai-backend/data/reference_materials/n4/Luyện Dịch Minna no II - Topikku 25..pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 38360362
+    },
+    {
+      "name": "Minna no Nihongo II - Bunkei Renshuuchou.pdf",
+      "safe_name": "Minna no Nihongo II - Bunkei Renshuuchou.pdf",
+      "id": "1x0whagAAeB7sSKOunImicpECbX8-1eax",
+      "local_path": "ai-backend/data/reference_materials/n4/Minna no Nihongo II - Bunkei Renshuuchou.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 23636346
+    },
+    {
+      "name": "Minna no Nihongo II - Kaite Oboeru.pdf",
+      "safe_name": "Minna no Nihongo II - Kaite Oboeru.pdf",
+      "id": "17rFXc8dzSTysTOR4qp56ySpD02ETL3v_",
+      "local_path": "ai-backend/data/reference_materials/n4/Minna no Nihongo II - Kaite Oboeru.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 23636346
+    },
+    {
+      "name": "N4R.pdf",
+      "safe_name": "N4R.pdf",
+      "id": "185Gd4eXzO6QZkJFFEyrXi_BB6KrvqAFq",
+      "local_path": "ai-backend/data/reference_materials/n4/N4R.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2777177
+    },
+    {
+      "name": "Sách Minnano 2. GIẢI THÍCH NGỮ PHÁP N4.pdf",
+      "safe_name": "Sách Minnano 2. GIẢI THÍCH NGỮ PHÁP N4.pdf",
+      "id": "17TvYPZuCXJOLBphPvvmtFyYvyaOZiWTy",
+      "local_path": "ai-backend/data/reference_materials/n4/Sách Minnano 2. GIẢI THÍCH NGỮ PHÁP N4.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 63164022
+    },
+    {
+      "name": "So tay tu vung N4.pdf",
+      "safe_name": "So tay tu vung N4.pdf",
+      "id": "1Ns2xRhoEaweUSPFmNoXByRL4QZS1ADhX",
+      "local_path": "ai-backend/data/reference_materials/n4/So tay tu vung N4.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 16131977
+    }
+  ],
+  "N3": [
+    {
+      "name": "Modified 31 thg 8, 2025",
+      "safe_name": "Modified 31 thg 8, 2025.pdf",
+      "id": "1aoAnDmw7YoErNp9ey1kT5n14uMbl97yX",
+      "local_path": "ai-backend/data/reference_materials/n3/Modified 31 thg 8, 2025.pdf",
+      "file_type": "pdf",
+      "success": false,
+      "size_bytes": 0
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_80-tu-kanji-de-nham-lan-trong-de-thi-jlpt.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_80-tu-kanji-de-nham-lan-trong-de-thi-jlpt.pdf",
+      "id": "1nKgISBf70bIW0wYzOrPMn5KAA4JMcp4q",
+      "local_path": "ai-backend/data/reference_materials/n3/[Tailieutiengnhat.net]_80-tu-kanji-de-nham-lan-trong-de-thi-jlpt.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2933141
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_367-kanji-n3.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_367-kanji-n3.pdf",
+      "id": "1oujHbRUC2w7RmZ6-bVwnPE9g7dsKZwt3",
+      "local_path": "ai-backend/data/reference_materials/n3/[Tailieutiengnhat.net]_367-kanji-n3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 916871
+    },
+    {
+      "name": "20日で合格N3 Live tháng 11(Hà Tuyền).pdf",
+      "safe_name": "20日で合格N3 Live tháng 11(Hà Tuyền).pdf",
+      "id": "1OgO1yfaLZpvGuetVVQlK0xsv7GTe2c6Y",
+      "local_path": "ai-backend/data/reference_materials/n3/20日で合格N3 Live tháng 11(Hà Tuyền).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 14141947
+    },
+    {
+      "name": "214 bộ thủ bằng hình ảnh.pdf",
+      "safe_name": "214 bộ thủ bằng hình ảnh.pdf",
+      "id": "1akmGhgxGuSoyp_M3ci-Or0QGyB78EiXd",
+      "local_path": "ai-backend/data/reference_materials/n3/214 bộ thủ bằng hình ảnh.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 13292972
+    },
+    {
+      "name": "2136-kanji-thuong-dung.pdf",
+      "safe_name": "2136-kanji-thuong-dung.pdf",
+      "id": "1chUTDsZfGWIooybcJW2GRdK5SGRY9zp-",
+      "local_path": "ai-backend/data/reference_materials/n3/2136-kanji-thuong-dung.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 3660563
+    },
+    {
+      "name": "đề thi",
+      "safe_name": "đề thi.pdf",
+      "id": "18Kt73dftpwnGEJYSU9gKbHH2_5cYPghQ",
+      "local_path": "ai-backend/data/reference_materials/n3/đề thi.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 35685458
+    },
+    {
+      "name": "ĐỀ-N3-7-2010.pdf",
+      "safe_name": "ĐỀ-N3-7-2010.pdf",
+      "id": "1JWTMDY-_QTtzQQE_ZbNhqO_HxnkGWRUW",
+      "local_path": "ai-backend/data/reference_materials/n3/ĐỀ-N3-7-2010.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 761170
+    },
+    {
+      "name": "FULL - 26 DE - 日本語能力試験N3.pdf",
+      "safe_name": "FULL - 26 DE - 日本語能力試験N3.pdf",
+      "id": "1fMygFdmjFgY91PT47UEmm-WEdeGjWEyZ",
+      "local_path": "ai-backend/data/reference_materials/n3/FULL - 26 DE - 日本語能力試験N3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 15502502
+    },
+    {
+      "name": "Giáo án ngữ pháp N3 mimikara.pdf",
+      "safe_name": "Giáo án ngữ pháp N3 mimikara.pdf",
+      "id": "1rLd1BSNqMJKnogvz7ltKbDAK_y_8kHyP",
+      "local_path": "ai-backend/data/reference_materials/n3/Giáo án ngữ pháp N3 mimikara.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2422529
+    },
+    {
+      "name": "Kanji master N3.pdf",
+      "safe_name": "Kanji master N3.pdf",
+      "id": "1tC-NplIIQ6byZZ0nL8NOw9_h8DHWy_ku",
+      "local_path": "ai-backend/data/reference_materials/n3/Kanji master N3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 23689836
+    },
+    {
+      "name": "Khái quát về Kanji cần biết.pptx Microsoft PowerPoint",
+      "safe_name": "Khái quát về Kanji cần biết.pptx Microsoft PowerPoint.pdf",
+      "id": "1PZcJrK7CDd-1EN_bXKGBA__bqVKYd_L5",
+      "local_path": "ai-backend/data/reference_materials/n3/Khái quát về Kanji cần biết.pptx Microsoft PowerPoint.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 817561
+    },
+    {
+      "name": "Mimi_Kara_Oboeru_N3-Bunpou.pdf",
+      "safe_name": "Mimi_Kara_Oboeru_N3-Bunpou.pdf",
+      "id": "1Zzqm8ucsX3Uiis4J0iU7CZNP9Wf-0RZa",
+      "local_path": "ai-backend/data/reference_materials/n3/Mimi_Kara_Oboeru_N3-Bunpou.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 39165334
+    },
+    {
+      "name": "Mimi_Kara_Oboeru_N3-Goi.pdf",
+      "safe_name": "Mimi_Kara_Oboeru_N3-Goi.pdf",
+      "id": "1fYbe6ctP856an1CRJHcHLcR_hDg_ujot",
+      "local_path": "ai-backend/data/reference_materials/n3/Mimi_Kara_Oboeru_N3-Goi.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 64844591
+    },
+    {
+      "name": "Mimikara N3- BT ngữ pháp.pdf",
+      "safe_name": "Mimikara N3- BT ngữ pháp.pdf",
+      "id": "1xw6WVRztP-kGPX9RdrXuVjQmhXJf8dfv",
+      "local_path": "ai-backend/data/reference_materials/n3/Mimikara N3- BT ngữ pháp.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 39165334
+    },
+    {
+      "name": "ngu-phap-shinkanzen-n3. Tieng Viet",
+      "safe_name": "ngu-phap-shinkanzen-n3. Tieng Viet.pdf",
+      "id": "1ZQUIqvucfMS4kS0c0bUdKBhMpxzW6sc6",
+      "local_path": "ai-backend/data/reference_materials/n3/ngu-phap-shinkanzen-n3. Tieng Viet.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 684458
+    },
+    {
+      "name": "power doriru bunnpou-rotated.pdf",
+      "safe_name": "power doriru bunnpou-rotated.pdf",
+      "id": "1_3yFMgZ5QluaDN_Z2n2JMnMjvzUgiZER",
+      "local_path": "ai-backend/data/reference_materials/n3/power doriru bunnpou-rotated.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 13038238
+    },
+    {
+      "name": "Power doriru từ vựng n3 (Hà Tuyền)",
+      "safe_name": "Power doriru từ vựng n3 (Hà Tuyền).pdf",
+      "id": "1UyFErqSwrvxUT-hr91c1f9ERG33gmal0",
+      "local_path": "ai-backend/data/reference_materials/n3/Power doriru từ vựng n3 (Hà Tuyền).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 13627203
+    },
+    {
+      "name": "Shin_Kanzen_Master_N3-Bunpou &amp; 宿題pdf",
+      "safe_name": "Shin_Kanzen_Master_N3-Bunpou &amp; 宿題pdf.pdf",
+      "id": "1x_QcubVx0LBKg0V2NMACEw1YFD5Q9RG2",
+      "local_path": "ai-backend/data/reference_materials/n3/Shin_Kanzen_Master_N3-Bunpou &amp; 宿題pdf.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2496
+    },
+    {
+      "name": "Shin_Kanzen_Master_N3-Dokkai.pdf",
+      "safe_name": "Shin_Kanzen_Master_N3-Dokkai.pdf",
+      "id": "1HkNzcUTv67Owv4LRxL2vp9EAPHILlAAo",
+      "local_path": "ai-backend/data/reference_materials/n3/Shin_Kanzen_Master_N3-Dokkai.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2480
+    },
+    {
+      "name": "Soumatome N3 Kanji.pdf",
+      "safe_name": "Soumatome N3 Kanji.pdf",
+      "id": "1ovcZ3b5qGfgo7XM-Qq3FrK_q55Q6jp9m",
+      "local_path": "ai-backend/data/reference_materials/n3/Soumatome N3 Kanji.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 47693681
+    },
+    {
+      "name": "Tailieuhoctiengnhat.com_tu-vung-shinkanzen-n3.pdf",
+      "safe_name": "Tailieuhoctiengnhat.com_tu-vung-shinkanzen-n3.pdf",
+      "id": "1UdkBhKdymGJ7FyoGEfAjBiMlzUEyE-MD",
+      "local_path": "ai-backend/data/reference_materials/n3/Tailieuhoctiengnhat.com_tu-vung-shinkanzen-n3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 4145532
+    },
+    {
+      "name": "tan go.pdf",
+      "safe_name": "tan go.pdf",
+      "id": "141I6Fz-qQvDg4GvDtqPSrQrVHZt8G0_w",
+      "local_path": "ai-backend/data/reference_materials/n3/tan go.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1054072
+    },
+    {
+      "name": "Thẻ ghi nhớ_ Shinkanzen - N3 - Bunpou - 260 _ Quizlet.pdf",
+      "safe_name": "Thẻ ghi nhớ_ Shinkanzen - N3 - Bunpou - 260 _ Quizlet.pdf",
+      "id": "1_ceJi3lrWe7MvRN3UHxLe3sWT4FLhS6K",
+      "local_path": "ai-backend/data/reference_materials/n3/Thẻ ghi nhớ_ Shinkanzen - N3 - Bunpou - 260 _ Quizlet.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 505013
+    },
+    {
+      "name": "tinh-tu-thuong-xuat-hien-trong-jlpt-n3.pdf",
+      "safe_name": "tinh-tu-thuong-xuat-hien-trong-jlpt-n3.pdf",
+      "id": "1bz-9JJdJrRKRfs6q2K6U1-uhS2XoDPCg",
+      "local_path": "ai-backend/data/reference_materials/n3/tinh-tu-thuong-xuat-hien-trong-jlpt-n3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 436631
+    },
+    {
+      "name": "Tổng hợp 50 mẫu NP thường xuyên xuất hiện trong đề thi JLPT",
+      "safe_name": "Tổng hợp 50 mẫu NP thường xuyên xuất hiện trong đề thi JLPT.pdf",
+      "id": "1RhjKi3pbfqhr5p2xplhk6LV8gA4KUmzD",
+      "local_path": "ai-backend/data/reference_materials/n3/Tổng hợp 50 mẫu NP thường xuyên xuất hiện trong đề thi JLPT.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2393081
+    },
+    {
+      "name": "Tổng hợp 125_NGỮ PHÁP N3",
+      "safe_name": "Tổng hợp 125_NGỮ PHÁP N3.pdf",
+      "id": "1FePcjvL_NYTEIb8Iufgf17R7J6NO6eWq",
+      "local_path": "ai-backend/data/reference_materials/n3/Tổng hợp 125_NGỮ PHÁP N3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 27391835
+    },
+    {
+      "name": "Tổng hợp 191 động từ N3.pdf",
+      "safe_name": "Tổng hợp 191 động từ N3.pdf",
+      "id": "10YnPhYSU-ONp64WQe7by5aDxB9dyXxnv",
+      "local_path": "ai-backend/data/reference_materials/n3/Tổng hợp 191 động từ N3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 5077233
+    },
+    {
+      "name": "Tổng hợp 1000 Kanji thông dụng N5-N3 .pdf",
+      "safe_name": "Tổng hợp 1000 Kanji thông dụng N5-N3 .pdf",
+      "id": "1-tnyeUUHwmG3iTkFQdaLtu7EIjtziOrO",
+      "local_path": "ai-backend/data/reference_materials/n3/Tổng hợp 1000 Kanji thông dụng N5-N3 .pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 7592598
+    },
+    {
+      "name": "Tổng hợp Mondai 4 trong JLPT N3. Tìm từ đồng nghĩapdf",
+      "safe_name": "Tổng hợp Mondai 4 trong JLPT N3. Tìm từ đồng nghĩapdf.pdf",
+      "id": "1h4WcQI0b8SsajNgmxCkfRS_gjD1iVegG",
+      "local_path": "ai-backend/data/reference_materials/n3/Tổng hợp Mondai 4 trong JLPT N3. Tìm từ đồng nghĩapdf.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 5832730
+    },
+    {
+      "name": "Tổng hợp thẻ học kanji N3",
+      "safe_name": "Tổng hợp thẻ học kanji N3.pdf",
+      "id": "1MSH1zwUgq9QTLB9sRxPouC1JLsfjm9Rz",
+      "local_path": "ai-backend/data/reference_materials/n3/Tổng hợp thẻ học kanji N3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 4502168
+    },
+    {
+      "name": "Từ vựng Mimikara N3",
+      "safe_name": "Từ vựng Mimikara N3.pdf",
+      "id": "1W57BBmQ3JxKEBnAcXIK5qA-MW4rUiIjW",
+      "local_path": "ai-backend/data/reference_materials/n3/Từ vựng Mimikara N3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 19677212
+    },
+    {
+      "name": "Từ vựng shinkanzen n3.pdf",
+      "safe_name": "Từ vựng shinkanzen n3.pdf",
+      "id": "13wswfw54PpLkoc-TwtzZnwrd5UW_nZ59",
+      "local_path": "ai-backend/data/reference_materials/n3/Từ vựng shinkanzen n3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 64844591
+    },
+    {
+      "name": "từ vựng try.pdf",
+      "safe_name": "từ vựng try.pdf",
+      "id": "1xbX3J-uNmrEpX9_6bA4NAnzCXNwYYrYN",
+      "local_path": "ai-backend/data/reference_materials/n3/từ vựng try.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1089676
+    }
+  ],
+  "N2": [
+    {
+      "name": "Modified 11 thg 7, 2025",
+      "safe_name": "Modified 11 thg 7, 2025.pdf",
+      "id": "1-1PI7AtObeYNRUTliaoDmk5s12wiqFNH",
+      "local_path": "ai-backend/data/reference_materials/n2/Modified 11 thg 7, 2025.pdf",
+      "file_type": "pdf",
+      "success": false,
+      "size_bytes": 0
+    },
+    {
+      "name": "[Tiengnhatcoban.net]_173-mau-ngu-phap-n2-n3.pdf",
+      "safe_name": "[Tiengnhatcoban.net]_173-mau-ngu-phap-n2-n3.pdf",
+      "id": "1S_1Np4A3k59CXbvVMizgs50-a-XHPuYJ",
+      "local_path": "ai-backend/data/reference_materials/n2/[Tiengnhatcoban.net]_173-mau-ngu-phap-n2-n3.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1375460
+    },
+    {
+      "name": "[Tiengnhatcoban.net]_tong-hop-ngu-phap-n2-shinkanzen.pdf",
+      "safe_name": "[Tiengnhatcoban.net]_tong-hop-ngu-phap-n2-shinkanzen.pdf",
+      "id": "1U_7hZ5rvB2LA5d5DI0JB9T_CRGnRFVRQ",
+      "local_path": "ai-backend/data/reference_materials/n2/[Tiengnhatcoban.net]_tong-hop-ngu-phap-n2-shinkanzen.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 859609
+    },
+    {
+      "name": "40 de thi n2 pdf. (2).pdf",
+      "safe_name": "40 de thi n2 pdf. (2).pdf",
+      "id": "1Qm66XjM7wE8ro7J4fCV_y0CBHhLiaRcJ",
+      "local_path": "ai-backend/data/reference_materials/n2/40 de thi n2 pdf. (2).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 13621517
+    },
+    {
+      "name": "230新日本语能力考试 N2 Luyen tap Tu vung - Chu Han.pdf",
+      "safe_name": "230新日本语能力考试 N2 Luyen tap Tu vung - Chu Han.pdf",
+      "id": "1sDPmZv_L2Fhbp0NQRPcdlwR-e3ji4AMZ",
+      "local_path": "ai-backend/data/reference_materials/n2/230新日本语能力考试 N2 Luyen tap Tu vung - Chu Han.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 23931869
+    },
+    {
+      "name": "Choukai Shinkanzen N2.zip Compressed archive",
+      "safe_name": "Choukai Shinkanzen N2.zip Compressed archive.pdf",
+      "id": "130pTbzBGBxnC2rXskNiSmNeRlEBNG7GP",
+      "local_path": "ai-backend/data/reference_materials/n2/Choukai Shinkanzen N2.zip Compressed archive.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2473
+    },
+    {
+      "name": "flashcard-kanji-n2.pdf",
+      "safe_name": "flashcard-kanji-n2.pdf",
+      "id": "1Nk6mcsERZ_xd57gspkmKzcsfwqiOMr00",
+      "local_path": "ai-backend/data/reference_materials/n2/flashcard-kanji-n2.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 25662630
+    },
+    {
+      "name": "N2_Grammar.pdf",
+      "safe_name": "N2_Grammar.pdf",
+      "id": "1NLNToTehQGenCGIMV4Fq_mtSRRLm79TK",
+      "local_path": "ai-backend/data/reference_materials/n2/N2_Grammar.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 77166
+    },
+    {
+      "name": "N2_Kanji.pdf",
+      "safe_name": "N2_Kanji.pdf",
+      "id": "1KHF_KRRJP8DIVXuhhzTUd6bEs2fqgjgh",
+      "local_path": "ai-backend/data/reference_materials/n2/N2_Kanji.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 335604
+    },
+    {
+      "name": "n2-tango-2500.pdf",
+      "safe_name": "n2-tango-2500.pdf",
+      "id": "1OHKKBYXeILTx6AU1bxOaw9teqWeAhATV",
+      "local_path": "ai-backend/data/reference_materials/n2/n2-tango-2500.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2465
+    },
+    {
+      "name": "ngu phap 2 kuu.pdf",
+      "safe_name": "ngu phap 2 kuu.pdf",
+      "id": "1XlL6Zikxuv0yQpawZNvgPwxURTPawgaX",
+      "local_path": "ai-backend/data/reference_materials/n2/ngu phap 2 kuu.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 1130097
+    },
+    {
+      "name": "nihongo-soumatome-n2-kanji.pdf",
+      "safe_name": "nihongo-soumatome-n2-kanji.pdf",
+      "id": "1QOat7DAhn5q-cOvCSOXmMsk-Ivqrnpml",
+      "local_path": "ai-backend/data/reference_materials/n2/nihongo-soumatome-n2-kanji.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2478
+    },
+    {
+      "name": "Shin_Kanzen_Masuta_N2-Dokkai.pdf",
+      "safe_name": "Shin_Kanzen_Masuta_N2-Dokkai.pdf",
+      "id": "1sqjqvM83oUh4_TN5NwWX5zDTpbrJS_GD",
+      "local_path": "ai-backend/data/reference_materials/n2/Shin_Kanzen_Masuta_N2-Dokkai.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2480
+    },
+    {
+      "name": "Tailieuhoctiengnhat.com_soumatome-kanji-n2.pdf",
+      "safe_name": "Tailieuhoctiengnhat.com_soumatome-kanji-n2.pdf",
+      "id": "1u3Dlhz-NEnAtdQglYmKRyc8kJTK9jOxH",
+      "local_path": "ai-backend/data/reference_materials/n2/Tailieuhoctiengnhat.com_soumatome-kanji-n2.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2334769
+    },
+    {
+      "name": "Tailieuhoctiengnhat.com_tong-hop-kanji-n2-soumatome.pdf",
+      "safe_name": "Tailieuhoctiengnhat.com_tong-hop-kanji-n2-soumatome.pdf",
+      "id": "1o8EOdTl4myrE2UwFWFXSSDXKriXJDtWi",
+      "local_path": "ai-backend/data/reference_materials/n2/Tailieuhoctiengnhat.com_tong-hop-kanji-n2-soumatome.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 4728051
+    },
+    {
+      "name": "Tổng hợp 110 mâũ ngữ pháp N2- Hà Tuyền",
+      "safe_name": "Tổng hợp 110 mâũ ngữ pháp N2- Hà Tuyền.pdf",
+      "id": "1RbYVrueXvSkm6kpCQEIQ9FfJsth-0lnl",
+      "local_path": "ai-backend/data/reference_materials/n2/Tổng hợp 110 mâũ ngữ pháp N2- Hà Tuyền.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 761199
+    },
+    {
+      "name": "新完全マスター文法日本語能力試験N2 _Shin kanzen masutā bunpō nihongo nōryoku shiken N 2 ( PDFDrive ).pdf",
+      "safe_name": "新完全マスター文法日本語能力試験N2 _Shin kanzen masutā bunpō nihongo nōryoku shiken N 2 ( PDFDrive ).pdf",
+      "id": "16y8uiwYNqfu9dJ_cgGqf_kXh6_azr9l7",
+      "local_path": "ai-backend/data/reference_materials/n2/新完全マスター文法日本語能力試験N2 _Shin kanzen masutā bunpō nihongo nōryoku shiken N 2 ( PDFDrive ).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 69215273
+    },
+    {
+      "name": "新日本语能力試験 N2 文法 練習.pdf",
+      "safe_name": "新日本语能力試験 N2 文法 練習.pdf",
+      "id": "1rlOX0-UpV57QfhqfHgdxiWLO7W9XPuxq",
+      "local_path": "ai-backend/data/reference_materials/n2/新日本语能力試験 N2 文法 練習.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 46549204
+    },
+    {
+      "name": "耳から覚える 語彙 N2- Mimikara Oboeru N2 - Vocabulary ( 1 - 840 ) .pdf",
+      "safe_name": "耳から覚える 語彙 N2- Mimikara Oboeru N2 - Vocabulary ( 1 - 840 ) .pdf",
+      "id": "1eKdqH7zXq7RaFxFi8MPqOQPhM108COO-",
+      "local_path": "ai-backend/data/reference_materials/n2/耳から覚える 語彙 N2- Mimikara Oboeru N2 - Vocabulary ( 1 - 840 ) .pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 7221749
+    },
+    {
+      "name": "耳から覚える語彙N2-.pdf",
+      "safe_name": "耳から覚える語彙N2-.pdf",
+      "id": "1cEGBzLXzPE447J5WF6iTAChP3NGSKt6b",
+      "local_path": "ai-backend/data/reference_materials/n2/耳から覚える語彙N2-.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 48718254
+    }
+  ],
+  "N1": [
+    {
+      "name": "[Tailieutiengnhat.net]_2000-tu-vung-n1.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_2000-tu-vung-n1.pdf",
+      "id": "10AEwrTCjOK5V3tJR5tCqsZSzEOy2SZAY",
+      "local_path": "ai-backend/data/reference_materials/n1/[Tailieutiengnhat.net]_2000-tu-vung-n1.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 2238207
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_3000-tu-vung-n1.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_3000-tu-vung-n1.pdf",
+      "id": "1Rpr8iuZKWlNBi3Vtr8DK3pGNvEi_HWGv",
+      "local_path": "ai-backend/data/reference_materials/n1/[Tailieutiengnhat.net]_3000-tu-vung-n1.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 4734944
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_Giáo án N1 SHINKANZEN (1).pptx Microsoft PowerPoint",
+      "safe_name": "[Tailieutiengnhat.net]_Giáo án N1 SHINKANZEN (1).pptx Microsoft PowerPoint.pdf",
+      "id": "1tTWd6hMZ_bIb3iEKmlM9P-2BnntfGPQH",
+      "local_path": "ai-backend/data/reference_materials/n1/[Tailieutiengnhat.net]_Giáo án N1 SHINKANZEN (1).pptx Microsoft PowerPoint.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 3111957
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_kanji-look-and-learn-n2-n1.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_kanji-look-and-learn-n2-n1.pdf",
+      "id": "1M0Zg9GAw76cuM0Cg6OeIVo6oZdmvIj9A",
+      "local_path": "ai-backend/data/reference_materials/n1/[Tailieutiengnhat.net]_kanji-look-and-learn-n2-n1.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 7908241
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_ngu-phap-shinkanzen-n1-dich-tieng-viet (1).pdf",
+      "safe_name": "[Tailieutiengnhat.net]_ngu-phap-shinkanzen-n1-dich-tieng-viet (1).pdf",
+      "id": "1kpyWeP1XV5HoxsqdLxlpVDz_kGrGwC8B",
+      "local_path": "ai-backend/data/reference_materials/n1/[Tailieutiengnhat.net]_ngu-phap-shinkanzen-n1-dich-tieng-viet (1).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 835166
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_tong-hop-kanji-n1-day-du.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_tong-hop-kanji-n1-day-du.pdf",
+      "id": "1fC0VNF_mrCLO3Lh3cMfy35IPS0497DdI",
+      "local_path": "ai-backend/data/reference_materials/n1/[Tailieutiengnhat.net]_tong-hop-kanji-n1-day-du.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 74987109
+    },
+    {
+      "name": "[Tailieutiengnhat.net]_絶対合格N1 －70文法ーHY-絶対合格ハイイエン70文法.pdf",
+      "safe_name": "[Tailieutiengnhat.net]_絶対合格N1 －70文法ーHY-絶対合格ハイイエン70文法.pdf",
+      "id": "1oMrRmKnOrO135N6AYa50EZwTEKmq6zGv",
+      "local_path": "ai-backend/data/reference_materials/n1/[Tailieutiengnhat.net]_絶対合格N1 －70文法ーHY-絶対合格ハイイエン70文法.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 485132
+    },
+    {
+      "name": "20日N１.pdf",
+      "safe_name": "20日N１.pdf",
+      "id": "19w5Ty_Rf5wxZuU3TGmRU7qYBs1gURkiQ",
+      "local_path": "ai-backend/data/reference_materials/n1/20日N１.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 35176452
+    },
+    {
+      "name": "35 ngày làm chủ đề thi N1 Bộ 12 đề thi Full 新日本语能力测试35天巅峰特训1级实战模拟(附光盘).pdf",
+      "safe_name": "35 ngày làm chủ đề thi N1 Bộ 12 đề thi Full 新日本语能力测试35天巅峰特训1级实战模拟(附光盘).pdf",
+      "id": "1Cs-4pZ6YBW2QpF92Lltt8hx9BJSUSpll",
+      "local_path": "ai-backend/data/reference_materials/n1/35 ngày làm chủ đề thi N1 Bộ 12 đề thi Full 新日本语能力测试35天巅峰特训1级实战模拟(附光盘).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 28219404
+    },
+    {
+      "name": "35 ngày làm chủ Từ Vựng N1 新日本语能力测试35天巅峰特训(1级)文字词汇.pdf",
+      "safe_name": "35 ngày làm chủ Từ Vựng N1 新日本语能力测试35天巅峰特训(1级)文字词汇.pdf",
+      "id": "1v_ekFpD7e23paq_voqrNRm25G2pbbHmn",
+      "local_path": "ai-backend/data/reference_materials/n1/35 ngày làm chủ Từ Vựng N1 新日本语能力测试35天巅峰特训(1级)文字词汇.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 25759970
+    },
+    {
+      "name": "Bộ 8 đề thi Full nâng cao năng lực toàn diện N1 新日本语能力测试高分秘籍N1全真模拟与解析(附MP3光盘1张).pdf",
+      "safe_name": "Bộ 8 đề thi Full nâng cao năng lực toàn diện N1 新日本语能力测试高分秘籍N1全真模拟与解析(附MP3光盘1张).pdf",
+      "id": "1JjZg8CbXrkx5vj704ace-O7cUrk8IcaP",
+      "local_path": "ai-backend/data/reference_materials/n1/Bộ 8 đề thi Full nâng cao năng lực toàn diện N1 新日本语能力测试高分秘籍N1全真模拟与解析(附MP3光盘1张).pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 34377297
+    },
+    {
+      "name": "Bộ 20 đề thi Từ Vựng N1 新日本语能力考试N1文字词汇强化训练.pdf",
+      "safe_name": "Bộ 20 đề thi Từ Vựng N1 新日本语能力考试N1文字词汇强化训练.pdf",
+      "id": "1_xSU8bF-LJap93Ywc0otfZRD-n3bVWAh",
+      "local_path": "ai-backend/data/reference_materials/n1/Bộ 20 đề thi Từ Vựng N1 新日本语能力考试N1文字词汇强化训练.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 16493346
+    },
+    {
+      "name": "file-lam-chi-tiet-cuon-sach-ngu-phap-n1.pdf",
+      "safe_name": "file-lam-chi-tiet-cuon-sach-ngu-phap-n1.pdf",
+      "id": "1OT-MsglcQvmiYyExywcgPsktalj4X1s5",
+      "local_path": "ai-backend/data/reference_materials/n1/file-lam-chi-tiet-cuon-sach-ngu-phap-n1.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 13340221
+    },
+    {
+      "name": "Tổng hợp 99 mẫu ngữ pháp N1.pdf",
+      "safe_name": "Tổng hợp 99 mẫu ngữ pháp N1.pdf",
+      "id": "19ig4Gm52TaHnj8u36nW1PCDhzrszd1Mn",
+      "local_path": "ai-backend/data/reference_materials/n1/Tổng hợp 99 mẫu ngữ pháp N1.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 949528
+    },
+    {
+      "name": "漢字マスターN1.pdf",
+      "safe_name": "漢字マスターN1.pdf",
+      "id": "1IIrbbxAQ8RHRHAUIjmbzqOGKKCN1jS_H",
+      "local_path": "ai-backend/data/reference_materials/n1/漢字マスターN1.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 54408250
+    }
+  ],
+  "Kaiwa": [
+    {
+      "name": "Modified 26 thg 7, 2023",
+      "safe_name": "Modified 26 thg 7, 2023.pdf",
+      "id": "19S_PXQfmKv2zbe2XK8DyBQCDYz-woqbG",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/Modified 26 thg 7, 2023.pdf",
+      "file_type": "pdf",
+      "success": false,
+      "size_bytes": 0
+    },
+    {
+      "name": "48_Hoi Thoai_cung nhau hoc tieng Nhat NHK.pdf",
+      "safe_name": "48_Hoi Thoai_cung nhau hoc tieng Nhat NHK.pdf",
+      "id": "1OPIJzhhHRzOyQUYc8C3EOAIhsiefacci",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/48_Hoi Thoai_cung nhau hoc tieng Nhat NHK.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 9952775
+    },
+    {
+      "name": "200 câu giao tiếp tiếng nhật thông dụng nhất",
+      "safe_name": "200 câu giao tiếp tiếng nhật thông dụng nhất.pdf",
+      "id": "1zcCOYR4ugPPuPOd9MqtH5v5U5ls-tiAP",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/200 câu giao tiếp tiếng nhật thông dụng nhất.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 768869
+    },
+    {
+      "name": "Kaiwa SC1-irodori.pdf",
+      "safe_name": "Kaiwa SC1-irodori.pdf",
+      "id": "1HgP9xjsWYaub1mbptSp2QD3CLGrhOM8p",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/Kaiwa SC1-irodori.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 82653688
+    },
+    {
+      "name": "Kaiwa SC1-irodori.pdf",
+      "safe_name": "Kaiwa SC1-irodori.pdf",
+      "id": "1tFApGKojQ6hzBIXOrM12qZnUVHdVAFWl",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/Kaiwa SC1-irodori.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 82653688
+    },
+    {
+      "name": "SC2_full_06142022.pdf",
+      "safe_name": "SC2_full_06142022.pdf",
+      "id": "137X9CbTSW7IehEasH-Z_I6NH331JzaWl",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/SC2_full_06142022.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 42464518
+    },
+    {
+      "name": "SC2_full_06142022.pdf",
+      "safe_name": "SC2_full_06142022.pdf",
+      "id": "17jrBrO5-N40Cwb3_81JEIQJdWk4v7q__",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/SC2_full_06142022.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 42464518
+    },
+    {
+      "name": "Tổng hợp 100 mẫu câu Kaiwa thông dụng. Hà Tuyền.pdf",
+      "safe_name": "Tổng hợp 100 mẫu câu Kaiwa thông dụng. Hà Tuyền.pdf",
+      "id": "1IkC-AHTIEYMY1eSG41DoZmReIi_d_CJA",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/Tổng hợp 100 mẫu câu Kaiwa thông dụng. Hà Tuyền.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 542868
+    },
+    {
+      "name": "シャドウイング 日本語を話そう初_中級.pdf",
+      "safe_name": "シャドウイング 日本語を話そう初_中級.pdf",
+      "id": "1e8qmlYz2Ed3PXzyXdLApxehFYWSslT3O",
+      "local_path": "ai-backend/data/reference_materials/kaiwa/シャドウイング 日本語を話そう初_中級.pdf",
+      "file_type": "pdf",
+      "success": true,
+      "size_bytes": 55759899
+    }
+  ]
+}

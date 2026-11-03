@@ -1,15 +1,25 @@
+import os
+import re
 import uuid
+import json
 import logging
+from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from pydantic import BaseModel, Field, HttpUrl, validator
+from fastapi.responses import FileResponse, RedirectResponse
+from pydantic import BaseModel, Field, validator
 
 from src.core.security import get_optional_current_user
 from src.db import query_one, query_all, execute_commit
+from src.services.rag_exam_service import RagExamService
 
 logger = logging.getLogger("exams_api")
 
 exams_router = APIRouter(prefix="/exams", tags=["Exam Management & Reference Materials"])
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+DATA_DIR = BASE_DIR / "ai-backend" / "data"
+MATERIALS_DIR = DATA_DIR / "reference_materials"
 
 VALID_LEVELS = {"N5", "N4", "N3", "N2", "N1", "KAIWA", "GENERAL"}
 VALID_MATERIAL_CATEGORIES = {
@@ -80,8 +90,8 @@ class ExamCreateRequest(BaseModel):
 
     @validator("drive_folder_url")
     def validate_drive_url(cls, v):
-        if v and not v.startswith("https://"):
-            raise ValueError("Đường dẫn liên kết phải sử dụng giao thức HTTPS bảo mật")
+        if v and not v.startswith("https://") and not v.startswith("/"):
+            raise ValueError("Đường dẫn liên kết phải sử dụng giao thức HTTPS bảo mật hoặc đường dẫn nội bộ")
         return v
 
 class ExamUpdateRequest(BaseModel):
@@ -136,10 +146,14 @@ class ReferenceMaterialItem(BaseModel):
     source_type: str
     external_url: str
     author: Optional[str] = None
-    file_type: str = "folder"
+    file_type: str = "pdf"
     tags: Optional[str] = None
     is_pinned: bool = False
     is_system_preset: bool = True
+    is_local_available: bool = True
+    size_display: Optional[str] = None
+    view_url: Optional[str] = None
+    download_url: Optional[str] = None
     user_id: Optional[str] = "system"
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -153,10 +167,10 @@ class ReferenceMaterialCreateRequest(BaseModel):
     description: Optional[str] = Field(default=None, max_length=1000)
     category: str = Field(...)
     level: Optional[str] = Field(default="ALL")
-    source_type: Optional[str] = Field(default="GOOGLE_DRIVE")
+    source_type: Optional[str] = Field(default="LOCAL_FILE")
     external_url: str = Field(..., max_length=1000)
     author: Optional[str] = Field(default=None, max_length=100)
-    file_type: Optional[str] = Field(default="folder")
+    file_type: Optional[str] = Field(default="pdf")
     tags: Optional[str] = Field(default=None, max_length=255)
     is_pinned: Optional[bool] = False
 
@@ -169,12 +183,43 @@ class ReferenceMaterialCreateRequest(BaseModel):
 
     @validator("external_url")
     def validate_url(cls, v):
-        if not v.startswith("https://"):
-            raise ValueError("Đường dẫn liên kết phải sử dụng giao thức HTTPS bảo mật")
+        if not v.startswith("https://") and not v.startswith("/"):
+            raise ValueError("Đường dẫn liên kết phải sử dụng giao thức HTTPS bảo mật hoặc đường dẫn nội bộ")
         return v
 
 # ==============================================================================
-# REFERENCE MATERIALS ENDPOINTS (OP-061, OP-062)
+# HELPER: RESOLVE LOCAL MATERIAL FILE
+# ==============================================================================
+
+def resolve_material_file(mat_id: str) -> Optional[Path]:
+    """Find local physical file on server matching the given material id."""
+    manifest_path = DATA_DIR / "download_manifest.json"
+    if manifest_path.exists():
+        try:
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                manifest = json.load(f)
+            for lvl, items in manifest.items():
+                for item in items:
+                    safe_name = item.get("safe_name", "")
+                    stem = Path(safe_name).stem
+                    candidate_id = f"loc_{lvl.lower()}_{re.sub(r'[^a-zA-Z0-9]', '_', stem)[:28].strip('_').lower()}"
+                    if candidate_id == mat_id or mat_id.replace("mat_", "") in candidate_id:
+                        p = BASE_DIR / item.get("local_path", "")
+                        if p.exists() and p.is_file():
+                            return p
+        except Exception as e:
+            logger.warning(f"Error reading manifest: {e}")
+
+    # Fallback search inside MATERIALS_DIR
+    if MATERIALS_DIR.exists():
+        for p in MATERIALS_DIR.rglob("*.pdf"):
+            if mat_id in p.name.lower() or p.stem[:20].lower() in mat_id:
+                return p
+
+    return None
+
+# ==============================================================================
+# REFERENCE MATERIALS ENDPOINTS (OP-061, OP-062, LOCAL SERVING & RAG)
 # ==============================================================================
 
 @exams_router.get("/materials", response_model=ReferenceMaterialListResponse)
@@ -185,6 +230,7 @@ async def list_reference_materials(
 ):
     """
     List reference materials across JLPT N5..N1, Kaiwa, Tae Kim Grammar, and Dictionaries.
+    Prioritizes locally downloaded files for direct in-browser access and offline study.
     """
     sql = "SELECT * FROM reference_materials WHERE 1=1"
     params = []
@@ -205,28 +251,94 @@ async def list_reference_materials(
     sql += " ORDER BY is_pinned DESC, created_at ASC"
     rows = query_all(sql, tuple(params))
 
-    items = [
-        ReferenceMaterialItem(
-            id=r["id"],
-            title=r["title"],
-            description=r.get("description"),
-            category=r["category"],
-            level=r["level"] or "ALL",
-            source_type=r["source_type"] or "GOOGLE_DRIVE",
-            external_url=r["external_url"],
-            author=r.get("author"),
-            file_type=r.get("file_type") or "folder",
-            tags=r.get("tags"),
-            is_pinned=bool(r.get("is_pinned", 0)),
-            is_system_preset=bool(r.get("is_system_preset", 1)),
-            user_id=r.get("user_id", "system"),
-            created_at=str(r.get("created_at") or ""),
-            updated_at=str(r.get("updated_at") or "")
+    items = []
+    for r in rows:
+        mat_id = r["id"]
+        source_type = r.get("source_type") or "LOCAL_FILE"
+        view_url = f"/api/v1/exams/materials/view/{mat_id}" if source_type == "LOCAL_FILE" else r["external_url"]
+        download_url = f"/api/v1/exams/materials/download/{mat_id}" if source_type == "LOCAL_FILE" else r["external_url"]
+
+        items.append(
+            ReferenceMaterialItem(
+                id=mat_id,
+                title=r["title"],
+                description=r.get("description"),
+                category=r["category"],
+                level=r["level"] or "ALL",
+                source_type=source_type,
+                external_url=r["external_url"],
+                author=r.get("author") or "Kho học liệu tiếng Nhật ChatJPT",
+                file_type=r.get("file_type") or "pdf",
+                tags=r.get("tags"),
+                is_pinned=bool(r.get("is_pinned", 0)),
+                is_system_preset=bool(r.get("is_system_preset", 1)),
+                is_local_available=True,
+                size_display=r.get("description", "").split('(')[-1].split(')')[0] if '(' in r.get("description", "") else "Tài liệu",
+                view_url=view_url,
+                download_url=download_url,
+                user_id=r.get("user_id", "system"),
+                created_at=str(r.get("created_at") or ""),
+                updated_at=str(r.get("updated_at") or "")
+            )
         )
-        for r in rows
-    ]
 
     return ReferenceMaterialListResponse(total=len(items), items=items)
+
+@exams_router.get("/materials/view/{material_id}")
+async def view_reference_material(material_id: str):
+    """
+    Stream the local PDF or document file inline to the browser for in-app reading without leaving the website.
+    """
+    file_path = resolve_material_file(material_id)
+    if not file_path or not file_path.exists():
+        # Check database for external link fallback
+        row = query_one("SELECT external_url FROM reference_materials WHERE id = ?", (material_id,))
+        if row and row.get("external_url") and row["external_url"].startswith("http"):
+            return RedirectResponse(url=row["external_url"])
+        raise HTTPException(status_code=404, detail="Không tìm thấy tệp tài liệu nội bộ")
+
+    return FileResponse(
+        path=str(file_path),
+        media_type="application/pdf",
+        filename=file_path.name,
+        headers={"Content-Disposition": f'inline; filename="{file_path.name}"'}
+    )
+
+@exams_router.get("/materials/download/{material_id}")
+async def download_reference_material(material_id: str):
+    """
+    Download the local PDF or document file to user computer.
+    """
+    file_path = resolve_material_file(material_id)
+    if not file_path or not file_path.exists():
+        row = query_one("SELECT external_url FROM reference_materials WHERE id = ?", (material_id,))
+        if row and row.get("external_url") and row["external_url"].startswith("http"):
+            return RedirectResponse(url=row["external_url"])
+        raise HTTPException(status_code=404, detail="Không tìm thấy tệp tài liệu để tải về")
+
+    return FileResponse(
+        path=str(file_path),
+        media_type="application/octet-stream",
+        filename=file_path.name,
+        headers={"Content-Disposition": f'attachment; filename="{file_path.name}"'}
+    )
+
+@exams_router.get("/rag/search")
+async def search_rag_knowledge(
+    query: str = Query("", description="Từ khóa ngữ pháp, từ vựng hoặc dạng bài cần tra cứu"),
+    level: Optional[str] = Query(None, description="Cấp độ JLPT N5..N1 hoặc KAIWA"),
+    limit: int = Query(6, ge=1, le=20)
+):
+    """
+    Search pedagogical knowledge base and study guides extracted from local materials.
+    """
+    results = RagExamService.search_rag(query=query, level=level, limit=limit)
+    return {
+        "query": query,
+        "level": level or "ALL",
+        "total": len(results),
+        "results": results
+    }
 
 @exams_router.post("/materials", response_model=ReferenceMaterialItem, status_code=status.HTTP_201_CREATED)
 async def create_reference_material(
@@ -247,8 +359,8 @@ async def create_reference_material(
     """
     execute_commit(sql, (
         mat_id, payload.title, payload.description, payload.category,
-        payload.level or "ALL", payload.source_type or "GOOGLE_DRIVE",
-        payload.external_url, payload.author, payload.file_type or "folder",
+        payload.level or "ALL", payload.source_type or "LOCAL_FILE",
+        payload.external_url, payload.author, payload.file_type or "pdf",
         payload.tags, 1 if payload.is_pinned else 0, user_id
     ))
 
@@ -259,13 +371,16 @@ async def create_reference_material(
         description=created.get("description"),
         category=created["category"],
         level=created["level"] or "ALL",
-        source_type=created["source_type"] or "GOOGLE_DRIVE",
+        source_type=created["source_type"] or "LOCAL_FILE",
         external_url=created["external_url"],
         author=created.get("author"),
-        file_type=created.get("file_type") or "folder",
+        file_type=created.get("file_type") or "pdf",
         tags=created.get("tags"),
         is_pinned=bool(created.get("is_pinned", 0)),
         is_system_preset=False,
+        is_local_available=True,
+        view_url=f"/api/v1/exams/materials/view/{mat_id}",
+        download_url=f"/api/v1/exams/materials/download/{mat_id}",
         user_id=user_id,
         created_at=str(created.get("created_at") or ""),
         updated_at=str(created.get("updated_at") or "")

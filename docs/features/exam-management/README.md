@@ -14,3 +14,4 @@ Thư mục tài liệu kỹ thuật chuẩn mực cho phân hệ Quản Lý Kho 
 - `08-security-and-risk-review.md`: Đánh giá an toàn thông tin và chống gian lận đề thi.
 - `09-test-plan-and-test-cases.md`: Kế hoạch kiểm thử và ma trận ca kiểm thử (`TC-EXAM-001` .. `TC-EXAM-006`).
 - `10-open-questions-and-implementation-readiness.md`: Câu hỏi mở và danh sách kiểm tra sẵn sàng.
+

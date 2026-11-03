@@ -3,6 +3,7 @@ import {
   ExamDetail,
   ExamSubmissionResult,
   ReferenceMaterialItem,
+  RagSearchResponse,
 } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1';
@@ -146,6 +147,26 @@ export class ExamService {
   }
 
   /**
+   * Search RAG pedagogical knowledge base.
+   */
+  static async searchRag(query: string, level?: string): Promise<RagSearchResponse> {
+    const q = new URLSearchParams();
+    if (query) q.set('query', query);
+    if (level && level !== 'ALL') q.set('level', level);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    const res = await fetch(`${BASE_URL}/exams/rag/search${qs}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Không thể tra cứu tri thức');
+    }
+    return res.json();
+  }
+
+  /**
    * Add new reference material link.
    */
   static async createReferenceMaterial(
@@ -164,3 +185,4 @@ export class ExamService {
     return res.json();
   }
 }
+
