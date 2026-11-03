@@ -1,3 +1,4 @@
+import { VoiceService } from '@/services/voiceService';
 /**
  * Japanese Interlinear Parsing & Romaji Utilities
  * Handles Furigana, Ruby annotations, Unified Grammar Highlights, and Hepburn Romaji.
@@ -299,9 +300,8 @@ export function isPredominantlyJapanese(text: string): boolean {
 /**
  * Speak text in Japanese using native browser Web Speech API
  */
-export function speakJapaneseSpeech(text: string): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
+export function speakJapaneseSpeech(text: string, voiceId?: string): void {
+  if (typeof window === 'undefined') return;
   const clean = text
     .replace(/<[^>]*>/g, '')
     .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
@@ -310,10 +310,27 @@ export function speakJapaneseSpeech(text: string): void {
     .trim();
   if (!clean) return;
 
-  const utterance = new SpeechSynthesisUtterance(clean);
-  utterance.lang = 'ja-JP';
-  utterance.rate = 0.9;
-  window.speechSynthesis.speak(utterance);
+  // Resolve voice ID from parameter or active Sensei in localStorage
+  let targetVoice = voiceId;
+  if (!targetVoice) {
+    const senseiId = localStorage.getItem('ai_chan_selected_sensei');
+    if (senseiId === 'sensei_kenji_n4') targetVoice = 'voice_kuronotake_normal';
+    else if (senseiId === 'sensei_aoi_n3') targetVoice = 'voice_amehare_hau_normal';
+    else if (senseiId === 'sensei_ryu_n2') targetVoice = 'voice_aoyama_ryusei_normal';
+    else if (senseiId === 'sensei_yuki_n1') targetVoice = 'voice_goki_normal';
+    else targetVoice = 'voice_kasukabe_tsumugi';
+  }
+
+  VoiceService.playJapaneseSpeech(clean, targetVoice).catch(err => {
+    console.warn('VoiceVox playback failed, falling back to Web Speech:', err);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  });
 }
 
 /**

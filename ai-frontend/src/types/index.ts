@@ -155,6 +155,7 @@ export interface SystemPromptCreateRequest {
   catchphrase?: string | null;
   hobbies?: string | null;
   avatar_url?: string | null;
+  voice_id?: string | null;
   is_default?: boolean;
 }
 
@@ -170,6 +171,7 @@ export interface SystemPromptUpdateRequest {
   catchphrase?: string | null;
   hobbies?: string | null;
   avatar_url?: string | null;
+  voice_id?: string | null;
   is_default?: boolean;
 }
 
@@ -191,6 +193,7 @@ export interface SystemPromptSummary {
   catchphrase?: string | null;
   hobbies?: string | null;
   avatar_url?: string | null;
+  voice_id?: string | null;
   is_default: boolean;
   is_system_preset?: boolean;
   created_at: string;
@@ -212,3 +215,46 @@ export type SenseiSummary = SystemPromptSummary;
 export type SenseiDetail = SystemPromptDetail;
 export type SenseiCreateRequest = SystemPromptCreateRequest;
 export type SenseiUpdateRequest = SystemPromptUpdateRequest;
+
+export interface VoiceItem {
+  id: string;
+  name: string;
+  character_name: string;
+  speaker_id: number;
+  style_name?: string;
+  gender: 'female' | 'male' | 'other' | string;
+  description?: string | null;
+  speed_scale: number;
+  pitch_scale: number;
+  intonation_scale: number;
+  volume_scale: number;
+  sample_text?: string | null;
+  avatar_url?: string | null;
+  status: 'ACTIVE' | 'INACTIVE' | string;
+  is_system_preset?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface VoiceEngineStatus {
+  engine_available: boolean;
+  engine_url: string;
+  version?: string | null;
+  latency_ms?: number | null;
+  cached_audio_count: number;
+  error?: string | null;
+}
+
+export interface VoiceListResponse {
+  total: number;
+  items: VoiceItem[];
+}
+
+export interface VoiceSynthesizeRequest {
+  text: string;
+  speaker_id?: number;
+  speed_scale?: number;
+  pitch_scale?: number;
+  intonation_scale?: number;
+  volume_scale?: number;
+}

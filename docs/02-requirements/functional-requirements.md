@@ -1427,3 +1427,49 @@
 - **Độ Ưu Tiên**: `MUST`.
 - **Trạng Thái**: `IMPLEMENTED`.
 - **Phụ Thuộc (Dependencies)**: `FR-067`, `FR-013`.
+
+## FR-069: Danh Mục Giọng Đọc Nhân Vật VoiceVox & Bộ Lọc Nâng Cao (VoiceVox Character Voice Catalog & Filtering)
+- **Mã Yêu Cầu**: `FR-069`
+- **Tên Yêu Cầu**: Danh Mục Giọng Đọc Nhân Vật VoiceVox & Bộ Lọc Nâng Cao (VoiceVox Character Voice Catalog & Filtering).
+- **Mô Tả**: Cung cấp giao diện và API quản lý danh mục tất cả nhân vật giọng đọc VoiceVox (Kasukabe Tsumugi, Shikoku Metan, Zundamon, Kuronotake, Aoyama Ryusei, v.v.), hỗ trợ tìm kiếm và lọc đa thuộc tính theo giới tính, phong cách phát âm và trạng thái hoạt động.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User), `ACT-03` (System Admin).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-064`, `BR-040`.
+
+## FR-070: Tùy Chỉnh Thông Số Âm Học Giọng Đọc (Voice Customization & Acoustic Parameter Tuning)
+- **Mã Yêu Cầu**: `FR-070`
+- **Tên Yêu Cầu**: Tùy Chỉnh Thông Số Âm Học Giọng Đọc (Voice Customization & Acoustic Parameter Tuning).
+- **Mô Tả**: Cho phép người dùng tùy chỉnh chi tiết các tham số âm học của từng nhân vật bao gồm: Tốc độ phát âm (Speed Scale: 0.5 - 2.0), Cao độ giọng (Pitch Scale: -0.15 - 0.15), Ngữ điệu luyến láy (Intonation Scale: 0.0 - 2.0) và Âm lượng (Volume Scale: 0.0 - 2.0) kèm câu thoại mẫu phát âm thử.
+- **Tác Nhân (Actor)**: `ACT-02` (Registered User), `ACT-03` (System Admin).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-069`, `BR-040`, `SEC-015`.
+
+## FR-071: Tổng Hợp Âm Thanh & Nghe Thử Trực Quan (Voice Audio Preview & TTS Synthesis Pipeline)
+- **Mã Yêu Cầu**: `FR-071`
+- **Tên Yêu Cầu**: Tổng Hợp Âm Thanh & Nghe Thử Trực Quan (Voice Audio Preview & TTS Synthesis Pipeline).
+- **Mô Tả**: Triển khai đường ống tổng hợp âm thanh giọng đọc tiếng Nhật dựa trên VoiceVox Engine, tích hợp bộ nhớ đệm nhị phân LRU Cache tăng tốc và cơ chế suy giảm chất lượng linh hoạt (Graceful Degradation / Acoustic Fallback) khi engine ngoại tuyến.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-069`, `BR-042`.
+
+## FR-072: Gán Giọng Nói Tùy Ý Cho Từng Sensei (Sensei Persona Voice Binding & Selection)
+- **Mã Yêu Cầu**: `FR-072`
+- **Tên Yêu Cầu**: Gán Giọng Nói Tùy Ý Cho Từng Sensei (Sensei Persona Voice Binding & Selection).
+- **Mô Tả**: Cho phép mỗi Sensei trong danh sách Sensei Guidance (`system_prompts`) được chọn và gán một giọng nói nhân vật bất kỳ từ danh mục voice. Cung cấp bộ chọn trực quan kèm hình đại diện và nút nghe thử nhanh mẫu giọng.
+- **Tác Nhân (Actor)**: `ACT-02` (Registered User), `ACT-03` (System Admin).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-064`, `FR-069`, `BR-041`.
+
+## FR-073: Tương Tác Phát Âm Hội Thoại Kaiwa Qua Giọng Sensei (Interactive Japanese Kaiwa Voice Playback via Assigned Sensei Voice)
+- **Mã Yêu Cầu**: `FR-073`
+- **Tên Yêu Cầu**: Tương Tác Phát Âm Hội Thoại Kaiwa Qua Giọng Sensei (Interactive Japanese Kaiwa Voice Playback via Assigned Sensei Voice).
+- **Mô Tả**: Tích hợp nút loa phát âm trong hội thoại chat, khi người học nhấn nút phát âm, hệ thống tự động sử dụng giọng đọc VoiceVox của Sensei đang trò chuyện để phát âm thanh câu trả lời một cách chân thực và sống động.
+- **Tác Nhân (Actor)**: `ACT-01` (Guest), `ACT-02` (Registered User).
+- **Độ Ưu Tiên**: `MUST`.
+- **Trạng Thái**: `IMPLEMENTED`.
+- **Phụ Thuộc (Dependencies)**: `FR-068`, `FR-071`, `FR-072`.
+

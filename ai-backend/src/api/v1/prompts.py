@@ -75,6 +75,11 @@ class SystemPromptCreateRequest(BaseModel):
         max_length=500,
         description="Ảnh đại diện Sensei (Avatar URL)"
     )
+    voice_id: Optional[str] = Field(
+        default=None,
+        max_length=50,
+        description="Mã giọng nói VoiceVox gán cho Sensei (FK -> voices.id)"
+    )
     is_default: Optional[bool] = Field(
         default=False,
         description="Đặt làm Sensei mặc định đồng hành"
@@ -117,6 +122,7 @@ class SystemPromptUpdateRequest(BaseModel):
     catchphrase: Optional[str] = Field(default=None, max_length=255)
     hobbies: Optional[str] = Field(default=None, max_length=255)
     avatar_url: Optional[str] = Field(default=None, max_length=500)
+    voice_id: Optional[str] = Field(default=None, max_length=50)
     is_default: Optional[bool] = Field(default=False)
 
     @field_validator("name")
@@ -148,6 +154,7 @@ class SystemPromptSummaryResponse(BaseModel):
     catchphrase: Optional[str] = None
     hobbies: Optional[str] = None
     avatar_url: Optional[str] = None
+    voice_id: Optional[str] = None
     is_default: bool = False
     is_system_preset: bool = False
     created_at: str
@@ -173,6 +180,7 @@ class SystemPromptDetailResponse(BaseModel):
     catchphrase: Optional[str] = None
     hobbies: Optional[str] = None
     avatar_url: Optional[str] = None
+    voice_id: Optional[str] = None
     is_default: bool = False
     is_system_preset: bool = False
     attachments: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
@@ -221,7 +229,7 @@ async def list_system_prompts(
     sql = f"""
         SELECT id, name, description, LENGTH(content) AS content_length,
                age, gender, japanese_level, personality, teaching_style, catchphrase,
-               hobbies, avatar_url, is_default, is_system_preset, created_at, updated_at
+               hobbies, avatar_url, voice_id, is_default, is_system_preset, created_at, updated_at
         FROM system_prompts
         WHERE {where_clause}
         ORDER BY {order_by}
@@ -242,6 +250,7 @@ async def list_system_prompts(
             catchphrase=r.get("catchphrase"),
             hobbies=r.get("hobbies"),
             avatar_url=r.get("avatar_url") or f"https://api.dicebear.com/7.x/bottts/svg?seed={r['id']}",
+            voice_id=r.get("voice_id"),
             is_default=bool(r.get("is_default", 0)),
             is_system_preset=bool(r.get("is_system_preset", 0)),
             created_at=str(r.get("created_at")),
@@ -288,14 +297,14 @@ async def create_system_prompt(
         INSERT INTO system_prompts (
             id, user_id, name, description, content, age, gender, japanese_level,
             personality, teaching_style, catchphrase, hobbies, avatar_url,
-            is_default, is_system_preset, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
+            voice_id, is_default, is_system_preset, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
         """,
         (
             prompt_id, user_id, name, payload.description, payload.content,
             payload.age or 25, payload.gender or "female", payload.japanese_level or "N5",
             payload.personality, payload.teaching_style, payload.catchphrase,
-            payload.hobbies, avatar, int(bool(payload.is_default))
+            payload.hobbies, avatar, payload.voice_id, int(bool(payload.is_default))
         )
     )
 
@@ -325,6 +334,7 @@ async def create_system_prompt(
         catchphrase=row.get("catchphrase"),
         hobbies=row.get("hobbies"),
         avatar_url=row.get("avatar_url") or avatar,
+        voice_id=row.get("voice_id"),
         is_default=bool(row.get("is_default", 0)),
         is_system_preset=bool(row.get("is_system_preset", 0)),
         created_at=str(row.get("created_at")),
@@ -372,6 +382,7 @@ async def get_system_prompt_detail(
         catchphrase=row.get("catchphrase"),
         hobbies=row.get("hobbies"),
         avatar_url=row.get("avatar_url") or f"https://api.dicebear.com/7.x/bottts/svg?seed={row['id']}",
+        voice_id=row.get("voice_id"),
         is_default=bool(row.get("is_default", 0)),
         is_system_preset=bool(row.get("is_system_preset", 0)),
         attachments=atts,
@@ -423,8 +434,8 @@ async def update_system_prompt(
             INSERT INTO system_prompts (
                 id, user_id, name, description, content, age, gender, japanese_level,
                 personality, teaching_style, catchphrase, hobbies, avatar_url,
-                is_default, is_system_preset, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
+                voice_id, is_default, is_system_preset, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
             """,
             (
                 target_id, user_id, name, payload.description, payload.content,
@@ -433,16 +444,18 @@ async def update_system_prompt(
                 payload.japanese_level or existing.get("japanese_level", "N5"),
                 payload.personality, payload.teaching_style, payload.catchphrase,
                 payload.hobbies, payload.avatar_url or existing.get("avatar_url"),
+                payload.voice_id or existing.get("voice_id"),
                 int(bool(payload.is_default))
             )
         )
     else:
+        voice_to_set = payload.voice_id if payload.voice_id is not None else existing.get("voice_id")
         execute_commit(
             """
             UPDATE system_prompts
             SET name = ?, description = ?, content = ?, age = ?, gender = ?,
                 japanese_level = ?, personality = ?, teaching_style = ?,
-                catchphrase = ?, hobbies = ?, avatar_url = ?, is_default = ?,
+                catchphrase = ?, hobbies = ?, avatar_url = ?, voice_id = ?, is_default = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND user_id = ?
             """,
@@ -451,7 +464,7 @@ async def update_system_prompt(
                 payload.age or 25, payload.gender or "female",
                 payload.japanese_level or "N5", payload.personality,
                 payload.teaching_style, payload.catchphrase, payload.hobbies,
-                payload.avatar_url, int(bool(payload.is_default)),
+                payload.avatar_url, voice_to_set, int(bool(payload.is_default)),
                 target_id, user_id
             )
         )
@@ -472,6 +485,7 @@ async def update_system_prompt(
         catchphrase=row.get("catchphrase"),
         hobbies=row.get("hobbies"),
         avatar_url=row.get("avatar_url"),
+        voice_id=row.get("voice_id"),
         is_default=bool(row.get("is_default", 0)),
         is_system_preset=bool(row.get("is_system_preset", 0)),
         created_at=str(row.get("created_at")),
@@ -551,15 +565,15 @@ async def clone_system_prompt(
         INSERT INTO system_prompts (
             id, user_id, name, description, content, age, gender, japanese_level,
             personality, teaching_style, catchphrase, hobbies, avatar_url,
-            is_default, is_system_preset, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, CURRENT_TIMESTAMP)
+            voice_id, is_default, is_system_preset, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, CURRENT_TIMESTAMP)
         """,
         (
             new_id, user_id, clone_name, origin.get("description"), origin["content"],
             origin.get("age", 25), origin.get("gender", "female"),
             origin.get("japanese_level", "N5"), origin.get("personality"),
             origin.get("teaching_style"), origin.get("catchphrase"),
-            origin.get("hobbies"), origin.get("avatar_url")
+            origin.get("hobbies"), origin.get("avatar_url"), origin.get("voice_id")
         )
     )
 
@@ -579,6 +593,7 @@ async def clone_system_prompt(
         catchphrase=row.get("catchphrase"),
         hobbies=row.get("hobbies"),
         avatar_url=row.get("avatar_url"),
+        voice_id=row.get("voice_id"),
         is_default=bool(row.get("is_default", 0)),
         is_system_preset=False,
         created_at=str(row.get("created_at")),

@@ -324,3 +324,62 @@ apis:
     source_refs:
     - FR-062
     - FR-063
+  - id: OP-047
+    method: GET
+    path: /voices
+    summary: List all VoiceVox character voices with filtering by gender, style, and status
+    use_case: UC-042
+    source_refs:
+    - FR-069
+  - id: OP-048
+    method: GET
+    path: /voices/{id}
+    summary: Retrieve detailed voice character configuration, speaker ID, and acoustic parameters
+    use_case: UC-042
+    source_refs:
+    - FR-069
+    - FR-070
+  - id: OP-049
+    method: GET
+    path: /voices/status
+    summary: Check VoiceVox local engine connectivity, version, and latency
+    use_case: UC-043
+    source_refs:
+    - FR-071
+  - id: OP-050
+    method: POST
+    path: /voices
+    summary: Create a custom VoiceVox voice profile with custom acoustic parameters
+    use_case: UC-042
+    source_refs:
+    - FR-070
+  - id: OP-051
+    method: PUT
+    path: /voices/{id}
+    summary: Update voice profile acoustic parameters (speed, pitch, intonation, volume)
+    use_case: UC-042
+    source_refs:
+    - FR-070
+  - id: OP-052
+    method: DELETE
+    path: /voices/{id}
+    summary: Deactivate or soft-delete a custom voice profile
+    use_case: UC-042
+    source_refs:
+    - FR-070
+  - id: OP-053
+    method: POST
+    path: /voices/synthesize
+    summary: Synthesize Japanese text to speech audio WAV using VoiceVox or acoustic fallback
+    use_case: UC-043
+    source_refs:
+    - FR-071
+    - FR-073
+  - id: OP-054
+    method: POST
+    path: /voices/{id}/synthesize
+    summary: Synthesize Japanese text to speech audio WAV using specific voice profile parameters
+    use_case: UC-043
+    source_refs:
+    - FR-071
+    - FR-073

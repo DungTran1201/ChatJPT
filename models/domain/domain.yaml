@@ -117,6 +117,7 @@ entities:
   - catchphrase: string (signature quote / greeting)
   - hobbies: string (interests & conversational topics)
   - avatar_url: string (portrait / avatar URL)
+  - voice_id: string (FK -> Voice.id, nullable)
   - is_default: boolean (default false)
   - is_system_preset: boolean (default false, official pre-seeded senseis N5-N1)
   - created_at: timestamp
@@ -182,7 +183,34 @@ entities:
   - is_eligible: boolean
   - created_at: timestamp
   - updated_at: timestamp
+- name: Voice
+  aggregate_root: true
+  attributes:
+  - id: string (PK, voice_id e.g. voice_kasukabe_tsumugi)
+  - name: string (Display Name e.g. Kasukabe Tsumugi (Normal))
+  - character_name: string (Character Name e.g. 春日部つむぎ)
+  - speaker_id: integer (VoiceVox speaker ID)
+  - style_name: string (e.g. Normal, Joy, Angry)
+  - gender: enum(female, male, other)
+  - description: string (nullable)
+  - speed_scale: float (0.5..2.0, default 1.0)
+  - pitch_scale: float (-0.15..0.15, default 0.0)
+  - intonation_scale: float (0.0..2.0, default 1.0)
+  - volume_scale: float (0.0..2.0, default 1.0)
+  - sample_text: string (Japanese sample speech text)
+  - avatar_url: string (Character portrait URL)
+  - status: enum(ACTIVE, INACTIVE)
+  - is_system_preset: boolean (default false)
+  - user_id: string (FK -> User.id or 'system')
+  - created_at: timestamp
+  - updated_at: timestamp
 relationships:
+- from: Voice
+  to: SystemPrompt
+  type: one-to-many
+- from: User
+  to: Voice
+  type: one-to-many
 - from: EmbeddedModel
   to: AgentModel
   type: one-to-one

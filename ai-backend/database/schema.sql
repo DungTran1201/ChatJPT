@@ -195,6 +195,7 @@ CREATE TABLE IF NOT EXISTS system_prompts (
     catchphrase VARCHAR(255),
     hobbies VARCHAR(255),
     avatar_url VARCHAR(500),
+    voice_id VARCHAR(50) REFERENCES voices(id),
     is_default BOOLEAN NOT NULL DEFAULT 0,
     is_system_preset BOOLEAN NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -343,3 +344,32 @@ CREATE TABLE IF NOT EXISTS embedded_models (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- ------------------------------------------------------------------------------
+-- 13. BẢNG QUẢN LÝ GIỌNG NÓI VOICEVOX (VOICES)
+-- Bounded Context: Speech & Character Voice Context (FR-069, FR-070)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS voices (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    character_name VARCHAR(100) NOT NULL,
+    speaker_id INTEGER NOT NULL,
+    style_name VARCHAR(50) DEFAULT 'Normal',
+    gender VARCHAR(20) DEFAULT 'female' CHECK (gender IN ('female', 'male', 'other')),
+    description TEXT,
+    speed_scale REAL DEFAULT 1.0,
+    pitch_scale REAL DEFAULT 0.0,
+    intonation_scale REAL DEFAULT 1.0,
+    volume_scale REAL DEFAULT 1.0,
+    sample_text VARCHAR(255) DEFAULT 'こんにちは！日本語の勉強を一緒に頑張りましょう。',
+    avatar_url VARCHAR(500),
+    status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE')),
+    is_system_preset BOOLEAN DEFAULT 0,
+    user_id VARCHAR(36) DEFAULT 'system',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_voices_speaker_id ON voices(speaker_id);
+CREATE INDEX IF NOT EXISTS idx_voices_status ON voices(status);

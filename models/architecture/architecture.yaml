@@ -45,6 +45,14 @@ architecture:
         - "Multi-container orchestration (Docker Compose, Dockerfiles)"
         - "Reverse proxy, rate limiting, and SSL termination (Nginx)"
         - "Observability and automated environment bootstrapping"
+    - id: COMP-005
+      name: "voicevox-tts-service"
+      type: "neural-tts-service"
+      responsibilities:
+        - "VoiceVox Engine client integration (/version, /audio_query, /synthesis)"
+        - "Acoustic parameter tuning (speed, pitch, intonation, volume)"
+        - "LRU binary WAV caching and synthesis latency optimization"
+        - "Graceful degradation and acoustic fallback WAV generation for offline engine status"
   boundaries:
     - name: "client-boundary"
       scope: "Browser to Reverse Proxy / API Gateway"
@@ -66,6 +74,9 @@ architecture:
     - from: "ai-infra"
       to: "ai-backend-src"
       protocol: "Docker / Network bridge"
+    - from: "ai-backend-src"
+      to: "voicevox-tts-service"
+      protocol: "HTTP / REST (port 50021)"
   constraints:
     - "Zero credentials committed to source control"
     - "Decoupled LLM integration module from core backend business logic"
@@ -106,5 +117,6 @@ architecture:
     - id: ADR-014
       title: "End-to-End Discord Message Processing Through AI-Chan Project Graphs & Connected Models"
       status: "approved"
-
-
+    - id: ADR-015
+      title: "VoiceVox Neural TTS Character Engine Integration and Sensei Voice Binding Architecture"
+      status: "approved"

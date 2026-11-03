@@ -489,6 +489,51 @@ requirements:
   actors:
   - Registered User
   notes: 'RETIRED: Phân tách khỏi phạm vi ứng dụng web học tiếng Nhật tập trung'
+- id: FR-069
+  name: VoiceVox Character Voice Catalog & Filtering
+  type: functional
+  capability: CAP-VOICE-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - System Admin
+- id: FR-070
+  name: Voice Customization & Acoustic Parameter Tuning
+  type: functional
+  capability: CAP-VOICE-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - System Admin
+- id: FR-071
+  name: Voice Audio Preview & TTS Synthesis Pipeline
+  type: functional
+  capability: CAP-VOICE-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - System Admin
+- id: FR-072
+  name: Sensei Persona Voice Binding & Selection
+  type: functional
+  capability: CAP-VOICE-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - System Admin
+- id: FR-073
+  name: Interactive Japanese Kaiwa Voice Playback via Assigned Sensei Voice
+  type: functional
+  capability: CAP-VOICE-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
 business_rules:
 - id: BR-001
   name: Authentication Required for Stored Conversation
@@ -612,6 +657,15 @@ business_rules:
   name: Project Active Invariant for Discord Execution (Reject STOP State)
   status: RETIRED
   notes: 'RETIRED: Phân tách khỏi phạm vi ứng dụng web học tiếng Nhật tập trung'
+- id: BR-040
+  name: "Voice Parameter Bounds Sanity (Speed: 0.5-2.0, Pitch: -0.15-0.15, Intonation: 0.0-2.0, Volume: 0.0-2.0)"
+  status: BASELINED
+- id: BR-041
+  name: Sensei Voice Assignment Invariant (Must reference valid active voice or system fallback)
+  status: BASELINED
+- id: BR-042
+  name: Graceful Voice Engine Degradation & Acoustic Fallback
+  status: BASELINED
 security_requirements:
 - id: SEC-001
   name: API Key Hardening & Backend Isolation
@@ -656,6 +710,9 @@ security_requirements:
   name: Multi-Project & Conversational Memory Isolation for External Bot Executions
   status: RETIRED
   notes: 'RETIRED: Phân tách khỏi phạm vi ứng dụng web học tiếng Nhật tập trung'
+- id: SEC-015
+  name: Audio Ingress & Voice Parameter Injection Sanitization
+  status: BASELINED
 - id: FR-SKL-EXT-001
   name: External Skills Catalog Browsing and Search
   type: functional

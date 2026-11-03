@@ -43,7 +43,8 @@ export type IconName =
   | 'terminal'
   | 'tools'
   | 'rules'
-  | 'upload';
+  | 'upload'
+  | 'voice';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   name: IconName;
@@ -60,6 +61,13 @@ export default function Icon({ name, size = 16, style, ...rest }: IconProps) {
         <svg {...s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...rest}>
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
           <path d="M9 21V12h6v9" />
+        </svg>
+      );
+    case 'voice':
+      return (
+        <svg {...s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...rest}>
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
         </svg>
       );
     case 'chat':

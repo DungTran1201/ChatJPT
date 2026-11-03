@@ -16,6 +16,7 @@ interface JapaneseInterlinearViewProps {
   showRomaji?: boolean;
   showAudio?: boolean;
   isStreaming?: boolean;
+  voiceId?: string;
 }
 
 export default function JapaneseInterlinearView({
@@ -26,6 +27,7 @@ export default function JapaneseInterlinearView({
   showRomaji = true,
   showAudio = true,
   isStreaming = false,
+  voiceId,
 }: JapaneseInterlinearViewProps) {
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
 
@@ -33,7 +35,7 @@ export default function JapaneseInterlinearView({
 
   const handleSpeak = (text: string, idx: number) => {
     setPlayingIdx(idx);
-    speakJapaneseSpeech(text);
+    speakJapaneseSpeech(text, voiceId);
     setTimeout(() => setPlayingIdx(null), 2500);
   };
 

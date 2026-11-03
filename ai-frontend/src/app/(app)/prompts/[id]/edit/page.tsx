@@ -1,5 +1,8 @@
 'use client';
 
+import { VoiceService } from '@/services/voiceService';
+import { VoiceItem } from '@/types';
+
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -25,6 +28,9 @@ export default function EditSenseiPage() {
   const [age, setAge] = useState(25);
   const [gender, setGender] = useState('female');
   const [japaneseLevel, setJapaneseLevel] = useState('N5');
+  const [voiceId, setVoiceId] = useState<string>('voice_kasukabe_tsumugi');
+  const [availableVoices, setAvailableVoices] = useState<VoiceItem[]>([]);
+  const [playingTestAudio, setPlayingTestAudio] = useState(false);
   const [personality, setPersonality] = useState('');
   const [teachingStyle, setTeachingStyle] = useState('');
   const [catchphrase, setCatchphrase] = useState('');
@@ -58,6 +64,8 @@ export default function EditSenseiPage() {
         setHobbies(data.hobbies || '');
         setAvatarUrl(data.avatar_url || '');
         setIsDefault(Boolean(data.is_default));
+        if (data.voice_id) setVoiceId(data.voice_id);
+        VoiceService.getVoices().then(res => setAvailableVoices(res.items || [])).catch(() => {});
         setIsSystemPreset(Boolean(data.is_system_preset));
         setAttachments(data.attachments || []);
       } catch (err: any) {
@@ -99,6 +107,7 @@ export default function EditSenseiPage() {
         age: Number(age) || 25,
         gender: gender,
         japanese_level: japaneseLevel,
+        voice_id: voiceId || undefined,
         personality: personality.trim() || null,
         teaching_style: teachingStyle.trim() || null,
         catchphrase: catchphrase.trim() || null,
@@ -133,6 +142,22 @@ export default function EditSenseiPage() {
       </div>
     );
   }
+
+
+  const handleTestVoice = async () => {
+    if (!voiceId) return;
+    setPlayingTestAudio(true);
+    try {
+      const selected = availableVoices.find(v => v.id === voiceId);
+      const sample = selected?.sample_text || 'はじめまして、一緒に勉強しましょう！';
+      const blob = await VoiceService.synthesizeByVoiceId(voiceId, sample);
+      await VoiceService.playAudioBlob(blob);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPlayingTestAudio(false);
+    }
+  };
 
   return (
     <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
@@ -227,6 +252,51 @@ export default function EditSenseiPage() {
                 value={age}
                 onChange={e => setAge(parseInt(e.target.value, 10) || 25)}
               />
+            </div>
+
+            <div>
+              <label htmlFor="edit-voice" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                Giọng Nói VoiceVox Nhân Vật (Character Voice)
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <select
+                  id="edit-voice"
+                  className="select"
+                  value={voiceId}
+                  onChange={e => setVoiceId(e.target.value)}
+                  style={{ flex: 1 }}
+                >
+                  <option value="">-- Mặc định (Kasukabe Tsumugi) --</option>
+                  {availableVoices.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.character_name} - {v.name} ({v.gender === 'female' ? 'Nữ' : 'Nam'})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleTestVoice}
+                  disabled={playingTestAudio}
+                  title="Nghe thử giọng mẫu"
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Icon name="voice" size={14} />
+                  {playingTestAudio ? 'Đang phát...' : 'Nghe thử'}
+                </button>
+              </div>
             </div>
 
             <div>

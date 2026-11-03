@@ -1211,3 +1211,127 @@
       ]
     }
     ```
+
+## 11. Nhóm API Quản Lý Giọng Nói VoiceVox (Voice Management APIs)
+
+### 11.1 GET /api/v1/voices [OP-047]
+- **Mục đích**: Lấy danh sách hồ sơ giọng đọc của các nhân vật VoiceVox kèm bộ lọc đa thuộc tính (`FR-069`, `UC-042`).
+- **Query Parameters**:
+  - `gender` (string, optional): `female` | `male` | `other`
+  - `status` (string, optional): `ACTIVE` | `INACTIVE`
+  - `search` (string, optional): Từ khóa tìm kiếm theo tên hoặc tên nhân vật gốc.
+- **Responses**:
+  - `200 OK`:
+    ```json
+    {
+      "total": 14,
+      "items": [
+        {
+          "id": "voice_kasukabe_tsumugi",
+          "name": "Kasukabe Tsumugi (Normal)",
+          "character_name": "春日部つむぎ",
+          "speaker_id": 8,
+          "style_name": "Normal",
+          "gender": "female",
+          "description": "Giọng nữ tươi vui, trong sáng, phù hợp giao tiếp đời thường N5-N4.",
+          "speed_scale": 1.0,
+          "pitch_scale": 0.0,
+          "intonation_scale": 1.0,
+          "volume_scale": 1.0,
+          "sample_text": "こんにちは！一緒に日本語を勉強しましょう！",
+          "avatar_url": "/avatars/voices/tsumugi.png",
+          "status": "ACTIVE",
+          "is_system_preset": true
+        }
+      ]
+    }
+    ```
+
+### 11.2 GET /api/v1/voices/{id} [OP-048]
+- **Mục đích**: Lấy chi tiết thông tin và tham số âm học của một giọng đọc cụ thể (`FR-069`, `FR-070`, `UC-042`).
+- **Responses**:
+  - `200 OK`: Chi tiết cấu hình của giọng đọc.
+  - `404 Not Found`: Không tìm thấy `voice_id`.
+
+### 11.3 GET /api/v1/voices/status [OP-049]
+- **Mục đích**: Kiểm tra tình trạng kết nối tới VoiceVox Engine cục bộ (`FR-071`, `UC-043`).
+- **Responses**:
+  - `200 OK`:
+    ```json
+    {
+      "engine_available": true,
+      "engine_url": "http://127.0.0.1:50021",
+      "version": "0.14.4",
+      "latency_ms": 12.5,
+      "cached_audio_count": 42
+    }
+    ```
+
+### 11.4 POST /api/v1/voices [OP-050]
+- **Mục đích**: Tạo hồ sơ giọng đọc tùy chỉnh mới (`FR-070`, `UC-042`).
+- **Request Body**:
+  ```json
+  {
+    "name": "Tsumugi Energetic Custom",
+    "character_name": "春日部つむぎ",
+    "speaker_id": 8,
+    "style_name": "Energetic",
+    "gender": "female",
+    "speed_scale": 1.1,
+    "pitch_scale": 0.05,
+    "intonation_scale": 1.2,
+    "volume_scale": 1.0,
+    "sample_text": "今日も元気に頑張りましょう！"
+  }
+  ```
+- **Responses**:
+  - `201 Created`: Trả về thông tin giọng đọc vừa được khởi tạo.
+
+### 11.5 PUT /api/v1/voices/{id} [OP-051]
+- **Mục đích**: Cập nhật thông số âm học của giọng đọc (`FR-070`, `BR-040`, `UC-042`).
+- **Request Body**:
+  ```json
+  {
+    "name": "Kasukabe Tsumugi (Fast)",
+    "speed_scale": 1.2,
+    "pitch_scale": 0.02,
+    "intonation_scale": 1.0,
+    "volume_scale": 1.0
+  }
+  ```
+- **Responses**:
+  - `200 OK`: Cập nhật thành công.
+  - `422 Unprocessable Entity`: Giá trị tham số vượt dải an toàn (`BR-040`).
+
+### 11.6 DELETE /api/v1/voices/{id} [OP-052]
+- **Mục đích**: Xóa hoặc vô hiệu hóa giọng đọc tùy chỉnh (`FR-070`, `UC-042`).
+- **Responses**:
+  - `200 OK`: Thành công.
+  - `400 Bad Request`: Không cho phép xóa giọng mẫu hệ thống (`is_system_preset = true`).
+
+### 11.7 POST /api/v1/voices/synthesize [OP-053]
+- **Mục đích**: Tổng hợp âm thanh tiếng Nhật với speaker ID và thông số truyền trực tiếp (`FR-071`, `FR-073`, `UC-043`).
+- **Request Body**:
+  ```json
+  {
+    "text": "こんにちは！",
+    "speaker_id": 8,
+    "speed_scale": 1.0,
+    "pitch_scale": 0.0,
+    "intonation_scale": 1.0
+  }
+  ```
+- **Responses**:
+  - `200 OK`: Stream nhị phân `Content-Type: audio/wav`.
+
+### 11.8 POST /api/v1/voices/{id}/synthesize [OP-054]
+- **Mục đích**: Tổng hợp âm thanh tiếng Nhật sử dụng trực tiếp cấu hình của voice ID (`FR-071`, `FR-073`, `UC-043`).
+- **Request Body**:
+  ```json
+  {
+    "text": "はじめまして、雪と申します。"
+  }
+  ```
+- **Responses**:
+  - `200 OK`: Stream nhị phân `Content-Type: audio/wav`.
+
