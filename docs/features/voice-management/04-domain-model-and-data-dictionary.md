@@ -15,12 +15,21 @@
 | catchphrase: string               |               | style_name: string               |
 | avatar_url: string                |               | gender: enum(female,male,other)  |
 | ...                               |               | speed_scale: float               |
-+-----------------------------------+               | pitch_scale: float               |
-                                                    | intonation_scale: float          |
-                                                    | volume_scale: float              |
-                                                    | sample_text: string              |
-                                                    | status: enum(ACTIVE,INACTIVE)    |
-                                                    +----------------------------------+
++-----------------+-----------------+               | pitch_scale: float               |
+                  |                                 | intonation_scale: float          |
+                  | 1                               | volume_scale: float              |
+                  |                                 | sample_text: string              |
+                  | N                               | status: enum(ACTIVE,INACTIVE)    |
++-----------------v-----------------+               +-----------------+----------------+
+|              Message              |                                 | 1
++-----------------------------------+                                 |
+| id: UUID (PK)                     |                                 |
+| conversation_id: UUID (FK)        |                                 |
+| role: USER | ASSISTANT            |                                 |
+| content: text                     |                                 |
+| sensei_id: string (FK)            |                                 |
+| voice_id: string (FK)  <----------+---------------------------------+ N
++-----------------------------------+
 ```
 
 ---
@@ -47,3 +56,13 @@
 | `user_id` | `VARCHAR(36)` | `NULLABLE` | `'system'` | Người sở hữu bản ghi |
 | `created_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Hiện tại | Thời điểm tạo |
 | `updated_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Hiện tại | Thời điểm cập nhật |
+
+
+---
+
+## 3. Data Dictionary: Bảng messages (Mở rộng cho Voice TTS)
+
+| Tên Cột | Kiểu Dữ Liệu | Ràng Buộc | Giá Trị Mặc Định | Ý Nghĩa Nghiệp Vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| sensei_id | VARCHAR(36) | NULLABLE, INDEX | NULL | ID của Sensei tham gia hội thoại (FK -> system_prompts.id) |
+| oice_id | VARCHAR(50) | NULLABLE, INDEX | NULL | ID giọng nói VoiceVox được gán cho lượt trả lời này (FK -> oices.id) |

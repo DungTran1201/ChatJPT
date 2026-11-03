@@ -27,5 +27,5 @@
 | `FR-069` | `UC-042` | `COMP-001`, `COMP-002` | `OP-047`, `OP-048` | `Voice` | `/voices` (Grid View) | `TC-VOICE-001` |
 | `FR-070` | `UC-042` | `COMP-002`, `COMP-005` | `OP-050`, `OP-051`, `OP-052` | `Voice` | Voice Tuning Modal | `TC-VOICE-002` |
 | `FR-071` | `UC-043` | `COMP-005` | `OP-049`, `OP-053`, `OP-054` | LRU Cache | Audio Preview Widget | `TC-VOICE-003`, `TC-VOICE-005` |
-| `FR-072` | `UC-044` | `COMP-001`, `COMP-002` | `/system-prompts` (PUT/GET) | `SystemPrompt`, `Voice` | Sensei Edit Modal | `TC-VOICE-004` |
-| `FR-073` | `UC-044` | `COMP-001`, `COMP-005` | `OP-054`, Web Speech | `SystemPrompt` | Chat Speaker Button | `TC-VOICE-007` |
+| `FR-072` | `UC-044` | `COMP-001`, `COMP-002` | `/system-prompts` (PUT/GET), `OP-009` | `SystemPrompt`, `Voice`, `Message` | Sensei Edit Modal, Sensei Selector | `TC-VOICE-004` |
+| `FR-073` | `UC-044` | `COMP-001`, `COMP-005` | `OP-054`, `OP-009`, Web Speech | `SystemPrompt`, `Voice`, `Message` | Chat Speaker Button, Japanese Interlinear View | `TC-VOICE-007` |

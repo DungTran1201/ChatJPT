@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { AgentModel } from '@/types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { AgentModel, SystemPromptSummary } from '@/types';
 import { AttachmentService, AttachmentItem } from '@/services/attachmentService';
+import { SystemPromptService } from '@/services/systemPromptService';
 import { useApp } from '@/context/AppContext';
 import ChatWorkspace, { Message } from '@/components/chat/ChatWorkspace';
 import MessageComposer from '@/components/chat/MessageComposer';
@@ -25,6 +26,7 @@ export default function ChatPage() {
 
   const [activeModels, setActiveModels] = useState<AgentModel[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>('gemini-3.8-flash');
+  const [senseis, setSenseis] = useState<SystemPromptSummary[]>([]);
   const [selectedSenseiId, setSelectedSenseiId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('ai_chan_selected_sensei') || 'sensei_sakura_n5';
@@ -32,10 +34,47 @@ export default function ChatPage() {
     return 'sensei_sakura_n5';
   });
 
+  // Load Sensei catalog & maintain voice mapping
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchSenseis = async () => {
+      try {
+        const res = await SystemPromptService.getPrompts('', 'level_asc', 'ALL');
+        const list = res.items || res.prompts || [];
+        if (!isCancelled) {
+          setSenseis(list);
+          if (typeof window !== 'undefined') {
+            const map: Record<string, string> = {};
+            list.forEach(s => {
+              if (s.id && s.voice_id) map[s.id] = s.voice_id;
+            });
+            localStorage.setItem('ai_chan_sensei_voice_map', JSON.stringify(map));
+            const active = list.find(s => s.id === selectedSenseiId);
+            if (active?.voice_id) {
+              localStorage.setItem('ai_chan_selected_sensei_voice', active.voice_id);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load Senseis in chat:', err);
+      }
+    };
+    fetchSenseis();
+    return () => { isCancelled = true; };
+  }, [selectedSenseiId]);
+
+  const activeSensei = useMemo(() => {
+    return senseis.find(s => s.id === selectedSenseiId);
+  }, [senseis, selectedSenseiId]);
+
   const handleSelectSensei = (senseiId: string) => {
     setSelectedSenseiId(senseiId);
     if (typeof window !== 'undefined') {
       localStorage.setItem('ai_chan_selected_sensei', senseiId);
+      const target = senseis.find(s => s.id === senseiId);
+      if (target?.voice_id) {
+        localStorage.setItem('ai_chan_selected_sensei_voice', target.voice_id);
+      }
     }
   };
 
@@ -76,6 +115,8 @@ export default function ChatPage() {
               ...m,
               model: m.model_used || m.model,
               model_used: m.model_used || m.model,
+              sensei_id: m.sensei_id,
+              voice_id: m.voice_id,
               isStreaming: isRunning,
             };
           });
@@ -157,13 +198,17 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
   };
 
   const assistantPlaceholderId = `assistant-${Date.now()}`;
+  const currentVoiceId = activeSensei?.voice_id;
   const assistantMsgPlaceholder: Message = {
     id: assistantPlaceholderId,
     role: 'assistant',
     content: '',
     model: selectedModelId,
+    model_used: selectedModelId,
     created_at: new Date().toISOString(),
     isStreaming: true,
+    sensei_id: selectedSenseiId,
+    voice_id: currentVoiceId || undefined,
   };
 
   setMessages(prev => [...prev, userMsg, assistantMsgPlaceholder]);
@@ -241,13 +286,17 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
             if (m) {
               try {
                 const obj = JSON.parse(m[1]);
-                if (obj.model) {
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === assistantPlaceholderId
-                      ? { ...msg, model: obj.model, model_used: obj.model }
-                      : msg
-                  ));
-                }
+                setMessages(prev => prev.map(msg =>
+                  msg.id === assistantPlaceholderId
+                    ? {
+                        ...msg,
+                        model: obj.model || msg.model,
+                        model_used: obj.model || msg.model_used,
+                        sensei_id: obj.sensei_id || msg.sensei_id || selectedSenseiId,
+                        voice_id: obj.voice_id || msg.voice_id || currentVoiceId,
+                      }
+                    : msg
+                ));
               } catch { /* parse error */ }
             }
           } else if (line.includes('event: error')) {
@@ -304,6 +353,7 @@ return (
       onScroll={handleScroll}
       showScrollBottom={showScrollBottom}
       scrollToBottom={() => scrollToBottom(true)}
+      activeSenseiVoiceId={activeSensei?.voice_id || undefined}
     />
     <div style={{ padding: '0 1.5rem', flexShrink: 0 }}>
       <MessageComposer

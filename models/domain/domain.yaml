@@ -56,6 +56,8 @@ entities:
   - tokens_completion: integer
   - source: enum(WEB, DISCORD)
   - status: enum(PENDING, STREAMING, COMPLETED, ERROR, ABORTED, FAILED)
+  - sensei_id: string (FK -> SystemPrompt.id, nullable)
+  - voice_id: string (FK -> Voice.id, nullable)
   - created_at: timestamp
   - updated_at: timestamp
 - name: AgentModel
@@ -205,6 +207,12 @@ entities:
   - created_at: timestamp
   - updated_at: timestamp
 relationships:
+- from: Voice
+  to: Message
+  type: one-to-many
+- from: SystemPrompt
+  to: Message
+  type: one-to-many
 - from: Voice
   to: SystemPrompt
   type: one-to-many

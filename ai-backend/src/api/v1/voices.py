@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query, Response
 from pydantic import BaseModel, Field
 
 from src.core.security import get_optional_current_user
+from src.db import query_one
 from src.services.voicevox_service import voicevox_service
 
 logger = logging.getLogger("voices_api")
@@ -193,6 +194,12 @@ async def synthesize_adhoc(req: SynthesisRequest):
 async def synthesize_by_voice_id(id: str, req: SynthesisRequest):
     """Synthesizes Japanese text using a stored voice profile's acoustic parameters (OP-054, FR-071, FR-073)."""
     voice = voicevox_service.get_voice(id)
+    if not voice:
+        # Check if id is a sensei_id (system_prompts.id)
+        sensei = query_one("SELECT voice_id FROM system_prompts WHERE id = ?", (id,))
+        if sensei and sensei.get("voice_id"):
+            voice = voicevox_service.get_voice(sensei["voice_id"])
+
     if not voice:
         # Fallback to default speaker 8 (Kasukabe Tsumugi) if voice not found
         speaker_id = 8

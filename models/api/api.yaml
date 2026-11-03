@@ -378,8 +378,9 @@ apis:
   - id: OP-054
     method: POST
     path: /voices/{id}/synthesize
-    summary: Synthesize Japanese text to speech audio WAV using specific voice profile parameters
+    summary: Synthesize Japanese text to speech audio WAV using specific voice profile or dynamic sensei ID resolution
     use_case: UC-043
     source_refs:
     - FR-071
+    - FR-072
     - FR-073

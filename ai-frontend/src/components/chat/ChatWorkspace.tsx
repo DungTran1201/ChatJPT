@@ -19,6 +19,8 @@ export interface Message {
   created_at?: string;
   isStreaming?: boolean;
   attachments?: AttachmentItem[];
+  sensei_id?: string | null;
+  voice_id?: string | null;
 }
 
 interface ChatWorkspaceProps {
@@ -33,6 +35,7 @@ interface ChatWorkspaceProps {
   onScroll: () => void;
   showScrollBottom: boolean;
   scrollToBottom: () => void;
+  activeSenseiVoiceId?: string;
 }
 
 function getModelDisplayName(modelId?: string) {
@@ -55,7 +58,15 @@ function getModelDisplayName(modelId?: string) {
 }
 
 // ── Markdown & Code Block renderer ──────────────────────────────────
-function FormattedMessage({ content, isStreaming }: { content: string; isStreaming?: boolean }) {
+function FormattedMessage({
+  content,
+  isStreaming,
+  voiceId,
+}: {
+  content: string;
+  isStreaming?: boolean;
+  voiceId?: string;
+}) {
   const { currentUser } = useApp();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -194,6 +205,7 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                               highlightGrammar={highlightGrammar}
                               showRomaji={showRomaji}
                               showAudio={showAudio}
+                              voiceId={voiceId}
                             />
                           ) : (
                             renderInline(lineContent)
@@ -241,6 +253,7 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                               highlightGrammar={highlightGrammar}
                               showRomaji={showRomaji}
                               showAudio={showAudio}
+                              voiceId={voiceId}
                             />
                           ) : (
                             <div style={{ fontSize: '0.93rem', lineHeight: 1.6 }}>{renderInline(cleanLn)}</div>
@@ -264,6 +277,7 @@ function FormattedMessage({ content, isStreaming }: { content: string; isStreami
                       showRomaji={showRomaji}
                       showAudio={showAudio}
                       isStreaming={isStreaming && index === parts.length - 1 && pIdx === paragraphs.length - 1}
+                      voiceId={voiceId}
                     />
                   </div>
                 );
@@ -436,6 +450,7 @@ export default function ChatWorkspace({
   onScroll,
   showScrollBottom,
   scrollToBottom,
+  activeSenseiVoiceId,
 }: ChatWorkspaceProps) {
   const { t } = useApp();
 
@@ -741,7 +756,11 @@ export default function ChatWorkspace({
                           <MessageAttachments attachments={msg.attachments} />
                         </div>
                       )}
-                      <FormattedMessage content={msg.content} isStreaming={msg.isStreaming} />
+                      <FormattedMessage
+                        content={msg.content}
+                        isStreaming={msg.isStreaming}
+                        voiceId={msg.voice_id || activeSenseiVoiceId}
+                      />
 
                       {/* Generating indicator */}
                       {msg.isStreaming && (

@@ -220,14 +220,16 @@ async def stream_message_endpoint(
         ttft_recorded = False
         ttft_ms = None
 
-        # Nạp chỉ thị persona của Sensei đồng hành nếu được chọn (FR-064, FR-065)
+        # Nạp chỉ thị persona của Sensei đồng hành nếu được chọn (FR-064, FR-065, FR-072)
         sensei_instruction = None
+        sensei_voice_id = None
         if req.sensei_id:
             sensei_row = query_one(
-                "SELECT name, content, teaching_style, catchphrase, japanese_level FROM system_prompts WHERE id = ? AND (user_id = ? OR is_system_preset = 1)",
+                "SELECT name, content, teaching_style, catchphrase, japanese_level, voice_id FROM system_prompts WHERE id = ? AND (user_id = ? OR is_system_preset = 1)",
                 (req.sensei_id, user_id)
             )
             if sensei_row:
+                sensei_voice_id = sensei_row.get("voice_id")
                 sensei_instruction = (
                     f"TÊN SENSEI: {sensei_row['name']} (Cấp độ {sensei_row.get('japanese_level', 'N5')})\n"
                     f"PHONG CÁCH SƯ PHẠM: {sensei_row.get('teaching_style', '')}\n"
@@ -325,14 +327,14 @@ async def stream_message_endpoint(
                     err_payload = json.dumps({"status": "error", "message": err_msg}, ensure_ascii=False)
                     yield f"event: error\ndata: {err_payload}\n\n"
 
-            # Lưu toàn bộ câu trả lời hoàn chỉnh vào CSDL
+            # Lưu toàn bộ câu trả lời hoàn chỉnh vào CSDL kèm sensei_id và voice_id (FR-072, FR-073)
             final_text = "".join(accumulated_response).strip()
             execute_commit(
                 """
-                INSERT INTO messages (id, conversation_id, role, content, model_used)
-                VALUES (?, ?, 'assistant', ?, ?)
+                INSERT INTO messages (id, conversation_id, role, content, model_used, sensei_id, voice_id)
+                VALUES (?, ?, 'assistant', ?, ?, ?, ?)
                 """,
-                (assistant_msg_id, conversation_id, final_text, final_model_used)
+                (assistant_msg_id, conversation_id, final_text, final_model_used, req.sensei_id, sensei_voice_id)
             )
 
             # Tự động học vào Semantic Cache với cơ chế Deduplication (FR-063, BR-022)
@@ -375,13 +377,15 @@ async def stream_message_endpoint(
                 total_tokens=total_tokens_est
             )
 
-            # Gửi sự kiện done hoàn tất (SEQ-003, ADR-004)
+            # Gửi sự kiện done hoàn tất kèm sensei_id và voice_id (SEQ-003, ADR-004, FR-072, FR-073)
             done_payload = json.dumps({
                 "status": "done",
                 "message_id": assistant_msg_id,
                 "model": final_model_used,
                 "tokens": total_tokens_est,
-                "latency_ms": round(total_latency_ms, 1)
+                "latency_ms": round(total_latency_ms, 1),
+                "sensei_id": req.sensei_id,
+                "voice_id": sensei_voice_id
             }, ensure_ascii=False)
             yield f"event: done\ndata: {done_payload}\n\n"
 

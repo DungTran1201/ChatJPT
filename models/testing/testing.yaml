@@ -239,6 +239,45 @@ test_model:
       priority: "P1"
       trace_req: "FR-045"
       trace_uc: "UC-033"
-
-
-
+    - id: TC-VOICE-001
+      title: "List VoiceVox character voices and filter by gender, style and status"
+      type: "Unit"
+      priority: "P0"
+      trace_req: "FR-069"
+      trace_uc: "UC-042"
+    - id: TC-VOICE-002
+      title: "Validate acoustic parameter bounds sanity for speed, pitch, intonation and volume (BR-040)"
+      type: "Validation"
+      priority: "P0"
+      trace_req: "FR-070"
+      trace_uc: "UC-042"
+    - id: TC-VOICE-003
+      title: "Check VoiceVox local engine connectivity, version and status endpoint"
+      type: "Integration"
+      priority: "P0"
+      trace_req: "FR-071"
+      trace_uc: "UC-043"
+    - id: TC-VOICE-004
+      title: "Bind VoiceVox voice to Sensei persona and maintain relational integrity across presets and custom personas (BR-041)"
+      type: "Integration"
+      priority: "P0"
+      trace_req: "FR-072"
+      trace_uc: "UC-044"
+    - id: TC-VOICE-005
+      title: "Gracefully degrade to synthesized acoustic fallback WAV when VoiceVox engine is offline (BR-042)"
+      type: "Resilience"
+      priority: "P0"
+      trace_req: "FR-071"
+      trace_uc: "UC-043"
+    - id: TC-VOICE-006
+      title: "Sanitize audio ingress text and voice parameters against prompt injection and bounds tampering (SEC-015)"
+      type: "Security"
+      priority: "P0"
+      trace_req: "FR-070"
+      trace_uc: "UC-042"
+    - id: TC-VOICE-007
+      title: "Play interactive Japanese Kaiwa voice speech in chat using Sensei configured VoiceVox voice"
+      type: "E2E"
+      priority: "P0"
+      trace_req: "FR-073"
+      trace_uc: "UC-044"

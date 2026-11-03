@@ -172,6 +172,15 @@ class TestVoicesAPI(unittest.TestCase):
         updated_sensei = update_resp.json()
         self.assertEqual(updated_sensei["voice_id"], "voice_shikoku_metan_sweet")
 
+        # Test synthesis by sensei_id (FR-072, FR-073)
+        synth_sensei_resp = self.client.post(
+            f"/api/v1/voices/{created_sensei['id']}/synthesize",
+            json={"text": "先生の声のテストです。"}
+        )
+        self.assertEqual(synth_sensei_resp.status_code, 200)
+        self.assertEqual(synth_sensei_resp.headers.get("content-type"), "audio/wav")
+        self.assertTrue(synth_sensei_resp.content.startswith(b"RIFF"))
+
         # Cleanup sensei
         execute_commit("DELETE FROM system_prompts WHERE id = ?", (created_sensei["id"],))
 

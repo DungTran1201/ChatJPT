@@ -75,7 +75,7 @@ async def get_conversation_messages(
 
     messages = query_all(
         """
-        SELECT id, conversation_id, role, content, model_used, tokens_prompt, tokens_completion, source, status, created_at, updated_at
+        SELECT id, conversation_id, role, content, model_used, tokens_prompt, tokens_completion, source, status, created_at, updated_at, sensei_id, voice_id
         FROM messages
         WHERE conversation_id = ?
         ORDER BY created_at ASC, id ASC

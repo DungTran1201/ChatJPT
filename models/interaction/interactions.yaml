@@ -41,3 +41,8 @@ interactions:
     scenario: "Agent Model Management - Registration, Configuration Mutation, Dynamic Filtering and Archival Guard"
     participants: ["ACT-02: Learner / Admin", "Next.js Model Catalog UI", "FastAPI Backend", "Agent Model Repository", "SQLite Database"]
     source_refs: ["FR-035", "FR-036", "FR-037", "FR-038", "FR-039", "BR-022", "BR-023", "BR-024", "SEC-010", "ADR-009", "UC-026", "UC-027", "UC-028"]
+
+  - id: "SEQ-015"
+    scenario: "Sensei Persona Voice Binding and Interactive Chat Speech Playback Flow"
+    participants: ["ACT-02: Learner", "Next.js ChatWorkspace", "FastAPI Backend", "SQLite Database", "VoiceVox Core Engine"]
+    source_refs: ["FR-072", "FR-073", "BR-041", "ADR-015", "UC-044"]

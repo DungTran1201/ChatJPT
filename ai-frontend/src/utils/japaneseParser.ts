@@ -298,7 +298,7 @@ export function isPredominantlyJapanese(text: string): boolean {
 }
 
 /**
- * Speak text in Japanese using native browser Web Speech API
+ * Speak text in Japanese using VoiceVox neural synthesis or native browser fallback
  */
 export function speakJapaneseSpeech(text: string, voiceId?: string): void {
   if (typeof window === 'undefined') return;
@@ -310,15 +310,44 @@ export function speakJapaneseSpeech(text: string, voiceId?: string): void {
     .trim();
   if (!clean) return;
 
-  // Resolve voice ID from parameter or active Sensei in localStorage
+  // Resolve voice ID from explicit parameter or localStorage
   let targetVoice = voiceId;
   if (!targetVoice) {
+    // 1. Direct active voice stored in localStorage
+    const savedVoice = localStorage.getItem('ai_chan_selected_sensei_voice');
+    if (savedVoice) {
+      targetVoice = savedVoice;
+    }
+  }
+
+  if (!targetVoice) {
+    // 2. Lookup from sensei-voice map cache
     const senseiId = localStorage.getItem('ai_chan_selected_sensei');
-    if (senseiId === 'sensei_kenji_n4') targetVoice = 'voice_kuronotake_normal';
-    else if (senseiId === 'sensei_aoi_n3') targetVoice = 'voice_amehare_hau_normal';
-    else if (senseiId === 'sensei_ryu_n2') targetVoice = 'voice_aoyama_ryusei_normal';
-    else if (senseiId === 'sensei_yuki_n1') targetVoice = 'voice_goki_normal';
-    else targetVoice = 'voice_kasukabe_tsumugi';
+    if (senseiId) {
+      try {
+        const rawMap = localStorage.getItem('ai_chan_sensei_voice_map');
+        if (rawMap) {
+          const map = JSON.parse(rawMap);
+          if (map[senseiId]) {
+            targetVoice = map[senseiId];
+          }
+        }
+      } catch { /* ignore parse error */ }
+
+      // 3. Fallback to known preset IDs if map missing
+      if (!targetVoice) {
+        if (senseiId === 'sensei_kenji_n4') targetVoice = 'voice_kuronotake_normal';
+        else if (senseiId === 'sensei_aoi_n3') targetVoice = 'voice_amehare_hau_normal';
+        else if (senseiId === 'sensei_ryu_n2') targetVoice = 'voice_aoyama_ryusei_normal';
+        else if (senseiId === 'sensei_yuki_n1') targetVoice = 'voice_goki_normal';
+        else if (senseiId === 'sensei_sakura_n5') targetVoice = 'voice_kasukabe_tsumugi';
+        else targetVoice = senseiId; // Pass senseiId directly; backend will resolve it!
+      }
+    }
+  }
+
+  if (!targetVoice) {
+    targetVoice = 'voice_kasukabe_tsumugi';
   }
 
   VoiceService.playJapaneseSpeech(clean, targetVoice).catch(err => {

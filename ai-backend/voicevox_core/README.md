@@ -9,3 +9,4 @@ Thư mục này lưu trữ các thành phần nhúng cục bộ của **VoiceVox
 
 ## 2. Tự động tích hợp:
 Dịch vụ `VoicevoxService` (`ai-backend/src/services/voicevox_service.py`) tự động kiểm tra sự hiện diện của thư mục này. Khi các thành phần đã sẵn sàng, hệ thống khởi tạo `Synthesizer` nhúng trực tiếp trong tiến trình Python (`voicevox_core.blocking`) để tổng hợp âm thanh giọng thật cực nhanh mà không phụ thuộc vào daemon ngoại vi cổng 50021.
+
