@@ -206,6 +206,60 @@ entities:
   - user_id: string (FK -> User.id or 'system')
   - created_at: timestamp
   - updated_at: timestamp
+- name: Exam
+  aggregate_root: true
+  attributes:
+  - 'id: string (PK, UUID)'
+  - 'title: string (NOT NULL)'
+  - 'description: text (nullable)'
+  - 'level: enum(N5, N4, N3, N2, N1, KAIWA, GENERAL)'
+  - 'category: string (default ''JLPT_FULL'')'
+  - 'year: integer (nullable)'
+  - 'duration_minutes: integer (default 60)'
+  - 'total_questions: integer (default 0)'
+  - 'passing_score: integer (default 90)'
+  - 'max_score: integer (default 180)'
+  - 'drive_folder_url: string (nullable, HTTPS Google Drive URL)'
+  - 'status: enum(ACTIVE, DRAFT, ARCHIVED)'
+  - 'is_system_preset: boolean (default 1)'
+  - 'user_id: string (FK -> User.id or ''system'')'
+  - 'created_at: timestamp'
+  - 'updated_at: timestamp'
+- name: ExamQuestion
+  aggregate_root: false
+  attributes:
+  - 'id: string (PK, UUID)'
+  - 'exam_id: string (FK -> Exam.id ON DELETE CASCADE)'
+  - 'section: enum(GOI, BUNPOU, DOKKAI, CHOUKAI)'
+  - 'question_number: integer'
+  - 'question_text: text (Japanese question content)'
+  - 'furigana_text: text (nullable, interlinear annotation)'
+  - 'option_1: text'
+  - 'option_2: text'
+  - 'option_3: text'
+  - 'option_4: text'
+  - 'correct_option: integer (1..4)'
+  - 'explanation: text (Vietnamese pedagogical explanation)'
+  - 'created_at: timestamp'
+- name: ReferenceMaterial
+  aggregate_root: true
+  attributes:
+  - 'id: string (PK, UUID)'
+  - 'title: string (NOT NULL)'
+  - 'description: text (nullable)'
+  - 'category: enum(JLPT_N5, JLPT_N4, JLPT_N3, JLPT_N2, JLPT_N1, KAIWA, GRAMMAR_GUIDE,
+    VOCABULARY_DICT)'
+  - 'level: string (default ''ALL'')'
+  - 'source_type: enum(GOOGLE_DRIVE, WEB_GUIDE, ONLINE_DICT)'
+  - 'external_url: string (HTTPS URL)'
+  - 'author: string (nullable)'
+  - 'file_type: string (folder, website, document)'
+  - 'tags: string (nullable)'
+  - 'is_pinned: boolean (default 0)'
+  - 'is_system_preset: boolean (default 1)'
+  - 'user_id: string (FK -> User.id or ''system'')'
+  - 'created_at: timestamp'
+  - 'updated_at: timestamp'
 relationships:
 - from: Voice
   to: Message
@@ -254,4 +308,13 @@ relationships:
   type: one-to-many
 - from: SystemPrompt
   to: Attachment
+  type: one-to-many
+- from: Exam
+  to: ExamQuestion
+  type: one-to-many
+- from: User
+  to: Exam
+  type: one-to-many
+- from: User
+  to: ReferenceMaterial
   type: one-to-many

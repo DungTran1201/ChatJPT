@@ -1,48 +1,170 @@
-version: "1.0"
+version: '1.0'
 metadata:
-  project: "chatjpt"
-  domain: "Japanese Learning Ecosystem with AI Tutor"
-  layer: "canonical_interaction_model"
-  status: "BASELINED"
-  updated_at: "2026-11-01"
-
+  project: chatjpt
+  domain: Japanese Learning Ecosystem with AI Tutor
+  layer: canonical_interaction_model
+  status: BASELINED
+  updated_at: '2026-11-01'
 interactions:
-  - id: "SEQ-001"
-    scenario: "User Registration & Bcrypt Hashing"
-    participants: ["ACT-01: Guest", "Next.js Client", "Nginx Gateway", "FastAPI Backend", "SQLite Database"]
-    source_refs: ["FR-001", "SEC-002", "UC-001"]
-
-  - id: "SEQ-002"
-    scenario: "User Login & HttpOnly Cookie Session Setup"
-    participants: ["ACT-01: Guest", "Next.js Client", "Nginx Gateway", "FastAPI Backend", "SQLite Database"]
-    source_refs: ["FR-002", "SEC-004", "UC-002"]
-
-  - id: "SEQ-003"
-    scenario: "Chat SSE Streaming with Token Chunks Delivery via LangGraph Agent"
-    participants: ["ACT-02: Learner", "Next.js Client", "Nginx Gateway", "FastAPI Backend", "SQLite Database", "LangGraph Agent Engine", "External LLM Providers"]
-    source_refs: ["FR-008", "FR-009", "FR-010", "FR-012", "FR-013", "ADR-004", "ADR-005", "UC-008"]
-
-  - id: "SEQ-004"
-    scenario: "Automated Multi-Provider LLM Failover via LangGraph StateGraph"
-    participants: ["FastAPI Backend", "LangGraph StateGraph Engine", "Google Gemini (Primary)", "OpenAI (Fallback)"]
-    source_refs: ["FR-010", "FR-011", "BR-005", "NFR-008", "ADR-003", "ADR-005", "UC-008"]
-
-  - id: "SEQ-005"
-    scenario: "Multi-Provider Agent Model Connection Testing, Activation & Default Routing Configuration"
-    participants: ["ACT-02: Learner / Admin", "Next.js Client", "FastAPI Backend", "Agent Model Manager", "LangChain Adapter", "External Provider APIs"]
-    source_refs: ["FR-021", "FR-022", "FR-023", "FR-024", "FR-025", "FR-026", "BR-012", "BR-013", "BR-014", "ADR-006", "UC-016", "UC-018", "UC-019", "UC-020"]
-
-  - id: "SEQ-007"
-    scenario: "Real-Time Telemetry Interception, Token Quota Check & SSE Metric Broadcast"
-    participants: ["ACT-02: Learner", "Next.js Dashboard Client", "Telemetry Middleware", "LLM Gateway", "Metrics Ring Buffer", "SQLite Database"]
-    source_refs: ["FR-029", "FR-030", "FR-031", "FR-032", "FR-033", "FR-034", "BR-019", "BR-020", "BR-021", "SEC-009", "ADR-008", "UC-023", "UC-024", "UC-025"]
-
-  - id: "SEQ-008"
-    scenario: "Agent Model Management - Registration, Configuration Mutation, Dynamic Filtering and Archival Guard"
-    participants: ["ACT-02: Learner / Admin", "Next.js Model Catalog UI", "FastAPI Backend", "Agent Model Repository", "SQLite Database"]
-    source_refs: ["FR-035", "FR-036", "FR-037", "FR-038", "FR-039", "BR-022", "BR-023", "BR-024", "SEC-010", "ADR-009", "UC-026", "UC-027", "UC-028"]
-
-  - id: "SEQ-015"
-    scenario: "Sensei Persona Voice Binding and Interactive Chat Speech Playback Flow"
-    participants: ["ACT-02: Learner", "Next.js ChatWorkspace", "FastAPI Backend", "SQLite Database", "VoiceVox Core Engine"]
-    source_refs: ["FR-072", "FR-073", "BR-041", "ADR-015", "UC-044"]
+- id: SEQ-001
+  scenario: User Registration & Bcrypt Hashing
+  participants:
+  - 'ACT-01: Guest'
+  - Next.js Client
+  - Nginx Gateway
+  - FastAPI Backend
+  - SQLite Database
+  source_refs:
+  - FR-001
+  - SEC-002
+  - UC-001
+- id: SEQ-002
+  scenario: User Login & HttpOnly Cookie Session Setup
+  participants:
+  - 'ACT-01: Guest'
+  - Next.js Client
+  - Nginx Gateway
+  - FastAPI Backend
+  - SQLite Database
+  source_refs:
+  - FR-002
+  - SEC-004
+  - UC-002
+- id: SEQ-003
+  scenario: Chat SSE Streaming with Token Chunks Delivery via LangGraph Agent
+  participants:
+  - 'ACT-02: Learner'
+  - Next.js Client
+  - Nginx Gateway
+  - FastAPI Backend
+  - SQLite Database
+  - LangGraph Agent Engine
+  - External LLM Providers
+  source_refs:
+  - FR-008
+  - FR-009
+  - FR-010
+  - FR-012
+  - FR-013
+  - ADR-004
+  - ADR-005
+  - UC-008
+- id: SEQ-004
+  scenario: Automated Multi-Provider LLM Failover via LangGraph StateGraph
+  participants:
+  - FastAPI Backend
+  - LangGraph StateGraph Engine
+  - Google Gemini (Primary)
+  - OpenAI (Fallback)
+  source_refs:
+  - FR-010
+  - FR-011
+  - BR-005
+  - NFR-008
+  - ADR-003
+  - ADR-005
+  - UC-008
+- id: SEQ-005
+  scenario: Multi-Provider Agent Model Connection Testing, Activation & Default Routing
+    Configuration
+  participants:
+  - 'ACT-02: Learner / Admin'
+  - Next.js Client
+  - FastAPI Backend
+  - Agent Model Manager
+  - LangChain Adapter
+  - External Provider APIs
+  source_refs:
+  - FR-021
+  - FR-022
+  - FR-023
+  - FR-024
+  - FR-025
+  - FR-026
+  - BR-012
+  - BR-013
+  - BR-014
+  - ADR-006
+  - UC-016
+  - UC-018
+  - UC-019
+  - UC-020
+- id: SEQ-007
+  scenario: Real-Time Telemetry Interception, Token Quota Check & SSE Metric Broadcast
+  participants:
+  - 'ACT-02: Learner'
+  - Next.js Dashboard Client
+  - Telemetry Middleware
+  - LLM Gateway
+  - Metrics Ring Buffer
+  - SQLite Database
+  source_refs:
+  - FR-029
+  - FR-030
+  - FR-031
+  - FR-032
+  - FR-033
+  - FR-034
+  - BR-019
+  - BR-020
+  - BR-021
+  - SEC-009
+  - ADR-008
+  - UC-023
+  - UC-024
+  - UC-025
+- id: SEQ-008
+  scenario: Agent Model Management - Registration, Configuration Mutation, Dynamic
+    Filtering and Archival Guard
+  participants:
+  - 'ACT-02: Learner / Admin'
+  - Next.js Model Catalog UI
+  - FastAPI Backend
+  - Agent Model Repository
+  - SQLite Database
+  source_refs:
+  - FR-035
+  - FR-036
+  - FR-037
+  - FR-038
+  - FR-039
+  - BR-022
+  - BR-023
+  - BR-024
+  - SEC-010
+  - ADR-009
+  - UC-026
+  - UC-027
+  - UC-028
+- id: SEQ-015
+  scenario: Sensei Persona Voice Binding and Interactive Chat Speech Playback Flow
+  participants:
+  - 'ACT-02: Learner'
+  - Next.js ChatWorkspace
+  - FastAPI Backend
+  - SQLite Database
+  - VoiceVox Core Engine
+  source_refs:
+  - FR-072
+  - FR-073
+  - BR-041
+  - ADR-015
+  - UC-044
+- id: SEQ-016
+  scenario: Exam Catalog Browsing, Interactive Test Submission & Sensei Auto-Scoring
+    Flow
+  participants:
+  - 'ACT-02: Learner'
+  - Next.js ExamView (/exams)
+  - FastAPI ExamRouter (/api/v1/exams)
+  - SQLite Database (exams, exam_questions, reference_materials)
+  source_refs:
+  - FR-074
+  - FR-076
+  - FR-077
+  - BR-043
+  - BR-044
+  - BR-045
+  - UC-045
+  - UC-046
+  - UC-047

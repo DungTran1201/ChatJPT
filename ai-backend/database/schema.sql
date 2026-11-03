@@ -375,3 +375,81 @@ CREATE TABLE IF NOT EXISTS voices (
 
 CREATE INDEX IF NOT EXISTS idx_voices_speaker_id ON voices(speaker_id);
 CREATE INDEX IF NOT EXISTS idx_voices_status ON voices(status);
+
+
+-- ------------------------------------------------------------------------------
+-- 14. BẢNG QUẢN LÝ KHO ĐỀ THI (EXAMS)
+-- Bounded Context: Exam & Assessment Context (FR-074, FR-075, FR-076, BR-043..045)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS exams (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    level VARCHAR(20) NOT NULL CHECK (level IN ('N5', 'N4', 'N3', 'N2', 'N1', 'KAIWA', 'GENERAL')),
+    category VARCHAR(50) DEFAULT 'JLPT_FULL',
+    year INTEGER,
+    duration_minutes INTEGER DEFAULT 60,
+    total_questions INTEGER DEFAULT 0,
+    passing_score INTEGER DEFAULT 90,
+    max_score INTEGER DEFAULT 180,
+    drive_folder_url VARCHAR(1000),
+    status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'DRAFT', 'ARCHIVED')),
+    is_system_preset BOOLEAN DEFAULT 1,
+    user_id VARCHAR(36) DEFAULT 'system',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_exams_level ON exams(level);
+CREATE INDEX IF NOT EXISTS idx_exams_category ON exams(category);
+CREATE INDEX IF NOT EXISTS idx_exams_status ON exams(status);
+
+-- ------------------------------------------------------------------------------
+-- 15. BẢNG CÂU HỎI ĐỀ THI (EXAM_QUESTIONS)
+-- Bounded Context: Exam & Assessment Context (FR-076)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS exam_questions (
+    id VARCHAR(50) PRIMARY KEY,
+    exam_id VARCHAR(50) NOT NULL,
+    section VARCHAR(50) NOT NULL,
+    question_number INTEGER NOT NULL,
+    question_text TEXT NOT NULL,
+    furigana_text TEXT,
+    option_1 TEXT NOT NULL,
+    option_2 TEXT NOT NULL,
+    option_3 TEXT NOT NULL,
+    option_4 TEXT NOT NULL,
+    correct_option INTEGER NOT NULL CHECK (correct_option BETWEEN 1 AND 4),
+    explanation TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_exam_questions_exam_id ON exam_questions(exam_id);
+CREATE INDEX IF NOT EXISTS idx_exam_questions_section ON exam_questions(section);
+
+-- ------------------------------------------------------------------------------
+-- 16. BẢNG KHO TÀI LIỆU THAM KHẢO (REFERENCE_MATERIALS)
+-- Bounded Context: Reference Materials Context (FR-077, FR-078, BR-046)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reference_materials (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(50) NOT NULL CHECK (category IN ('JLPT_N5', 'JLPT_N4', 'JLPT_N3', 'JLPT_N2', 'JLPT_N1', 'KAIWA', 'GRAMMAR_GUIDE', 'VOCABULARY_DICT')),
+    level VARCHAR(20) DEFAULT 'ALL',
+    source_type VARCHAR(50) DEFAULT 'GOOGLE_DRIVE',
+    external_url VARCHAR(1000) NOT NULL,
+    author VARCHAR(100),
+    file_type VARCHAR(20) DEFAULT 'folder',
+    tags VARCHAR(255),
+    is_pinned BOOLEAN DEFAULT 0,
+    is_system_preset BOOLEAN DEFAULT 1,
+    user_id VARCHAR(36) DEFAULT 'system',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_ref_mat_category ON reference_materials(category);
+CREATE INDEX IF NOT EXISTS idx_ref_mat_level ON reference_materials(level);
+CREATE INDEX IF NOT EXISTS idx_ref_mat_pinned ON reference_materials(is_pinned);

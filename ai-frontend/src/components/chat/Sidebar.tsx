@@ -33,6 +33,7 @@ export const NAV_ITEMS: { key: string; label: string; icon: IconName; href: stri
   { key: 'chat',        label: 'Luyện Kaiwa (Chat)', icon: 'chat',      href: '/chat' },
   { key: 'prompts',     label: 'Chỉ Dẫn Sensei',     icon: 'prompts',   href: '/prompts' },
   { key: 'voices',      label: 'Quản Lý Giọng Nói (Voices)', icon: 'voice',     href: '/voices' },
+  { key: 'exams',       label: 'Kho Đề Thi & Tài Liệu', icon: 'exam',   href: '/exams' },
   { key: 'rules',       label: 'Quy Tắc Ngữ Pháp',   icon: 'rules',     href: '/rules' },
   { key: 'dashboard',   label: 'Tổng Quan Học Tập',  icon: 'dashboard', href: '/dashboard' },
   { key: 'settings',    label: 'Cài Đặt Hệ Thống',   icon: 'settings',  href: '/settings' },

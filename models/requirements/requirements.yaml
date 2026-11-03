@@ -552,6 +552,51 @@ requirements:
   actors:
   - Registered User
   - Guest
+- id: FR-074
+  name: Exam Bank Catalog & Multi-Level Filtering (N5..N1 & Kaiwa)
+  type: functional
+  capability: CAP-EXAM-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
+- id: FR-075
+  name: Exam Creation, Modification, and Google Drive Folder Linking
+  type: functional
+  capability: CAP-EXAM-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
+- id: FR-076
+  name: Online Interactive Exam Taking, Auto-Scoring & Sensei Explanation
+  type: functional
+  capability: CAP-EXAM-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
+- id: FR-077
+  name: Reference Materials Repository (JLPT N5..N1, Kaiwa, Tae Kim, Dictionary)
+  type: functional
+  capability: CAP-EXAM-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
+- id: FR-078
+  name: Reference Material Pinning & Quick Navigation Access
+  type: functional
+  capability: CAP-EXAM-MGMT
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
 business_rules:
 - id: BR-001
   name: Authentication Required for Stored Conversation
@@ -676,13 +721,27 @@ business_rules:
   status: RETIRED
   notes: 'RETIRED: Phân tách khỏi phạm vi ứng dụng web học tiếng Nhật tập trung'
 - id: BR-040
-  name: "Voice Parameter Bounds Sanity (Speed: 0.5-2.0, Pitch: -0.15-0.15, Intonation: 0.0-2.0, Volume: 0.0-2.0)"
+  name: 'Voice Parameter Bounds Sanity (Speed: 0.5-2.0, Pitch: -0.15-0.15, Intonation:
+    0.0-2.0, Volume: 0.0-2.0)'
   status: BASELINED
 - id: BR-041
-  name: Sensei Voice Assignment Invariant (Must reference valid active voice or system fallback)
+  name: Sensei Voice Assignment Invariant (Must reference valid active voice or system
+    fallback)
   status: BASELINED
 - id: BR-042
   name: Graceful Voice Engine Degradation & Acoustic Fallback
+  status: BASELINED
+- id: BR-043
+  name: Exam Level Sanity (N5, N4, N3, N2, N1, KAIWA, GENERAL)
+  status: BASELINED
+- id: BR-044
+  name: System Preset Exam Immutability (Protect system presets from deletion)
+  status: BASELINED
+- id: BR-045
+  name: Exam Duration and Score Bounds Sanity
+  status: BASELINED
+- id: BR-046
+  name: Reference Material URL Protocol Validation (HTTPS only)
   status: BASELINED
 security_requirements:
 - id: SEC-001
@@ -771,3 +830,6 @@ security_requirements:
   name: External Catalog SSRF, Path Traversal, and Prompt Injection Defense
   status: RETIRED
   notes: 'RETIRED: Phân tách khỏi phạm vi ứng dụng web học tiếng Nhật tập trung'
+- id: SEC-016
+  name: Exam Submission & Resource Injection Sanitization
+  status: BASELINED

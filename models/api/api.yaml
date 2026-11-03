@@ -79,7 +79,8 @@ apis:
   - id: OP-009
     method: POST
     path: /conversations/{conv_id}/messages/stream
-    summary: Stream Kaiwa and grammar explanations via SSE with multi-model continuity, quota failover, and offline semantic cache
+    summary: Stream Kaiwa and grammar explanations via SSE with multi-model continuity,
+      quota failover, and offline semantic cache
     use_case: UC-008
     source_refs:
     - FR-008
@@ -282,7 +283,10 @@ apis:
   - id: OP-028
     method: PATCH
     path: /users/me/preferences
-    summary: Update user appearance preferences, wallpaper, layer opacity, blur, background darkness dimming, RGB accent color, font size, trilingual preference, and Sensei response form settings (translation, furigana, grammar highlights, romaji, audio TTS)
+    summary: Update user appearance preferences, wallpaper, layer opacity, blur, background
+      darkness dimming, RGB accent color, font size, trilingual preference, and Sensei
+      response form settings (translation, furigana, grammar highlights, romaji, audio
+      TTS)
     use_case: UC-015
     source_refs:
     - FR-020
@@ -291,21 +295,24 @@ apis:
   - id: OP-042
     method: GET
     path: /models/embedded/hardware-check
-    summary: Inspect client/host hardware specs and evaluate eligibility for embedded model download
+    summary: Inspect client/host hardware specs and evaluate eligibility for embedded
+      model download
     use_case: UC-040
     source_refs:
     - FR-061
   - id: OP-043
     method: POST
     path: /models/embedded/download
-    summary: Download in-project ultra-lightweight model directly when hardware prerequisites are satisfied
+    summary: Download in-project ultra-lightweight model directly when hardware prerequisites
+      are satisfied
     use_case: UC-040
     source_refs:
     - FR-061
   - id: OP-044
     method: GET
     path: /models/embedded/status
-    summary: Get download status, progress, and runtime readiness of in-project embedded model
+    summary: Get download status, progress, and runtime readiness of in-project embedded
+      model
     use_case: UC-040
     source_refs:
     - FR-061
@@ -319,7 +326,8 @@ apis:
   - id: OP-046
     method: GET
     path: /semantic-cache/stats
-    summary: Retrieve semantic cache inventory metrics, total indexed Q&A count (10,000+), and hit rate
+    summary: Retrieve semantic cache inventory metrics, total indexed Q&A count (10,000+),
+      and hit rate
     use_case: UC-041
     source_refs:
     - FR-062
@@ -327,14 +335,16 @@ apis:
   - id: OP-047
     method: GET
     path: /voices
-    summary: List all VoiceVox character voices with filtering by gender, style, and status
+    summary: List all VoiceVox character voices with filtering by gender, style, and
+      status
     use_case: UC-042
     source_refs:
     - FR-069
   - id: OP-048
     method: GET
     path: /voices/{id}
-    summary: Retrieve detailed voice character configuration, speaker ID, and acoustic parameters
+    summary: Retrieve detailed voice character configuration, speaker ID, and acoustic
+      parameters
     use_case: UC-042
     source_refs:
     - FR-069
@@ -370,7 +380,8 @@ apis:
   - id: OP-053
     method: POST
     path: /voices/synthesize
-    summary: Synthesize Japanese text to speech audio WAV using VoiceVox or acoustic fallback
+    summary: Synthesize Japanese text to speech audio WAV using VoiceVox or acoustic
+      fallback
     use_case: UC-043
     source_refs:
     - FR-071
@@ -378,9 +389,72 @@ apis:
   - id: OP-054
     method: POST
     path: /voices/{id}/synthesize
-    summary: Synthesize Japanese text to speech audio WAV using specific voice profile or dynamic sensei ID resolution
+    summary: Synthesize Japanese text to speech audio WAV using specific voice profile
+      or dynamic sensei ID resolution
     use_case: UC-043
     source_refs:
     - FR-071
     - FR-072
     - FR-073
+  - id: OP-055
+    method: GET
+    path: /exams
+    summary: List all exams with level, category, and search query filters
+    use_case: UC-045
+    source_refs:
+    - FR-074
+  - id: OP-056
+    method: GET
+    path: /exams/{id}
+    summary: Retrieve full exam metadata and question list for test taking
+    use_case: UC-045
+    source_refs:
+    - FR-074
+    - FR-076
+  - id: OP-057
+    method: POST
+    path: /exams
+    summary: Create new custom mock exam with metadata and Drive link
+    use_case: UC-045
+    source_refs:
+    - FR-075
+  - id: OP-058
+    method: PUT
+    path: /exams/{id}
+    summary: Update existing exam attributes and Drive URL
+    use_case: UC-045
+    source_refs:
+    - FR-075
+  - id: OP-059
+    method: DELETE
+    path: /exams/{id}
+    summary: Delete custom exam (system presets protected by BR-044)
+    use_case: UC-045
+    source_refs:
+    - FR-075
+    - BR-044
+  - id: OP-060
+    method: POST
+    path: /exams/{id}/submit
+    summary: Submit exam answers, calculate score, evaluate pass/fail, and generate
+      Sensei explanations
+    use_case: UC-046
+    source_refs:
+    - FR-076
+  - id: OP-061
+    method: GET
+    path: /exams/materials
+    summary: List reference materials across JLPT N5..N1, Kaiwa, Tae Kim Grammar and
+      Vocabulary Dictionaries
+    use_case: UC-047
+    source_refs:
+    - FR-077
+    - FR-078
+  - id: OP-062
+    method: POST
+    path: /exams/materials
+    summary: Create or pin a reference material link in repository
+    use_case: UC-047
+    source_refs:
+    - FR-077
+    - FR-078

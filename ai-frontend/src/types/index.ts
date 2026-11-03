@@ -261,3 +261,97 @@ export interface VoiceSynthesizeRequest {
   intonation_scale?: number;
   volume_scale?: number;
 }
+
+
+// ==============================================================================
+// EXAM MANAGEMENT & REFERENCE MATERIALS (FR-074..FR-078)
+// ==============================================================================
+
+export type ExamLevel = 'N5' | 'N4' | 'N3' | 'N2' | 'N1' | 'KAIWA' | 'GENERAL' | 'ALL';
+
+export interface ExamItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  level: ExamLevel;
+  category: string;
+  year?: number | null;
+  duration_minutes: number;
+  total_questions: number;
+  passing_score: number;
+  max_score: number;
+  drive_folder_url?: string | null;
+  status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED' | string;
+  is_system_preset: boolean;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExamQuestion {
+  id: string;
+  section: 'GOI' | 'BUNPOU' | 'DOKKAI' | 'CHOUKAI' | 'KAIWA' | string;
+  question_number: number;
+  question_text: string;
+  furigana_text?: string | null;
+  option_1: string;
+  option_2: string;
+  option_3: string;
+  option_4: string;
+  correct_option?: number | null;
+  explanation?: string | null;
+}
+
+export interface ExamDetail extends ExamItem {
+  questions: ExamQuestion[];
+}
+
+export interface QuestionResult {
+  question_id: string;
+  user_answer?: number | null;
+  correct_answer: number;
+  is_correct: boolean;
+  explanation?: string | null;
+}
+
+export interface ExamSubmissionResult {
+  exam_id: string;
+  total_questions: number;
+  answered_count: number;
+  correct_count: number;
+  score: number;
+  max_score: number;
+  passing_score: number;
+  passed: boolean;
+  feedback_message: string;
+  results: QuestionResult[];
+}
+
+export type MaterialCategory =
+  | 'JLPT_N5'
+  | 'JLPT_N4'
+  | 'JLPT_N3'
+  | 'JLPT_N2'
+  | 'JLPT_N1'
+  | 'KAIWA'
+  | 'GRAMMAR_GUIDE'
+  | 'VOCABULARY_DICT'
+  | string;
+
+export interface ReferenceMaterialItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  category: MaterialCategory;
+  level: string;
+  source_type: 'GOOGLE_DRIVE' | 'WEB_GUIDE' | 'ONLINE_DICT' | string;
+  external_url: string;
+  author?: string | null;
+  file_type: 'folder' | 'website' | 'document' | string;
+  tags?: string | null;
+  is_pinned: boolean;
+  is_system_preset: boolean;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
