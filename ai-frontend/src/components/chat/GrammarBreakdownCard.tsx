@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useApp } from '@/context/AppContext';
 
 export interface GrammarItem {
   term: string;
@@ -40,7 +41,7 @@ export function parseGrammarItemsFromText(rawText: string): GrammarItem[] {
     if (numMatch) {
       if (currentItem && currentItem.meaning) {
         items.push({
-          term: currentItem.term || `Điểm ${items.length + 1}`,
+          term: currentItem.term || `#${items.length + 1}`,
           category: currentItem.category,
           meaning: currentItem.meaning,
           nuance: currentItem.nuance,
@@ -66,13 +67,13 @@ export function parseGrammarItemsFromText(rawText: string): GrammarItem[] {
       continue;
     }
 
-    // Check meaning line: "- *Ý nghĩa:* ..." or "• *Ý nghĩa:* ..." or "Ý nghĩa: ..."
-    const meaningMatch = line.match(/^[-*•]?\s*\*?(?:Ý nghĩa|Nghĩa|Meaning)\*?\s*:\s*(.*)/i);
+    // Check meaning line: "- *Ý nghĩa:* ..." or "• *Meaning:* ..." or "* nghĩa:* ..." or "Ý nghĩa: ..."
+    const meaningMatch = line.match(/^[-*•]?\s*\*?\s*(?:Ý nghĩa|Nghĩa|Meaning|意味)\s*\*?\s*:\s*(.*)/i);
     if (meaningMatch) {
-      const text = meaningMatch[1].trim();
+      let text = meaningMatch[1].trim().replace(/^\*+|\*+$/g, '').trim();
       if (!currentItem) {
-        // Paired bullet format (Image 1 & 2): extract term if mentioned in parentheses
-        let term = `Mục ${items.length + 1}`;
+        // Paired bullet format: extract term if mentioned in parentheses
+        let term = `#${items.length + 1}`;
         let category: string | undefined = undefined;
 
         const parenMatch = text.match(/[\(（]([^\)）]+)[\)）]$/);
@@ -95,14 +96,14 @@ export function parseGrammarItemsFromText(rawText: string): GrammarItem[] {
       continue;
     }
 
-    // Check nuance line: "- *Sắc thái:* ..." or "• *Sắc thái:* ..."
-    const nuanceMatch = line.match(/^[-*•]?\s*\*?(?:Sắc thái|Cách dùng|Nuance|Usage)\*?\s*:\s*(.*)/i);
+    // Check nuance line: "- *Sắc thái:* ..." or "• *Nuance:* ..." or "* Sắc thái:*"
+    const nuanceMatch = line.match(/^[-*•]?\s*\*?\s*(?:Sắc thái|Cách dùng|Nuance|Usage|ニュアンス|用法)\s*\*?\s*:\s*(.*)/i);
     if (nuanceMatch) {
-      const text = nuanceMatch[1].trim();
+      let text = nuanceMatch[1].trim().replace(/^\*+|\*+$/g, '').trim();
       if (currentItem) {
         currentItem.nuance = text;
         items.push({
-          term: currentItem.term || `Điểm ${items.length + 1}`,
+          term: currentItem.term || `#${items.length + 1}`,
           category: currentItem.category,
           meaning: currentItem.meaning || '',
           nuance: currentItem.nuance,
@@ -114,13 +115,13 @@ export function parseGrammarItemsFromText(rawText: string): GrammarItem[] {
 
     // Fallback bullet line
     if (line.startsWith('- ') || line.startsWith('• ') || line.startsWith('* ')) {
-      const bulletContent = line.replace(/^[-•*]\s*/, '').trim();
+      const bulletContent = line.replace(/^[-•*]\s*/, '').trim().replace(/^\*+|\*+$/g, '').trim();
       if (currentItem) {
         if (!currentItem.meaning) currentItem.meaning = bulletContent;
         else currentItem.nuance = (currentItem.nuance ? currentItem.nuance + ' ' : '') + bulletContent;
       } else {
         items.push({
-          term: `【Điểm ngữ pháp ${items.length + 1}】`,
+          term: `【#ngữ pháp ${items.length + 1}】`,
           meaning: bulletContent,
         });
       }
@@ -129,7 +130,7 @@ export function parseGrammarItemsFromText(rawText: string): GrammarItem[] {
 
   if (currentItem && currentItem.meaning) {
     items.push({
-      term: currentItem.term || `Điểm ${items.length + 1}`,
+      term: currentItem.term || `#${items.length + 1}`,
       category: currentItem.category,
       meaning: currentItem.meaning,
       nuance: currentItem.nuance,
@@ -142,11 +143,14 @@ export function parseGrammarItemsFromText(rawText: string): GrammarItem[] {
 export default function GrammarBreakdownCard({
   items,
   rawText,
-  title = 'PHÂN TÍCH NGỮ PHÁP & TỪ VỰNG',
+  title,
 }: GrammarBreakdownCardProps) {
+  const { t } = useApp();
   const grammarItems = items && items.length > 0 ? items : (rawText ? parseGrammarItemsFromText(rawText) : []);
 
   if (grammarItems.length === 0 && !rawText) return null;
+
+  const displayTitle = title || t('grammar.title');
 
   return (
     <div
@@ -183,7 +187,7 @@ export default function GrammarBreakdownCard({
           }}
         >
           <span style={{ fontSize: '1.05rem' }}>🔍</span>
-          <span>{title}</span>
+          <span>{displayTitle}</span>
         </div>
         <span
           style={{
@@ -195,7 +199,7 @@ export default function GrammarBreakdownCard({
             border: '1px solid var(--border-subtle)',
           }}
         >
-          {grammarItems.length} cấu trúc trọng tâm
+          {grammarItems.length} {t('grammar.focus_structures')}
         </span>
       </div>
 
@@ -281,7 +285,7 @@ export default function GrammarBreakdownCard({
                 }}
               >
                 <span style={{ fontWeight: 600, color: 'var(--text-secondary)', marginRight: '6px' }}>
-                  Ý nghĩa:
+                  {t('grammar.meaning')}
                 </span>
                 <span>{item.meaning}</span>
               </div>
@@ -298,7 +302,7 @@ export default function GrammarBreakdownCard({
                 }}
               >
                 <span style={{ fontWeight: 600, color: 'var(--text-muted)', marginRight: '6px' }}>
-                  Sắc thái & Cách dùng:
+                  {t('grammar.nuance')}
                 </span>
                 <span>{item.nuance}</span>
               </div>

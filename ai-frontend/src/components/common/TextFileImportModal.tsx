@@ -80,14 +80,14 @@ export default function TextFileImportModal({
 
   const targetTitles = {
     rules: {
-      modalTitle: 'Nhập Rule từ tệp văn bản',
+      modalTitle: 'Import Grammar Rule from File',
       itemType: 'Rule',
-      hint: 'Hỗ trợ tệp Markdown (.md), văn bản (.txt, .rst) hoặc cấu hình (.yaml, .json).',
+      hint: 'Supports Markdown (.md), text (.txt, .rst), or structured config (.yaml, .json).',
     },
     prompts: {
-      modalTitle: 'Nhập System Prompt từ tệp',
+      modalTitle: 'Import Sensei Prompt from File',
       itemType: 'System Prompt',
-      hint: 'Hỗ trợ tệp văn bản hoặc Markdown. Bảo toàn Unicode tiếng Việt, emoji và placeholder như {input}.',
+      hint: 'Supports text or Markdown files. Preserves UTF-8 Unicode, Japanese kanji/kana, and emojis.',
     },
   };
 
@@ -112,7 +112,7 @@ export default function TextFileImportModal({
         setPriority(parsed.priority !== undefined ? parsed.priority : 50);
       }
     } catch (err: any) {
-      setError(err.message || 'Lỗi đọc tệp.');
+      setError(err.message || 'Error reading file.');
     } finally {
       setIsReading(false);
     }
@@ -145,7 +145,7 @@ export default function TextFileImportModal({
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError('Tên mục không được để trống.');
+      setError('Item name cannot be empty.');
       return;
     }
 
@@ -188,7 +188,7 @@ export default function TextFileImportModal({
       onSuccess(createdItem);
       onClose();
     } catch (err: any) {
-      setError(formatErrorMessage(err, `Không thể nhập ${currentConfig.itemType}.`));
+      setError(formatErrorMessage(err, `Failed to import ${currentConfig.itemType}.`));
     } finally {
       setIsImporting(false);
     }
@@ -289,7 +289,7 @@ export default function TextFileImportModal({
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            aria-label="Đóng cửa sổ"
+            aria-label="Close dialog"
           >
             <Icon name="close" size={16} />
           </button>
@@ -322,7 +322,7 @@ export default function TextFileImportModal({
             >
               <Icon name="alert" size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <strong style={{ fontWeight: 600 }}>Lỗi nhập tệp:</strong> {error}
+                <strong style={{ fontWeight: 600 }}>Import Error:</strong> {error}
               </div>
             </div>
           )}
@@ -377,10 +377,10 @@ export default function TextFileImportModal({
                 </div>
                 <div>
                   <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {isReading ? 'Đang đọc và phân tích tệp tin...' : 'Kéo thả tệp văn bản vào đây, hoặc nhấn để duyệt file'}
+                    {isReading ? 'Reading and parsing file...' : 'Drag and drop file here, or click to browse'}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Định dạng hỗ trợ: {ALLOWED_TEXT_EXTENSIONS.join(', ')} • Tối đa 5 MB
+                    Supported formats: {ALLOWED_TEXT_EXTENSIONS.join(', ')} • Max 5 MB
                   </div>
                 </div>
                 <button
@@ -390,7 +390,7 @@ export default function TextFileImportModal({
                   style={{ marginTop: '6px' }}
                 >
                   <Icon name="doc" size={13} />
-                  <span>Chọn tệp từ máy tính</span>
+                  <span>Select file from computer</span>
                 </button>
               </div>
             </div>
@@ -419,8 +419,8 @@ export default function TextFileImportModal({
                       {metadata.filename}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Định dạng: <span className="badge badge-secondary">{metadata.extension}</span> • Dung lượng:{' '}
-                      {formatFileSize(metadata.sizeBytes)} • {metadata.hasFrontmatter ? 'Có YAML Frontmatter' : 'Văn bản thuần'}
+                      Format: <span className="badge badge-secondary">{metadata.extension}</span> • Size:{' '}
+                      {formatFileSize(metadata.sizeBytes)} • {metadata.hasFrontmatter ? 'YAML Frontmatter' : 'Plain Text'}
                     </div>
                   </div>
                 </div>
@@ -435,7 +435,7 @@ export default function TextFileImportModal({
                   style={{ fontSize: '0.75rem' }}
                 >
                   <Icon name="refresh" size={12} />
-                  <span>Đổi tệp khác</span>
+                  <span>Change File</span>
                 </button>
               </div>
 
@@ -457,7 +457,7 @@ export default function TextFileImportModal({
                 >
                   <Icon name="alert" size={15} />
                   <span>
-                    Tên <strong>&quot;{name.trim()}&quot;</strong> đã tồn tại trong thư viện của bạn. Bạn nên chỉnh sửa tên bên dưới để tránh lỗi trùng lặp khi nhập.
+                    The name <strong>&quot;{name.trim()}&quot;</strong> already exists in your library. Please edit the name below to avoid conflicts.
                   </span>
                 </div>
               )}
@@ -476,7 +476,7 @@ export default function TextFileImportModal({
                       marginBottom: '4px',
                     }}
                   >
-                    Tên {currentConfig.itemType} <span style={{ color: 'var(--danger)' }}>*</span>
+                    Name of {currentConfig.itemType} <span style={{ color: 'var(--danger)' }}>*</span>
                   </label>
                   <input
                     id="import-item-name"
@@ -486,7 +486,7 @@ export default function TextFileImportModal({
                     onChange={e => setName(e.target.value)}
                     required
                     maxLength={100}
-                    placeholder={`Tên gợi nhớ cho ${currentConfig.itemType}`}
+                    placeholder={`Memorable name for ${currentConfig.itemType}`}
                     style={{ width: '100%' }}
                   />
 
@@ -504,7 +504,7 @@ export default function TextFileImportModal({
                       marginBottom: '4px',
                     }}
                   >
-                    Mô tả tóm tắt
+                    Summary Description
                   </label>
                   <textarea
                     id="import-item-desc"
@@ -513,7 +513,7 @@ export default function TextFileImportModal({
                     onChange={e => setDescription(e.target.value)}
                     rows={2}
                     maxLength={500}
-                    placeholder={`Mục đích và phạm vi sử dụng của ${currentConfig.itemType}`}
+                    placeholder={`Purpose and scope of this ${currentConfig.itemType}`}
                     style={{ width: '100%', resize: 'vertical' }}
                   />
                 </div>
@@ -541,7 +541,7 @@ export default function TextFileImportModal({
                         onChange={e => setActivationMode(e.target.value as any)}
                         style={{ width: '100%', height: '34px', fontSize: '0.8125rem' }}
                       >
-                        <option value="always_on">Always On (Mặc định)</option>
+                        <option value="always_on">Always On (Default)</option>
                         <option value="model_decision">Model Decision</option>
                         <option value="glob">Glob Pattern</option>
                         <option value="manual">Manual Trigger</option>
@@ -551,7 +551,7 @@ export default function TextFileImportModal({
                     {activationMode === 'glob' && (
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px' }}>
-                          Glob Patterns (cách nhau bởi dấu phẩy)
+                          Glob Patterns (comma separated)
                         </label>
                         <input
                           type="text"
@@ -566,7 +566,7 @@ export default function TextFileImportModal({
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px' }}>
-                        Mức ưu tiên (0 - 100)
+                        Priority Level (0 - 100)
                       </label>
                       <input
                         type="number"
@@ -607,7 +607,7 @@ export default function TextFileImportModal({
                   }}
                 >
                   <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Xem trước nội dung văn bản
+                    Text Content Preview
                   </label>
                   <div className="segmented-control" role="tablist">
                     <button
@@ -618,7 +618,7 @@ export default function TextFileImportModal({
                       onClick={() => setPreviewTab('formatted')}
                       style={{ fontSize: '0.75rem', padding: '3px 10px' }}
                     >
-                      Định dạng xem trước
+                      Preview Format
                     </button>
                     <button
                       type="button"
@@ -628,7 +628,7 @@ export default function TextFileImportModal({
                       onClick={() => setPreviewTab('raw')}
                       style={{ fontSize: '0.75rem', padding: '3px 10px' }}
                     >
-                      Văn bản gốc ({metadata.content.length} ký tự)
+                      Original Text ({metadata.content.length} chars)
                     </button>
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export default function TextFileImportModal({
                   )}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  ℹ️ Xem trước an toàn: Toàn bộ nội dung gốc UTF-8 và ký tự ngắt dòng sẽ được lưu trữ chính xác 100% vào cơ sở dữ liệu.
+                  ℹ️ Safe Preview: Full UTF-8 content and line breaks will be preserved accurately in the database.
                 </div>
               </div>
 
@@ -685,7 +685,7 @@ export default function TextFileImportModal({
                   onClick={onClose}
                   disabled={isImporting}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -695,12 +695,12 @@ export default function TextFileImportModal({
                   {isImporting ? (
                     <>
                       <Icon name="refresh" size={14} className="spin" />
-                      <span>Đang nhập dữ liệu...</span>
+                      <span>Importing data...</span>
                     </>
                   ) : (
                     <>
                       <Icon name="upload" size={14} />
-                      <span>Xác nhận nhập vào {currentConfig.itemType}</span>
+                      <span>Confirm Import into {currentConfig.itemType}</span>
                     </>
                   )}
                 </button>

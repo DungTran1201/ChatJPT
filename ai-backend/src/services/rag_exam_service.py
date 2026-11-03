@@ -226,3 +226,4 @@ class RagExamService:
 
         results.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
         return results[:limit]
+

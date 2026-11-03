@@ -98,21 +98,21 @@ export class AttachmentService {
             const data = JSON.parse(xhr.responseText);
             resolve(data);
           } catch (e) {
-            reject(new Error('Phản hồi từ máy chủ không hợp lệ.'));
+            reject(new Error('Invalid server response.'));
           }
         } else {
           try {
             const err = JSON.parse(xhr.responseText);
-            const msg = err.detail?.message || err.detail || err.message || 'Lỗi khi tải tệp lên.';
+            const msg = err.detail?.message || err.detail || err.message || 'Failed to upload file.';
             reject(new Error(msg));
           } catch {
-            reject(new Error(`Tải tệp thất bại: HTTP ${xhr.status}`));
+            reject(new Error(`File upload failed: HTTP ${xhr.status}`));
           }
         }
       };
 
       xhr.onerror = () => {
-        reject(new Error('Mất kết nối tới máy chủ khi tải tệp lên.'));
+        reject(new Error('Connection lost while uploading file.'));
       };
 
       const formData = new FormData();
@@ -140,7 +140,7 @@ export class AttachmentService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail?.message || err.detail || 'Không thể lấy thông tin capabilities.');
+      throw new Error(err.detail?.message || err.detail || 'Failed to retrieve model capabilities.');
     }
 
     return res.json();
@@ -169,7 +169,7 @@ export class AttachmentService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail?.message || err.detail || 'Không thể tải danh sách tệp.');
+      throw new Error(err.detail?.message || err.detail || 'Failed to load attachment list.');
     }
 
     const data = await res.json();
@@ -188,7 +188,7 @@ export class AttachmentService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail?.message || err.detail || 'Tệp không tồn tại.');
+      throw new Error(err.detail?.message || err.detail || 'File not found.');
     }
 
     return res.json();
@@ -206,7 +206,7 @@ export class AttachmentService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail?.message || err.detail || 'Không thể xóa tệp.');
+      throw new Error(err.detail?.message || err.detail || 'Failed to delete attachment.');
     }
   }
 

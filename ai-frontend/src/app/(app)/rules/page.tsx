@@ -76,7 +76,7 @@ export default function RulesListPage() {
       setTotalItems(res.total || 0);
       setTotalPages(res.total_pages || 1);
     } catch (err: any) {
-      setError(formatErrorMessage(err, 'Không thể tải danh sách quy tắc.'));
+      setError(formatErrorMessage(err, 'Failed to load grammar rules.'));
     } finally {
       setLoading(false);
     }
@@ -94,9 +94,9 @@ export default function RulesListPage() {
       setTogglingId(rule.id);
       await RuleService.updateRuleStatus(rule.id, nextStatus);
       setRules(prev => prev.map(r => r.id === rule.id ? { ...r, status: nextStatus } : r));
-      showToast('success', `Đã chuyển "${rule.name}" sang trạng thái ${nextStatus === 'active' ? 'Hoạt động' : 'Tạm ngưng'}`);
+      showToast('success', `Status updated: "${rule.name}" -> ${nextStatus}`);
     } catch (err: any) {
-      showToast('error', formatErrorMessage(err, 'Lỗi cập nhật trạng thái quy tắc.'));
+      showToast('error', formatErrorMessage(err, 'Error updating rule status.'));
     } finally {
       setTogglingId(null);
     }
@@ -107,10 +107,10 @@ export default function RulesListPage() {
     try {
       setCloningId(rule.id);
       const cloned = await RuleService.cloneRule(rule.id);
-      showToast('success', `Đã nhân bản: "${cloned.name}"`);
+      showToast('success', `Cloned: "${cloned.name}"`);
       loadRules();
     } catch (err: any) {
-      showToast('error', formatErrorMessage(err, 'Lỗi nhân bản quy tắc.'));
+      showToast('error', formatErrorMessage(err, 'Error cloning rule.'));
     } finally {
       setCloningId(null);
     }
@@ -122,7 +122,7 @@ export default function RulesListPage() {
     setRuleToDelete(rule);
     if (rule.associated_projects_count > 0) {
       setDeleteWarningText(
-        `Quy tắc này đang được áp dụng trong ${rule.associated_projects_count} dự án. Việc xóa sẽ tự động gỡ liên kết quy tắc khỏi các dự án đó.`
+        `This rule is applied in ${rule.associated_projects_count} projects. Deleting it will detach it automatically.`
       );
     } else {
       setDeleteWarningText(null);
@@ -134,11 +134,11 @@ export default function RulesListPage() {
     try {
       setIsDeleting(true);
       await RuleService.deleteRule(ruleToDelete.id, true);
-      showToast('success', `Đã xóa quy tắc "${ruleToDelete.name}" thành công.`);
+      showToast('success', `Rule "${ruleToDelete.name}" deleted.`);
       setRuleToDelete(null);
       loadRules();
     } catch (err: any) {
-      showToast('error', formatErrorMessage(err, 'Không thể xóa quy tắc.'));
+      showToast('error', formatErrorMessage(err, 'Failed to delete rule.'));
     } finally {
       setIsDeleting(false);
     }
@@ -226,11 +226,11 @@ export default function RulesListPage() {
             onClick={() => setShowTextImportModal(true)}
           >
             <Icon name="upload" size={14} />
-            <span>Nhập Từ Tệp</span>
+            <span>{t('common.import_from_file')}</span>
           </button>
           <Link href="/rules/new" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
             <Icon name="plus" size={14} />
-            <span>Tạo Quy Tắc Mới</span>
+            <span>{t('rules.new_rule')}</span>
           </Link>
         </PageHeader>
 
@@ -249,7 +249,7 @@ export default function RulesListPage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tổng số Quy Tắc:</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Rules:</span>
               <span
                 style={{
                   fontSize: '0.875rem',
@@ -263,14 +263,14 @@ export default function RulesListPage() {
             </div>
             <div style={{ width: '1px', height: '16px', background: 'var(--border-subtle)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Đang hoạt động:</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('common.active')}:</span>
               <span className="badge badge-active">
                 {rules.filter(r => r.status === 'active').length} active
               </span>
             </div>
             <div style={{ width: '1px', height: '16px', background: 'var(--border-subtle)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Hệ thống:</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>System:</span>
               <span
                 className="badge"
                 style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}
@@ -280,7 +280,7 @@ export default function RulesListPage() {
             </div>
             <div style={{ width: '1px', height: '16px', background: 'var(--border-subtle)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cá nhân:</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>User:</span>
               <span
                 className="badge"
                 style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.3)' }}
@@ -303,11 +303,11 @@ export default function RulesListPage() {
           }}
         >
           {/* Scope Segmented Control */}
-          <div className="segmented-control" role="tablist" aria-label="Lọc quy tắc theo phạm vi">
+          <div className="segmented-control" role="tablist" aria-label="Filter rules by scope">
             {[
-              { id: 'all', label: 'Tất cả Scope' },
-              { id: 'system', label: 'Hệ thống (System)' },
-              { id: 'user', label: 'Cá nhân (User)' },
+              { id: 'all', label: 'All Scopes' },
+              { id: 'system', label: 'System' },
+              { id: 'user', label: 'User' },
             ].map(f => (
               <button
                 key={f.id}
@@ -341,7 +341,7 @@ export default function RulesListPage() {
                 type="search"
                 className="input"
                 style={{ paddingLeft: '32px', height: '34px', fontSize: '0.8125rem' }}
-                placeholder="Tìm kiếm theo tên, mô tả hoặc tag..."
+                placeholder={t('rules.search_placeholder')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
@@ -374,9 +374,9 @@ export default function RulesListPage() {
               onChange={e => { setModeFilter(e.target.value); setPage(1); }}
               className="select"
               style={{ height: '34px', padding: '0 0.5rem', fontSize: '0.8125rem', width: 'auto' }}
-              aria-label="Lọc theo cơ chế kích hoạt"
+              aria-label="Filter by trigger"
             >
-              <option value="all">Tất cả Triggers</option>
+              <option value="all">All Triggers</option>
               <option value="always_on">Always On</option>
               <option value="model_decision">Model Decision</option>
               <option value="glob">Glob Pattern</option>
@@ -389,20 +389,20 @@ export default function RulesListPage() {
               onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
               className="select"
               style={{ height: '34px', padding: '0 0.5rem', fontSize: '0.8125rem', width: 'auto' }}
-              aria-label="Lọc theo trạng thái"
+              aria-label="Filter by status"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="active">Đang hoạt động</option>
-              <option value="inactive">Tạm ngưng</option>
+              <option value="all">{t('rules.status_all')}</option>
+              <option value="active">{t('common.active')}</option>
+              <option value="inactive">{t('common.inactive')}</option>
             </select>
 
             {/* View Mode Toggle */}
-            <div className="segmented-control" role="group" aria-label="Chế độ hiển thị">
+            <div className="segmented-control" role="group" aria-label="Display mode">
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
                 className={`segmented-item ${viewMode === 'grid' ? 'active' : ''}`}
-                title="Dạng lưới thẻ"
+                title="Card grid view"
               >
                 Cards
               </button>
@@ -410,9 +410,9 @@ export default function RulesListPage() {
                 type="button"
                 onClick={() => setViewMode('table')}
                 className={`segmented-item ${viewMode === 'table' ? 'active' : ''}`}
-                title="Dạng bảng dữ liệu"
+                title="Table view"
               >
-                Bảng
+                Table
               </button>
             </div>
           </div>
@@ -435,7 +435,7 @@ export default function RulesListPage() {
           >
             <span>{error}</span>
             <button type="button" className="btn btn-secondary btn-sm" onClick={loadRules}>
-              Thử Lại
+              {t('common.retry')}
             </button>
           </div>
         )}
@@ -473,14 +473,14 @@ export default function RulesListPage() {
               <Icon name="rules" size={48} />
             </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              Thư viện quy tắc đang trống
+              {t('rules.empty_title')}
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '420px', margin: '0 auto 1.5rem' }}>
-              Bạn chưa tạo quy tắc nào. Hãy khởi tạo quy chuẩn coding, phong cách trả lời hoặc chính sách an ninh đầu tiên!
+              {t('rules.empty_desc')}
             </p>
             <Link href="/rules/new" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
               <Icon name="plus" size={14} />
-              <span>Tạo Quy Tắc Đầu Tiên</span>
+              <span>{t('rules.new_rule')}</span>
             </Link>
           </div>
         )}
@@ -497,7 +497,7 @@ export default function RulesListPage() {
             }}
           >
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-              Không tìm thấy quy tắc nào khớp với điều kiện tìm kiếm và bộ lọc hiện tại.
+              No rules matched your search filters.
             </p>
             <button
               type="button"
@@ -509,7 +509,7 @@ export default function RulesListPage() {
                 setStatusFilter('active');
               }}
             >
-              Xóa Bộ Lọc
+              {t('common.clear_search')}
             </button>
           </div>
         )}
@@ -584,7 +584,7 @@ export default function RulesListPage() {
                       marginBottom: '10px'
                     }}
                   >
-                    {rule.description || 'Không có mô tả.'}
+                    {rule.description || 'No description provided.'}
                   </p>
 
                   {/* Tags */}
@@ -631,7 +631,7 @@ export default function RulesListPage() {
                       type="button"
                       disabled={!rule.is_editable || togglingId === rule.id}
                       onClick={e => handleToggleStatus(rule, e)}
-                      title={rule.is_editable ? `Chuyển sang ${rule.status === 'active' ? 'Inactive' : 'Active'}` : 'System Rule (Không thể tắt)'}
+                      title={rule.is_editable ? `Switch to ${rule.status === 'active' ? 'Inactive' : 'Active'}` : 'System Rule (Protected)'}
                       style={{
                         padding: '2px 8px',
                         borderRadius: '12px',
@@ -643,11 +643,11 @@ export default function RulesListPage() {
                         color: rule.status === 'active' ? '#10b981' : '#94a3b8'
                       }}
                     >
-                      {rule.status === 'active' ? '● Hoạt động' : '○ Tạm ngưng'}
+                      {rule.status === 'active' ? `● ${t('common.active')}` : `○ ${t('common.inactive')}`}
                     </button>
                     {rule.associated_projects_count > 0 && (
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        {rule.associated_projects_count} dự án
+                        {rule.associated_projects_count} projects
                       </span>
                     )}
                   </div>
@@ -659,7 +659,7 @@ export default function RulesListPage() {
                       onClick={e => handleClone(rule, e)}
                       disabled={cloningId === rule.id}
                       className="btn-icon"
-                      title="Nhân bản quy tắc"
+                      title={t('common.clone')}
                       style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
                     >
                       <Icon name="copy" size={14} />
@@ -669,7 +669,7 @@ export default function RulesListPage() {
                         type="button"
                         onClick={e => handleOpenDelete(rule, e)}
                         className="btn-icon"
-                        title="Xóa quy tắc"
+                        title={t('common.delete')}
                         style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px' }}
                       >
                         <Icon name="trash" size={14} />
@@ -695,13 +695,13 @@ export default function RulesListPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '10px 14px' }}>Tên Quy Tắc</th>
+                  <th style={{ padding: '10px 14px' }}>Rule Name</th>
                   <th style={{ padding: '10px 14px' }}>Scope</th>
-                  <th style={{ padding: '10px 14px' }}>Kích Hoạt</th>
-                  <th style={{ padding: '10px 14px' }}>Ưu Tiên</th>
-                  <th style={{ padding: '10px 14px' }}>Dự Án</th>
-                  <th style={{ padding: '10px 14px' }}>Trạng Thái</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>Thao Tác</th>
+                  <th style={{ padding: '10px 14px' }}>Trigger</th>
+                  <th style={{ padding: '10px 14px' }}>Priority</th>
+                  <th style={{ padding: '10px 14px' }}>Projects</th>
+                  <th style={{ padding: '10px 14px' }}>{t('common.status')}</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -720,7 +720,7 @@ export default function RulesListPage() {
                     <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       <div>{rule.name}</div>
                       <div style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-secondary)', maxWidth: '320px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {rule.description || 'Không có mô tả'}
+                        {rule.description || 'No description provided'}
                       </div>
                     </td>
                     <td style={{ padding: '10px 14px' }}>{getScopeBadge(rule.scope)}</td>
@@ -750,7 +750,7 @@ export default function RulesListPage() {
                       <button
                         type="button"
                         onClick={e => handleClone(rule, e)}
-                        title="Nhân bản"
+                        title={t('common.clone')}
                         style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
                       >
                         <Icon name="copy" size={14} />
@@ -759,7 +759,7 @@ export default function RulesListPage() {
                         <button
                           type="button"
                           onClick={e => handleOpenDelete(rule, e)}
-                          title="Xóa"
+                          title={t('common.delete')}
                           style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px', marginLeft: '6px' }}
                         >
                           <Icon name="trash" size={14} />
@@ -792,7 +792,7 @@ export default function RulesListPage() {
           existingNames={rules.map(r => r.name)}
           onClose={() => setShowTextImportModal(false)}
           onSuccess={(imported) => {
-            showToast('success', `Đã nhập thành công quy tắc "${imported.name}"`);
+            showToast('success', `Imported rule "${imported.name}" successfully`);
             loadRules();
           }}
         />
@@ -801,13 +801,13 @@ export default function RulesListPage() {
         {ruleToDelete && (
           <ConfirmDialog
             isOpen={Boolean(ruleToDelete)}
-            title={`Xác nhận xóa "${ruleToDelete.name}"?`}
+            title={`Delete rule "${ruleToDelete.name}"?`}
             message={
               deleteWarningText ||
-              'Bạn có chắc chắn muốn xóa quy tắc này? Quy tắc sẽ được chuyển sang trạng thái lưu trữ và ẩn khỏi thư viện.'
+              'Are you sure you want to delete this rule? It will be archived and hidden from the library.'
             }
-            confirmLabel={isDeleting ? 'Đang xóa...' : 'Xác Nhận Xóa'}
-            cancelLabel="Hủy Bỏ"
+            confirmLabel={isDeleting ? t('common.saving') : t('common.delete')}
+            cancelLabel={t('common.cancel')}
             isDestructive={true}
             isLoading={isDeleting}
             onConfirm={handleConfirmDelete}

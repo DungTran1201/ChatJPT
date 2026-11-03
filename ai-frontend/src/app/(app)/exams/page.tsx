@@ -14,8 +14,10 @@ import { ExamService } from '@/services/examService';
 import PageHeader from '@/components/ui/PageHeader';
 import Icon from '@/components/ui/Icon';
 import Toast, { ToastMessage } from '@/components/ui/Toast';
+import { useApp } from '@/context/AppContext';
 
 export default function ExamManagementPage() {
+  const { t } = useApp();
   const [activeTab, setActiveTab] = useState<'exams' | 'materials' | 'rag'>('exams');
   
   // Data states
@@ -66,7 +68,7 @@ export default function ExamManagementPage() {
       });
       setExams(res.items || []);
     } catch (err: any) {
-      addToast('error', err.message || 'Không thể tải danh sách đề thi');
+      addToast('error', err.message || 'Failed to load exams list');
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,7 @@ export default function ExamManagementPage() {
       });
       setMaterials(res.items || []);
     } catch (err: any) {
-      addToast('error', err.message || 'Không thể tải kho tài liệu');
+      addToast('error', err.message || 'Failed to load materials repository');
     } finally {
       setLoading(false);
     }
@@ -96,7 +98,7 @@ export default function ExamManagementPage() {
       const res = await ExamService.searchRag(query, level !== 'ALL' ? level : undefined);
       setRagResults(res.results || []);
     } catch (err: any) {
-      addToast('error', err.message || 'Lỗi tra cứu tri thức RAG');
+      addToast('error', err.message || 'RAG search error');
     } finally {
       setRagLoading(false);
     }
@@ -122,7 +124,7 @@ export default function ExamManagementPage() {
       const detail = await ExamService.getExamDetail(examId);
       setActiveExamDetail(detail);
     } catch (err: any) {
-      addToast('error', err.message || 'Không thể mở bài thi');
+      addToast('error', err.message || 'Failed to open exam');
       setRunningExamId(null);
     } finally {
       setLoadingDetail(false);
@@ -142,7 +144,7 @@ export default function ExamManagementPage() {
     
     const answeredCount = Object.keys(userAnswers).length;
     if (answeredCount === 0) {
-      addToast('info', 'Vui lòng chọn ít nhất một câu trả lời trước khi nộp bài!');
+      addToast('info', 'Please select at least one answer before submitting!');
       return;
     }
 
@@ -151,12 +153,12 @@ export default function ExamManagementPage() {
       const result = await ExamService.submitExam(runningExamId, userAnswers);
       setExamResult(result);
       if (result.passed) {
-        addToast('success', `Chúc mừng! Bạn đã hoàn thành xuất sắc: ${result.score}/${result.max_score} điểm!`);
+        addToast('success', `Completed: ${result.score}/${result.max_score} pts!`);
       } else {
-        addToast('info', `Kết quả: ${result.score}/${result.max_score} điểm. Hãy tiếp tục cố gắng nhé!`);
+        addToast('info', `Result: ${result.score}/${result.max_score} pts.`);
       }
     } catch (err: any) {
-      addToast('error', err.message || 'Lỗi khi nộp bài thi');
+      addToast('error', err.message || 'Error submitting exam');
     } finally {
       setSubmitting(false);
     }
@@ -237,7 +239,7 @@ export default function ExamManagementPage() {
                 borderRadius: '4px',
               }}
             >
-              Học Liệu Khảo Thí & RAG
+              {t('exams.badge_rag')}
             </span>
           </div>
           <h1
@@ -249,7 +251,7 @@ export default function ExamManagementPage() {
               letterSpacing: '-0.02em',
             }}
           >
-            Kho Đề Thi & Giáo Trình Tham Khảo Bản Địa (JLPT & Kaiwa)
+            {t('exams.title')}
           </h1>
           <p
             style={{
@@ -260,7 +262,7 @@ export default function ExamManagementPage() {
               lineHeight: 1.5,
             }}
           >
-            Toàn bộ tài liệu chuẩn từ các cấp độ N5 đến N1 và Kaiwa đã được tải về lưu trữ trực tiếp trên máy chủ. Người học có thể làm bài thi trắc nghiệm trực tiếp, xem hoặc tải sách PDF, và tra cứu tri thức ngữ pháp hỗ trợ RAG tức thì.
+            {t('exams.sub')}
           </p>
         </div>
 
@@ -282,7 +284,7 @@ export default function ExamManagementPage() {
             }}
           >
             <Icon name="refresh" size={13} />
-            <span>Làm mới</span>
+            <span>{t('common.refresh')}</span>
           </button>
           <Link
             href="/chat"
@@ -297,7 +299,7 @@ export default function ExamManagementPage() {
             }}
           >
             <Icon name="chat" size={14} />
-            <span>Vào Luyện Kaiwa</span>
+            <span>{t('exams.practice_kaiwa')}</span>
           </Link>
         </div>
       </div>
@@ -321,10 +323,10 @@ export default function ExamManagementPage() {
           }}
         >
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #89898f)', fontWeight: 600 }}>
-            Kho Đề Thi Trực Tuyến
+            {t('exams.stat_exams_title')}
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#3ecf8e', marginTop: '4px' }}>
-            6 Bộ Đề Chuẩn
+            {t('exams.stat_exams_value')}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #b4b4b8)', marginTop: '2px' }}>
             N5, N4, N3, N2, N1 & Kaiwa
@@ -342,13 +344,13 @@ export default function ExamManagementPage() {
           }}
         >
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #89898f)', fontWeight: 600 }}>
-            Tài Liệu Cục Bộ (Local Storage)
+            {t('exams.stat_storage_title')}
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#2dd4bf', marginTop: '4px' }}>
-            90+ Đầu Sách & Đề
+            {t('exams.stat_storage_value')}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #b4b4b8)', marginTop: '2px' }}>
-            ~1.58 GB PDF trên Server
+            ~1.58 GB PDF Offline
           </div>
         </div>
 
@@ -363,13 +365,13 @@ export default function ExamManagementPage() {
           }}
         >
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #89898f)', fontWeight: 600 }}>
-            Chấm Điểm & Lời Khuyên
+            {t('exams.stat_rag_title')}
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>
-            Tự Động & Tức Thì
+            {t('exams.stat_rag_value')}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #b4b4b8)', marginTop: '2px' }}>
-            Kèm giải thích sư phạm tiếng Việt
+            {t('exams.stat_rag_sub')}
           </div>
         </div>
 
@@ -384,13 +386,13 @@ export default function ExamManagementPage() {
           }}
         >
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #89898f)', fontWeight: 600 }}>
-            Kho Tri Thức RAG
+            {t('exams.tab_rag')}
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#a855f7', marginTop: '4px' }}>
-            Sẵn Sàng Tra Cứu
+            {t('exams.rag_results_count')}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #b4b4b8)', marginTop: '2px' }}>
-            Hỗ trợ Chatbot truy xuất chính xác
+            {t('exams.stat_rag_sub')}
           </div>
         </div>
       </div>
@@ -424,7 +426,7 @@ export default function ExamManagementPage() {
           }}
         >
           <Icon name="exam" size={15} />
-          <span>Kho Đề Thi & Làm Bài Trực Tuyến</span>
+          <span>{t('exams.tab_exams')}</span>
         </button>
 
         <button
@@ -448,7 +450,7 @@ export default function ExamManagementPage() {
           }}
         >
           <Icon name="doc" size={15} />
-          <span>Kho Giáo Trình & Tài Liệu Cục Bộ ({materials.length})</span>
+          <span>{t('exams.tab_materials')} ({materials.length})</span>
         </button>
 
         <button
@@ -472,12 +474,12 @@ export default function ExamManagementPage() {
           }}
         >
           <Icon name="search" size={15} />
-          <span>Trợ Lý Tra Cứu RAG (AI Sensei Knowledge)</span>
+          <span>{t('exams.tab_rag')}</span>
         </button>
       </div>
 
       {/* ========================================================================= */}
-      {/* TAB 1: KHO ĐỀ THI & LÀM BÀI TRỰC TUYẾN */}
+      {/* TAB 1: EXAM BANK & ONLINE TESTING */}
       {/* ========================================================================= */}
       {activeTab === 'exams' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -518,7 +520,7 @@ export default function ExamManagementPage() {
                       border: `1px solid ${active ? (lvl === 'ALL' ? 'var(--accent, #3ecf8e)' : bStyle.border) : 'var(--border-subtle)'}`,
                     }}
                   >
-                    {lvl === 'ALL' ? 'Tất cả cấp độ' : lvl === 'KAIWA' ? 'Giao tiếp Kaiwa' : `JLPT ${lvl}`}
+                    {lvl === 'ALL' ? t('common.all_levels') : lvl === 'KAIWA' ? 'Kaiwa' : `JLPT ${lvl}`}
                   </button>
                 );
               })}
@@ -528,7 +530,7 @@ export default function ExamManagementPage() {
             <div style={{ minWidth: '280px', position: 'relative' }}>
               <input
                 type="text"
-                placeholder="Tìm kiếm đề thi..."
+                placeholder={t('exams.search_exams_placeholder')}
                 value={examSearch}
                 onChange={e => setExamSearch(e.target.value)}
                 className="input"
@@ -551,7 +553,7 @@ export default function ExamManagementPage() {
           {loading ? (
             <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
               <Icon name="refresh" size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
-              <div>Đang tải ngân hàng đề thi...</div>
+              <div>{t('common.loading')}</div>
             </div>
           ) : exams.length === 0 ? (
             <div
@@ -565,7 +567,7 @@ export default function ExamManagementPage() {
             >
               <Icon name="info" size={32} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                Không tìm thấy đề thi phù hợp với bộ lọc hiện tại.
+                No exams matched your current filters.
               </p>
             </div>
           ) : (
@@ -619,7 +621,7 @@ export default function ExamManagementPage() {
                             border: '1px solid var(--border-subtle)',
                           }}
                         >
-                          Đề thi khảo thí chuẩn
+                          Official Mock Exam
                         </span>
                       </div>
 
@@ -643,18 +645,18 @@ export default function ExamManagementPage() {
                           marginBottom: '14px',
                         }}
                       >
-                        {exam.description || 'Đề thi khảo thí năng lực tiếng Nhật tiêu chuẩn.'}
+                        {exam.description || 'Standard Japanese proficiency examination test.'}
                       </p>
 
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                         <span style={{ background: 'var(--bg-surface)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
-                          ⏱️ {exam.duration_minutes} phút
+                          ⏱️ {exam.duration_minutes} {t('exams.duration')}
                         </span>
                         <span style={{ background: 'var(--bg-surface)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
-                          📝 {exam.total_questions} câu trắc nghiệm
+                          📝 {exam.total_questions} questions
                         </span>
                         <span style={{ background: 'var(--bg-surface)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
-                          🎯 Điểm đỗ: {exam.passing_score}/{exam.max_score}
+                          🎯 {t('exams.pass_score')}: {exam.passing_score}/{exam.max_score}
                         </span>
                       </div>
                     </div>
@@ -676,7 +678,7 @@ export default function ExamManagementPage() {
                         }}
                       >
                         <Icon name="play" size={14} />
-                        <span>Làm bài thi trực tiếp trên web</span>
+                        <span>{t('exams.take_exam')}</span>
                       </button>
                     </div>
                   </div>
@@ -688,7 +690,7 @@ export default function ExamManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: KHO GIÁO TRÌNH & TÀI LIỆU CỤC BỘ */}
+      {/* TAB 2: LOCAL MATERIAL REPOSITORY */}
       {/* ========================================================================= */}
       {activeTab === 'materials' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -729,7 +731,7 @@ export default function ExamManagementPage() {
                       border: `1px solid ${active ? (lvl === 'ALL' ? 'var(--accent, #3ecf8e)' : bStyle.border) : 'var(--border-subtle)'}`,
                     }}
                   >
-                    {lvl === 'ALL' ? 'Tất cả cấp độ' : lvl === 'KAIWA' ? 'Kaiwa' : lvl}
+                    {lvl === 'ALL' ? t('common.all_levels') : lvl}
                   </button>
                 );
               })}
@@ -739,7 +741,7 @@ export default function ExamManagementPage() {
             <div style={{ minWidth: '280px', position: 'relative' }}>
               <input
                 type="text"
-                placeholder="Tìm kiếm tài liệu, sách, giáo trình..."
+                placeholder={t('exams.search_materials_placeholder')}
                 value={materialSearch}
                 onChange={e => setMaterialSearch(e.target.value)}
                 className="input"
@@ -762,7 +764,7 @@ export default function ExamManagementPage() {
           {loading ? (
             <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
               <Icon name="refresh" size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
-              <div>Đang tải kho tài liệu cục bộ...</div>
+              <div>{t('common.loading')}</div>
             </div>
           ) : materials.length === 0 ? (
             <div
@@ -776,7 +778,7 @@ export default function ExamManagementPage() {
             >
               <Icon name="info" size={32} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                Không tìm thấy tài liệu phù hợp.
+                No materials matched your search query.
               </p>
             </div>
           ) : (
@@ -829,7 +831,7 @@ export default function ExamManagementPage() {
                             border: '1px solid rgba(62, 207, 142, 0.25)',
                           }}
                         >
-                          ✓ Sẵn sàng cục bộ
+                          ✓ Offline Ready
                         </span>
                       </div>
 
@@ -857,9 +859,9 @@ export default function ExamManagementPage() {
                       </p>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        <span>📁 Tệp PDF</span>
+                        <span>📁 PDF</span>
                         <span>•</span>
-                        <span>{mat.size_display || 'Tài liệu'}</span>
+                        <span>{mat.size_display || 'Document'}</span>
                         <span>•</span>
                         <span>{mat.author || 'ChatJPT Server'}</span>
                       </div>
@@ -889,7 +891,7 @@ export default function ExamManagementPage() {
                         }}
                       >
                         <Icon name="doc" size={13} />
-                        <span>Xem trên Web</span>
+                        <span>{t('exams.view_web')}</span>
                       </button>
 
                       <a
@@ -907,7 +909,7 @@ export default function ExamManagementPage() {
                         }}
                       >
                         <Icon name="upload" size={13} style={{ transform: 'rotate(180deg)' }} />
-                        <span>Tải về máy</span>
+                        <span>{t('exams.download')}</span>
                       </a>
                     </div>
                   </div>
@@ -919,7 +921,7 @@ export default function ExamManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: TRỢ LÝ TRA CỨU RAG */}
+      {/* TAB 3: RAG KNOWLEDGE ASSISTANT */}
       {/* ========================================================================= */}
       {activeTab === 'rag' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -960,7 +962,7 @@ export default function ExamManagementPage() {
                       border: `1px solid ${active ? (lvl === 'ALL' ? 'var(--accent, #3ecf8e)' : bStyle.border) : 'var(--border-subtle)'}`,
                     }}
                   >
-                    {lvl === 'ALL' ? 'Tất cả cấp độ' : lvl === 'KAIWA' ? 'Kaiwa' : lvl}
+                    {lvl === 'ALL' ? t('common.all_levels') : lvl}
                   </button>
                 );
               })}
@@ -970,7 +972,7 @@ export default function ExamManagementPage() {
             <div style={{ minWidth: '320px', position: 'relative' }}>
               <input
                 type="text"
-                placeholder="Tra cứu điểm ngữ pháp, trợ từ, Hán tự, đệm từ..."
+                placeholder={t('exams.rag_query_placeholder')}
                 value={ragQuery}
                 onChange={e => setRagQuery(e.target.value)}
                 className="input"
@@ -993,7 +995,7 @@ export default function ExamManagementPage() {
           {ragLoading ? (
             <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
               <Icon name="refresh" size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
-              <div>Đang tìm kiếm trong kho tri thức RAG...</div>
+              <div>{t('exams.rag_searching')}</div>
             </div>
           ) : ragResults.length === 0 ? (
             <div
@@ -1007,7 +1009,7 @@ export default function ExamManagementPage() {
             >
               <Icon name="info" size={32} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                Không tìm thấy kết quả phù hợp. Hãy thử tìm các từ khóa như &quot;wa&quot;, &quot;te&quot;, &quot;tara&quot;, &quot;wake&quot;, &quot;kính ngữ&quot;...
+                No knowledge chunks found. Try searching for &quot;te&quot;, &quot;wa&quot;, &quot;kaiwa&quot;, &quot;kara&quot;...
               </p>
             </div>
           ) : (
@@ -1105,7 +1107,7 @@ export default function ExamManagementPage() {
                         }}
                       >
                         <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b' }}>
-                          💡 Ví dụ ngữ cảnh:
+                          💡 Example Sentences:
                         </div>
                         {item.examples.map((ex, idx) => (
                           <div key={idx} style={{ fontSize: '0.8rem', lineHeight: 1.5 }}>
@@ -1128,7 +1130,7 @@ export default function ExamManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 1: LÀM BÀI THI TRỰC TUYẾN (ONLINE EXAM RUNNER) */}
+      {/* MODAL 1: ONLINE EXAM RUNNER */}
       {/* ========================================================================= */}
       {runningExamId && (
         <div
@@ -1181,10 +1183,10 @@ export default function ExamManagementPage() {
                     letterSpacing: '0.05em',
                   }}
                 >
-                  Khảo Thí Trực Tuyến
+                  {t('exams.tab_exams')}
                 </span>
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>
-                  {activeExamDetail?.title || 'Đang chuẩn bị đề thi...'}
+                  {activeExamDetail?.title || 'Preparing exam questions...'}
                 </h2>
               </div>
               <button
@@ -1208,11 +1210,11 @@ export default function ExamManagementPage() {
               {loadingDetail ? (
                 <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-muted)' }}>
                   <Icon name="refresh" size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: '8px' }} />
-                  <div>Đang tải nội dung câu hỏi bài thi...</div>
+                  <div>{t('common.loading')}</div>
                 </div>
               ) : !activeExamDetail ? (
                 <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--danger, #f07178)' }}>
-                  Không tìm thấy nội dung câu hỏi cho đề thi này.
+                  No questions found for this exam.
                 </div>
               ) : (
                 <>
@@ -1231,7 +1233,7 @@ export default function ExamManagementPage() {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: examResult.passed ? '#3ecf8e' : '#f59e0b' }}>
-                          Kết Quả Bài Khảo Thí
+                          {t('exams.result_title')}
                         </span>
                         <span
                           style={{
@@ -1243,17 +1245,17 @@ export default function ExamManagementPage() {
                             color: '#ffffff',
                           }}
                         >
-                          {examResult.passed ? 'ĐẠT (PASSED)' : 'CHƯA ĐẠT (TRY AGAIN)'}
+                          {examResult.passed ? t('exams.result_passed') : t('exams.result_failed')}
                         </span>
                       </div>
                       <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff' }}>
-                        {examResult.score} / {examResult.max_score} Điểm
+                        {examResult.score} / {examResult.max_score} pts
                         <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-secondary)', marginLeft: '8px' }}>
-                          (Đúng {examResult.correct_count}/{examResult.total_questions} câu)
+                          ({examResult.correct_count}/{examResult.total_questions} correct)
                         </span>
                       </div>
                       <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px' }}>
-                        💬 Lời khuyên từ Sensei: {examResult.feedback_message}
+                        💬 Sensei Feedback: {examResult.feedback_message}
                       </div>
                     </div>
                   )}
@@ -1299,7 +1301,7 @@ export default function ExamManagementPage() {
                                 border: '1px solid var(--border-subtle)',
                               }}
                             >
-                              Câu {q.question_number} [{q.section}]
+                              {t('exams.question')} {q.question_number} [{q.section}]
                             </span>
                             {qRes && (
                               <span
@@ -1309,7 +1311,7 @@ export default function ExamManagementPage() {
                                   color: qRes.is_correct ? '#3ecf8e' : '#f07178',
                                 }}
                               >
-                                {qRes.is_correct ? '✓ Đúng' : '✗ Chưa đúng'}
+                                {qRes.is_correct ? '✓ Correct' : '✗ Incorrect'}
                               </span>
                             )}
                           </div>
@@ -1424,7 +1426,7 @@ export default function ExamManagementPage() {
                               }}
                             >
                               <strong style={{ color: '#f59e0b', display: 'block', marginBottom: '2px' }}>
-                                💡 Giải thích từ Sensei:
+                                💡 {t('exams.result_explanations')}:
                               </strong>
                               {qRes.explanation}
                             </div>
@@ -1451,14 +1453,14 @@ export default function ExamManagementPage() {
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {!examResult ? (
                   <span>
-                    Đã hoàn thành:{' '}
+                    Answered:{' '}
                     <strong style={{ color: 'var(--accent, #3ecf8e)' }}>
                       {Object.keys(userAnswers).length}
                     </strong>
-                    /{activeExamDetail?.questions.length || 0} câu
+                    /{activeExamDetail?.questions.length || 0} questions
                   </span>
                 ) : (
-                  <span>Đã hoàn thành kiểm tra và tự động chấm điểm.</span>
+                  <span>Questions evaluated by automated Sensei scoring.</span>
                 )}
               </div>
 
@@ -1469,7 +1471,7 @@ export default function ExamManagementPage() {
                   className="btn btn-secondary btn-sm"
                   style={{ height: '36px', padding: '0 16px' }}
                 >
-                  Đóng
+                  {t('common.close')}
                 </button>
 
                 {!examResult ? (
@@ -1480,7 +1482,7 @@ export default function ExamManagementPage() {
                     className="btn btn-primary btn-sm"
                     style={{ height: '36px', padding: '0 20px', fontWeight: 600 }}
                   >
-                    {submitting ? 'Đang chấm điểm...' : 'Nộp bài & Chấm điểm'}
+                    {submitting ? t('exams.submitting') : t('exams.submit_exam')}
                   </button>
                 ) : (
                   <button
@@ -1492,7 +1494,7 @@ export default function ExamManagementPage() {
                     className="btn btn-primary btn-sm"
                     style={{ height: '36px', padding: '0 20px', fontWeight: 600 }}
                   >
-                    Làm lại bài thi
+                    {t('exams.retake')}
                   </button>
                 )}
               </div>
@@ -1502,7 +1504,7 @@ export default function ExamManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: XEM TÀI LIỆU TRỰC TIẾP TRÊN WEB (IN-APP DOCUMENT VIEWER) */}
+      {/* MODAL 2: IN-APP DOCUMENT VIEWER */}
       {/* ========================================================================= */}
       {viewingMaterial && (
         <div
@@ -1561,7 +1563,7 @@ export default function ExamManagementPage() {
                   style={{ height: '32px', padding: '0 12px', fontSize: '0.78rem', textDecoration: 'none' }}
                 >
                   <Icon name="upload" size={13} style={{ transform: 'rotate(180deg)' }} />
-                  <span>Tải tệp</span>
+                  <span>{t('exams.download')}</span>
                 </a>
                 <button
                   type="button"

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useApp } from '@/context/AppContext';
 import {
   parsePedagogicalBlocks,
   speakJapaneseSpeech,
@@ -29,6 +30,7 @@ export default function JapaneseInterlinearView({
   isStreaming = false,
   voiceId,
 }: JapaneseInterlinearViewProps) {
+  const { t } = useApp();
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
 
   const blocks: JapaneseSentenceBlock[] = parsePedagogicalBlocks(content);
@@ -158,8 +160,8 @@ export default function JapaneseInterlinearView({
                 <button
                   type="button"
                   onClick={() => handleSpeak(block.rawText, bIdx)}
-                  title="Nghe phát âm tiếng Nhật chuẩn Tokyo"
-                  aria-label="Phát âm tiếng Nhật"
+                  title={t('chat.tts_listen_title')}
+                  aria-label={t('chat.tts_listen_aria')}
                   style={{
                     background: playingIdx === bIdx ? 'var(--bg-selected)' : 'var(--bg-elevated)',
                     border: '1px solid var(--border-default)',

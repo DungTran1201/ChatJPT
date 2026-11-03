@@ -90,7 +90,7 @@ export default function RuleDetailPage() {
         // Soft fail for projects list
       }
     } catch (err: any) {
-      setError(formatErrorMessage(err, 'Không thể tải thông tin quy tắc.'));
+      setError(formatErrorMessage(err, 'Failed to load rule configuration.'));
     } finally {
       setLoading(false);
     }
@@ -120,7 +120,7 @@ export default function RuleDetailPage() {
     const trimmed = tagInput.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
     if (trimmed && !tags.includes(trimmed)) {
       if (tags.length >= 10) {
-        setFormError('Tối đa 10 tags trên mỗi quy tắc.');
+        setFormError('Maximum 10 tags per rule.');
         return;
       }
       setTags([...tags, trimmed]);
@@ -139,21 +139,21 @@ export default function RuleDetailPage() {
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setFormError('Tên quy tắc không được để trống.');
+      setFormError('Rule name cannot be empty.');
       return;
     }
     if (trimmedName.length > 100) {
-      setFormError('Tên quy tắc không được vượt quá 100 ký tự.');
+      setFormError('Rule name cannot exceed 100 characters.');
       return;
     }
 
     const trimmedContent = content.trim();
     if (!trimmedContent) {
-      setFormError('Nội dung quy tắc không được để trống.');
+      setFormError('Rule content cannot be empty.');
       return;
     }
     if (content.length > 10000) {
-      setFormError('Nội dung quy tắc không được vượt quá 10,000 ký tự.');
+      setFormError('Rule content cannot exceed 10,000 characters.');
       return;
     }
 
@@ -165,13 +165,13 @@ export default function RuleDetailPage() {
         .filter(Boolean);
 
       if (patterns.length === 0) {
-        setFormError('Chế độ File Pattern (Glob) yêu cầu ít nhất 1 pattern.');
+        setFormError('File Pattern (Glob) mode requires at least 1 pattern.');
         return;
       }
 
       for (const p of patterns) {
         if (p.includes('..') || p.startsWith('/') || p.startsWith('\\')) {
-          setFormError(`Pattern "${p}" không hợp lệ: Không được chứa ký tự điều hướng (..) hoặc đường dẫn tuyệt đối.`);
+          setFormError(`Pattern "${p}" is invalid: Directory traversal (..) and absolute paths are forbidden.`);
           return;
         }
       }
@@ -194,12 +194,12 @@ export default function RuleDetailPage() {
       const updated = await RuleService.updateRule(ruleId, payload);
       setRule(updated);
       initForm(updated);
-      showToast('success', 'Đã lưu thay đổi quy tắc thành công.');
+      showToast('success', 'Rule changes saved successfully.');
     } catch (err: any) {
-      if (err?.status === 409 || err?.message?.includes('conflict') || err?.message?.includes('Phiên bản') || err?.message?.includes('Version')) {
+      if (err?.status === 409 || err?.message?.includes('conflict') || err?.message?.includes('Version') || err?.message?.includes('Version')) {
         setShowConflictModal(true);
       } else {
-        setFormError(formatErrorMessage(err, 'Không thể cập nhật quy tắc.'));
+        setFormError(formatErrorMessage(err, 'Failed to update rule.'));
       }
     } finally {
       setIsSaving(false);
@@ -211,10 +211,10 @@ export default function RuleDetailPage() {
     try {
       setIsCloning(true);
       const cloned = await RuleService.cloneRule(rule.id);
-      showToast('success', `Đã nhân bản thành "${cloned.name}".`);
+      showToast('success', `Duplicated as "${cloned.name}".`);
       router.push(`/rules/${cloned.id}`);
     } catch (err: any) {
-      showToast('error', formatErrorMessage(err, 'Không thể nhân bản quy tắc.'));
+      showToast('error', formatErrorMessage(err, 'Failed to duplicate rule.'));
     } finally {
       setIsCloning(false);
     }
@@ -229,7 +229,7 @@ export default function RuleDetailPage() {
       router.push('/rules');
     } catch (err: any) {
       setShowDeleteConfirm(false);
-      showToast('error', formatErrorMessage(err, 'Không thể lưu trữ quy tắc.'));
+      showToast('error', formatErrorMessage(err, 'Failed to archive rule.'));
     } finally {
       setIsDeleting(false);
     }
@@ -248,7 +248,7 @@ export default function RuleDetailPage() {
             animation: 'spin 0.8s linear infinite',
             margin: '0 auto 1rem'
           }} />
-          <p style={{ fontSize: '0.875rem' }}>Đang tải thông tin quy tắc...</p>
+          <p style={{ fontSize: '0.875rem' }}>Loading rule configuration...</p>
         </div>
       </div>
     );
@@ -273,14 +273,14 @@ export default function RuleDetailPage() {
               <Icon name="alert" size={28} />
             </div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              Không Tìm Thấy Quy Tắc
+              Rule Not Found
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', maxWidth: '440px', margin: '0 auto 1.5rem' }}>
-              {error || 'Quy tắc được yêu cầu không tồn tại hoặc bạn không có quyền truy cập.'}
+              {error || 'The requested rule does not exist or you do not have permission to view it.'}
             </p>
             <Link href="/rules" className="btn btn-secondary">
               <Icon name="chevronLeft" size={13} />
-              <span>Quay Lại Thư Viện Rules</span>
+              <span>Back to Rules Library</span>
             </Link>
           </div>
         </div>
@@ -294,7 +294,7 @@ export default function RuleDetailPage() {
         {/* Header */}
         <PageHeader
           title={rule.name}
-          description={`Phiên bản ${rule.version} • Mã ID: ${rule.id}`}
+          description={`Version ${rule.version} • ID: ${rule.id}`}
         >
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
@@ -309,7 +309,7 @@ export default function RuleDetailPage() {
               }}
             >
               <Icon name="chevronLeft" size={13} />
-              <span>Thư Viện Rules</span>
+              <span>Rules Library</span>
             </button>
             <button
               type="button"
@@ -318,7 +318,7 @@ export default function RuleDetailPage() {
               disabled={isCloning}
             >
               <Icon name="copy" size={13} />
-              <span>{isCloning ? 'Đang sao chép...' : 'Nhân Bản'}</span>
+              <span>{isCloning ? 'Duplicating...' : 'Duplicate'}</span>
             </button>
             {!isSystemRule && (
               <button
@@ -327,7 +327,7 @@ export default function RuleDetailPage() {
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 <Icon name="trash" size={13} />
-                <span>Lưu Trữ</span>
+                <span>Archive</span>
               </button>
             )}
           </div>
@@ -350,7 +350,7 @@ export default function RuleDetailPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Icon name="shield" size={18} />
               <div style={{ fontSize: '0.8125rem' }}>
-                <strong style={{ color: 'var(--text-primary)' }}>Quy Tắc Hệ Thống (System Rule):</strong> Quy tắc này được bảo vệ bởi AI-Chan để đảm bảo chuẩn mực chung. Bạn không thể chỉnh sửa hoặc xóa trực tiếp. Hãy nhấn Nhân Bản để tạo bản sao tùy chỉnh.
+                <strong style={{ color: 'var(--text-primary)' }}>System Rule:</strong> This rule is protected by AI-Chan to guarantee standard pedagogical quality. It cannot be directly edited or deleted. Click Duplicate to create a customizable copy.
               </div>
             </div>
             <button
@@ -359,7 +359,7 @@ export default function RuleDetailPage() {
               onClick={handleClone}
               disabled={isCloning}
             >
-              Nhân Bản Để Chỉnh Sửa
+              Duplicate to Edit
             </button>
           </div>
         )}
@@ -404,7 +404,7 @@ export default function RuleDetailPage() {
               cursor: 'pointer'
             }}
           >
-            {isSystemRule ? 'Đặc Tả Quy Tắc' : 'Chỉnh Sửa Quy Tắc'}
+            {isSystemRule ? 'Rule Specification' : 'Edit Rule'}
           </button>
           <button
             type="button"
@@ -423,7 +423,7 @@ export default function RuleDetailPage() {
               gap: '6px'
             }}
           >
-            <span>Dự Án Đang Sử Dụng</span>
+            <span>Linked Projects</span>
             <span style={{
               fontSize: '0.7rem',
               padding: '1px 6px',
@@ -443,7 +443,7 @@ export default function RuleDetailPage() {
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                 <label style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                  Tên Quy Tắc {!isSystemRule && <span style={{ color: 'var(--danger)' }}>*</span>}
+                  Rule Name {!isSystemRule && <span style={{ color: 'var(--danger)' }}>*</span>}
                 </label>
                 <span style={{ fontSize: '0.75rem', color: name.length > 100 ? 'var(--danger)' : 'var(--text-muted)' }}>
                   {name.length} / 100
@@ -464,7 +464,7 @@ export default function RuleDetailPage() {
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                 <label style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                  Mô Tả Tóm Tắt
+                  Summary Description
                 </label>
                 <span style={{ fontSize: '0.75rem', color: description.length > 500 ? 'var(--danger)' : 'var(--text-muted)' }}>
                   {description.length} / 500
@@ -493,7 +493,7 @@ export default function RuleDetailPage() {
             }}>
               <div>
                 <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Phạm Vi (Scope)
+                  Scope
                 </label>
                 <div style={{
                   padding: '0.5rem 0.75rem',
@@ -502,13 +502,13 @@ export default function RuleDetailPage() {
                   fontSize: '0.8125rem',
                   color: 'var(--text-secondary)'
                 }}>
-                  {rule.scope === 'system' ? 'System (Mặc định toàn hệ thống)' : 'User (Thư viện cá nhân)'}
+                  {rule.scope === 'system' ? 'System (Default across workspace)' : 'User (Personal library)'}
                 </div>
               </div>
 
               <div>
                 <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Trạng Thái
+                  Status
                 </label>
                 <select
                   className="input"
@@ -517,15 +517,15 @@ export default function RuleDetailPage() {
                   onChange={e => setStatus(e.target.value as RuleStatus)}
                   disabled={isSystemRule}
                 >
-                  <option value="active">Active (Kích hoạt)</option>
-                  <option value="inactive">Inactive (Tạm dừng)</option>
-                  <option value="archived">Archived (Lưu trữ)</option>
+                  <option value="active">Active (Enabled)</option>
+                  <option value="inactive">Inactive (Paused)</option>
+                  <option value="archived">Archived</option>
                 </select>
               </div>
 
               <div>
                 <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Chế Độ Kích Hoạt
+                  Trigger Mode
                 </label>
                 <select
                   className="input"
@@ -534,17 +534,17 @@ export default function RuleDetailPage() {
                   onChange={e => setActivationMode(e.target.value as ActivationMode)}
                   disabled={isSystemRule}
                 >
-                  <option value="always_on">Luôn Áp Dụng (Always On)</option>
-                  <option value="glob">Khớp Theo File Pattern (Glob)</option>
-                  <option value="model_decision">Mô Hình Tự Quyết Định</option>
-                  <option value="manual">Thủ Công (Manual)</option>
+                  <option value="always_on">Always On</option>
+                  <option value="glob">File Pattern (Glob)</option>
+                  <option value="model_decision">Model Decision</option>
+                  <option value="manual">Manual</option>
                 </select>
               </div>
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                   <label style={{ color: 'var(--text-primary)', fontSize: '0.75rem', fontWeight: 600 }}>
-                    Độ Ưu Tiên
+                    Priority Level
                   </label>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent)' }}>
                     {priority} / 100
@@ -582,7 +582,7 @@ export default function RuleDetailPage() {
             {/* Tags */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Tags Phân Loại
+                Category Tags
               </label>
               {!isSystemRule && (
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '0.5rem' }}>
@@ -590,7 +590,7 @@ export default function RuleDetailPage() {
                     type="text"
                     className="input"
                     style={{ maxWidth: '240px' }}
-                    placeholder="Thêm tag"
+                    placeholder="Add tag"
                     value={tagInput}
                     onChange={e => setTagInput(e.target.value)}
                     onKeyDown={e => {
@@ -606,7 +606,7 @@ export default function RuleDetailPage() {
                     onClick={handleAddTag}
                     disabled={!tagInput.trim()}
                   >
-                    Thêm
+                    Add
                   </button>
                 </div>
               )}
@@ -646,7 +646,7 @@ export default function RuleDetailPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <label style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                    Chỉ Dẫn Quy Tắc (Markdown)
+                    Rule Instructions (Markdown)
                   </label>
                   <div style={{ display: 'flex', background: 'var(--bg-elevated)', padding: '2px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                     {!isSystemRule && (
@@ -664,7 +664,7 @@ export default function RuleDetailPage() {
                           cursor: 'pointer'
                         }}
                       >
-                        Soạn Thảo
+                        Editor
                       </button>
                     )}
                     <button
@@ -681,12 +681,12 @@ export default function RuleDetailPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      Xem Trước An Toàn
+                      Safe Preview
                     </button>
                   </div>
                 </div>
                 <span style={{ fontSize: '0.75rem', color: content.length > 10000 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 500 }}>
-                  {content.length.toLocaleString()} / 10,000 ký tự
+                  {content.length.toLocaleString()} / 10,000 chars
                 </span>
               </div>
 
@@ -726,7 +726,7 @@ export default function RuleDetailPage() {
                   onClick={() => initForm(rule)}
                   disabled={!isDirty || isSaving}
                 >
-                  Hoàn Tác
+                  Reset Changes
                 </button>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
@@ -734,7 +734,7 @@ export default function RuleDetailPage() {
                     className="btn btn-primary"
                     disabled={!isDirty || isSaving || !name.trim() || !content.trim()}
                   >
-                    {isSaving ? 'Đang Lưu...' : 'Lưu Thay Đổi'}
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </div>
@@ -746,12 +746,12 @@ export default function RuleDetailPage() {
         {activeTab === 'projects' && (
           <div className="card" style={{ padding: '1.5rem' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              Danh Sách Dự Án Đang Sử Dụng
+              Projects Using This Rule
             </h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginBottom: '1.25rem' }}>
               {isSystemRule
-                ? 'Quy tắc hệ thống được nạp làm chuẩn mặc định cho tất cả tác nhân trong hệ thống.'
-                : 'Quy tắc này được gán cho các dự án sau để định hướng hành vi mô hình trong dự án.'}
+                ? 'System rules are loaded as standard defaults for all system agents.'
+                : 'This rule is assigned to the following projects to guide model behavior.'}
             </p>
 
             {associatedProjects.length > 0 ? (
@@ -759,17 +759,17 @@ export default function RuleDetailPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                      <th style={{ padding: '8px 12px' }}>Tên Dự Án</th>
-                      <th style={{ padding: '8px 12px' }}>Mã Dự Án</th>
-                      <th style={{ padding: '8px 12px' }}>Thời Gian Gán</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Thao Tác</th>
+                      <th style={{ padding: '8px 12px' }}>Project Name</th>
+                      <th style={{ padding: '8px 12px' }}>Project Code</th>
+                      <th style={{ padding: '8px 12px' }}>Assigned Date</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {associatedProjects.map((bp: RuleAssociatedProject) => (
                       <tr key={bp.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                         <td style={{ padding: '10px 12px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                          {bp.name || 'Dự án'}
+                          {bp.name || 'Project'}
                         </td>
                         <td style={{ padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           {bp.id}
@@ -779,7 +779,7 @@ export default function RuleDetailPage() {
                         </td>
                         <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                           <Link href={`/projects`} className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
-                            Mở Dự Án
+                            Open Project
                           </Link>
                         </td>
                       </tr>
@@ -790,7 +790,7 @@ export default function RuleDetailPage() {
             ) : (
               <div style={{ textAlign: 'center', padding: '2.5rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)' }}>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
-                  Chưa có dự án nào liên kết riêng với quy tắc này.
+                  No projects are currently linked to this rule.
                 </p>
               </div>
             )}
@@ -804,23 +804,23 @@ export default function RuleDetailPage() {
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Lưu trữ quy tắc này?"
+        title="Archive this rule?"
         message={
           associatedProjects.length > 0 ? (
             <div>
               <p style={{ marginBottom: '8px' }}>
-                Quy tắc này đang được liên kết trong <strong>{associatedProjects.length} dự án</strong>.
+                This rule is currently linked in <strong>{associatedProjects.length} projects</strong>.
               </p>
               <p style={{ color: 'var(--danger)', fontSize: '0.8125rem' }}>
-                Lưu trữ sẽ tự động gỡ liên kết khỏi các dự án và ẩn quy tắc khỏi danh sách hoạt động.
+                Archiving will detach the rule from linked projects and hide it from the active list.
               </p>
             </div>
           ) : (
-            `Bạn có chắc chắn muốn lưu trữ "${rule.name}"? Bạn có thể khôi phục lại sau.`
+            `Are you sure you want to archive "${rule.name}"? You can restore it later.`
           )
         }
-        confirmLabel="Xác Nhận Lưu Trữ"
-        cancelLabel="Giữ Lại"
+        confirmLabel="Confirm Archive"
+        cancelLabel="Keep Rule"
         isDestructive={true}
         isLoading={isDeleting}
         onConfirm={handleDelete}
@@ -830,10 +830,10 @@ export default function RuleDetailPage() {
       {/* 409 Concurrency Conflict Dialog */}
       <ConfirmDialog
         isOpen={showConflictModal}
-        title="Xung Đột Phiên Bản (409 Conflict)"
-        message="Quy tắc này đã được sửa đổi ở một phiên trình duyệt hoặc cửa sổ khác trong khi bạn đang thao tác. Bạn nên tải lại dữ liệu mới nhất để tránh ghi đè dữ liệu của người khác."
-        confirmLabel="Tải Lại Dữ Liệu"
-        cancelLabel="Bỏ Qua"
+        title="Version Conflict (409 Conflict)"
+        message="This rule was modified in another browser session or tab while you were editing. Please reload the latest data to avoid overwriting concurrent changes."
+        confirmLabel="Reload Data"
+        cancelLabel="Ignore"
         isDestructive={false}
         onConfirm={() => {
           setShowConflictModal(false);
@@ -845,10 +845,10 @@ export default function RuleDetailPage() {
       {/* Exit confirmation dialog */}
       <ConfirmDialog
         isOpen={showExitConfirm}
-        title="Hủy bỏ thay đổi chưa lưu?"
-        message="Bạn có thay đổi chưa lưu trên quy tắc này. Nếu rời đi bây giờ, các thay đổi sẽ bị mất."
-        confirmLabel="Rời Đi"
-        cancelLabel="Tiếp Tục Soạn"
+        title="Discard unsaved changes?"
+        message="You have unsaved changes on this rule. If you leave now, your edits will be discarded."
+        confirmLabel="Leave"
+        cancelLabel="Stay"
         isDestructive={true}
         onConfirm={() => router.push('/rules')}
         onCancel={() => setShowExitConfirm(false)}

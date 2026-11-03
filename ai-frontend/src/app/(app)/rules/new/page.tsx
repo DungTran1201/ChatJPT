@@ -52,7 +52,7 @@ export default function CreateRulePage() {
     const trimmed = tagInput.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
     if (trimmed && !tags.includes(trimmed)) {
       if (tags.length >= 10) {
-        setErrorMsg('Tối đa 10 tags trên mỗi quy tắc.');
+        setErrorMsg('Maximum 10 tags allowed per rule.');
         return;
       }
       setTags([...tags, trimmed]);
@@ -70,21 +70,21 @@ export default function CreateRulePage() {
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setErrorMsg('Tên quy tắc không được để trống.');
+      setErrorMsg('Rule name cannot be empty.');
       return;
     }
     if (trimmedName.length > 100) {
-      setErrorMsg('Tên quy tắc không được vượt quá 100 ký tự.');
+      setErrorMsg('Rule name cannot exceed 100 characters.');
       return;
     }
 
     const trimmedContent = content.trim();
     if (!trimmedContent) {
-      setErrorMsg('Nội dung quy tắc không được để trống.');
+      setErrorMsg('Rule content cannot be empty.');
       return;
     }
     if (content.length > 10000) {
-      setErrorMsg('Nội dung quy tắc không được vượt quá 10,000 ký tự.');
+      setErrorMsg('Rule content cannot exceed 10,000 characters.');
       return;
     }
 
@@ -97,14 +97,14 @@ export default function CreateRulePage() {
         .filter(Boolean);
 
       if (patterns.length === 0) {
-        setErrorMsg('Vui lòng chỉ định ít nhất một glob pattern cho chế độ File Pattern / Glob.');
+        setErrorMsg('Please specify at least one glob pattern.');
         return;
       }
 
       // Security check: reject path traversal
       for (const p of patterns) {
         if (p.includes('..') || p.startsWith('/') || p.startsWith('\\')) {
-          setErrorMsg(`Pattern "${p}" không hợp lệ: Không được chứa ký tự điều hướng (..) hoặc đường dẫn tuyệt đối.`);
+          setErrorMsg(`Pattern "${p}" is invalid: Traversal sequences (..) and absolute paths are not permitted.`);
           return;
         }
       }
@@ -124,7 +124,7 @@ export default function CreateRulePage() {
 
       router.push('/rules');
     } catch (err: any) {
-      setErrorMsg(formatErrorMessage(err, 'Không thể tạo quy tắc. Vui lòng thử lại.'));
+      setErrorMsg(formatErrorMessage(err, 'Failed to create rule.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -134,8 +134,8 @@ export default function CreateRulePage() {
     <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
       <div className="page-container" style={{ maxWidth: '960px' }}>
         <PageHeader
-          title="Tạo Quy Tắc Mới"
-          description="Thiết lập các tiêu chuẩn code, kiến trúc, và quy ước kỹ thuật để AI tuân thủ."
+          title="New Grammar Rule"
+          description="Configure linguistic standards, explanation guidelines, and pedagogical grammar constraints."
         >
           <button
             type="button"
@@ -143,7 +143,7 @@ export default function CreateRulePage() {
             onClick={handleCancel}
           >
             <Icon name="chevronLeft" size={13} />
-            <span>Thư Viện Rules</span>
+            <span>Rules Library</span>
           </button>
         </PageHeader>
 
@@ -172,7 +172,7 @@ export default function CreateRulePage() {
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
               <label htmlFor="rule-name" style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                Tên Quy Tắc <span style={{ color: 'var(--danger)' }}>*</span>
+                Rule Name <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <span style={{ fontSize: '0.75rem', color: name.length > 100 ? 'var(--danger)' : 'var(--text-muted)' }}>
                 {name.length} / 100
@@ -182,7 +182,7 @@ export default function CreateRulePage() {
               id="rule-name"
               type="text"
               className="input"
-              placeholder="Ví dụ: TypeScript Strict Mode & Không dùng any"
+              placeholder="e.g. JLPT Grammar Nuance & Polite Keigo"
               value={name}
               onChange={e => setName(e.target.value)}
               maxLength={100}
@@ -195,7 +195,7 @@ export default function CreateRulePage() {
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
               <label htmlFor="rule-desc" style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                Mô Tả Tóm Tắt <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(tùy chọn)</span>
+                Summary Description <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
               </label>
               <span style={{ fontSize: '0.75rem', color: description.length > 500 ? 'var(--danger)' : 'var(--text-muted)' }}>
                 {description.length} / 500
@@ -205,7 +205,7 @@ export default function CreateRulePage() {
               id="rule-desc"
               rows={2}
               className="textarea"
-              placeholder="Tóm tắt ngắn gọn mục tiêu của quy tắc và hoàn cảnh áp dụng..."
+              placeholder="Brief summary of pedagogical objectives and trigger context..."
               value={description}
               onChange={e => setDescription(e.target.value)}
               maxLength={500}
@@ -226,7 +226,7 @@ export default function CreateRulePage() {
             {/* Activation Mode */}
             <div>
               <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Chế Độ Kích Hoạt
+                Trigger Mode
               </label>
               <select
                 className="input"
@@ -234,10 +234,10 @@ export default function CreateRulePage() {
                 value={activationMode}
                 onChange={e => setActivationMode(e.target.value as ActivationMode)}
               >
-                <option value="always_on">Luôn Áp Dụng (Always On)</option>
-                <option value="glob">Khớp Theo File Pattern (Glob)</option>
-                <option value="model_decision">Mô Hình Tự Quyết Định (Model Decision)</option>
-                <option value="manual">Thủ Công (Manual)</option>
+                <option value="always_on">Always On</option>
+                <option value="glob">File Pattern (Glob)</option>
+                <option value="model_decision">Model Decision</option>
+                <option value="manual">Manual</option>
               </select>
             </div>
 
@@ -245,7 +245,7 @@ export default function CreateRulePage() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
                 <label style={{ color: 'var(--text-primary)', fontSize: '0.75rem', fontWeight: 600 }}>
-                  Độ Ưu Tiên (Priority)
+                  Priority
                 </label>
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent)' }}>
                   {priority} / 100
@@ -269,7 +269,7 @@ export default function CreateRulePage() {
                 File Match Patterns <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                Nhập các mẫu đường dẫn phân tách bằng dấu phẩy hoặc dòng mới (ví dụ: <code>*.ts, src/**/*.tsx, models/*.py</code>). Không cho phép chứa <code>..</code>.
+                Enter comma or newline separated glob patterns (e.g. <code>*.ts, src/**/*.tsx, models/*.py</code>). Directory traversal (<code>..</code>) is forbidden.
               </p>
               <input
                 id="glob-patterns"
@@ -285,14 +285,14 @@ export default function CreateRulePage() {
           {/* Tags */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-              Tags Phân Loại <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(tùy chọn, tối đa 10 tags)</span>
+              Classification Tags <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional, max 10 tags)</span>
             </label>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '0.5rem' }}>
               <input
                 type="text"
                 className="input"
                 style={{ maxWidth: '240px' }}
-                placeholder="Thêm tag (ví dụ: security)"
+                placeholder="Add tag (e.g. grammar, jlpt, n3)"
                 value={tagInput}
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={e => {
@@ -308,7 +308,7 @@ export default function CreateRulePage() {
                 onClick={handleAddTag}
                 disabled={!tagInput.trim()}
               >
-                Thêm Tag
+                Add Tag
               </button>
             </div>
             {tags.length > 0 && (
@@ -347,7 +347,7 @@ export default function CreateRulePage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                  Nội Dung Quy Tắc (Markdown) <span style={{ color: 'var(--danger)' }}>*</span>
+                  Rule Content (Markdown) <span style={{ color: 'var(--danger)' }}>*</span>
                 </label>
                 <div style={{ display: 'flex', background: 'var(--bg-elevated)', padding: '2px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                   <button
@@ -364,7 +364,7 @@ export default function CreateRulePage() {
                       cursor: 'pointer'
                     }}
                   >
-                    Soạn Thảo
+                    Editor
                   </button>
                   <button
                     type="button"
@@ -380,12 +380,12 @@ export default function CreateRulePage() {
                       cursor: 'pointer'
                     }}
                   >
-                    Xem Trước An Toàn
+                    Safe Preview
                   </button>
                 </div>
               </div>
               <span style={{ fontSize: '0.75rem', color: content.length > 10000 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 500 }}>
-                {content.length.toLocaleString()} / 10,000 ký tự
+                {content.length.toLocaleString()} / 10,000 chars
               </span>
             </div>
 
@@ -394,7 +394,7 @@ export default function CreateRulePage() {
                 rows={14}
                 className="textarea"
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', lineHeight: 1.6 }}
-                placeholder={`# Quy Tắc: TypeScript Strict\n\n## Hướng Dẫn\n- Không dùng 'any'; hãy dùng 'unknown' kèm type narrowing.\n- Luôn khai báo kiểu dữ liệu trả về cho hàm.\n\n\`\`\`typescript\nfunction parseUser(input: unknown): User {\n  // ...\n}\n\`\`\``}
+                placeholder={`# Rule: TypeScript Strict & Safe Types\n\n## Guidelines\n- Avoid 'any'; use 'unknown' with narrowing.\n- Always declare return types for exported functions.\n\n\`\`\`typescript\nfunction parseUser(input: unknown): User {\n  // ...\n}\n\`\`\``}
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 maxLength={10000}
@@ -416,7 +416,7 @@ export default function CreateRulePage() {
                   <SafeMarkdownViewer content={content} />
                 ) : (
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', fontStyle: 'italic' }}>
-                    Chưa có nội dung để xem trước. Vui lòng nhập chỉ dẫn ở tab Soạn Thảo.
+                    No content to preview. Please enter guidelines in the Editor tab.
                   </p>
                 )}
               </div>
@@ -431,14 +431,14 @@ export default function CreateRulePage() {
               onClick={handleCancel}
               disabled={isSubmitting}
             >
-              Hủy Bỏ
+              Cancel
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={isSubmitting || !name.trim() || !content.trim()}
             >
-              {isSubmitting ? 'Đang Tạo...' : 'Tạo Quy Tắc'}
+              {isSubmitting ? 'Saving...' : 'Create Rule'}
             </button>
           </div>
         </form>
@@ -447,10 +447,10 @@ export default function CreateRulePage() {
       {/* Discard confirmation dialog */}
       <ConfirmDialog
         isOpen={showExitConfirm}
-        title="Hủy bỏ thay đổi chưa lưu?"
-        message="Bạn có thay đổi chưa lưu trong quy tắc này. Nếu rời khỏi trang, tiến trình của bạn sẽ bị mất."
-        confirmLabel="Rời Đi"
-        cancelLabel="Tiếp Tục Soạn"
+        title="Discard unsaved changes?"
+        message="You have unsaved changes. Leaving now will discard your modifications."
+        confirmLabel="Leave"
+        cancelLabel="Stay"
         isDestructive={true}
         onConfirm={() => router.push('/rules')}
         onCancel={() => setShowExitConfirm(false)}

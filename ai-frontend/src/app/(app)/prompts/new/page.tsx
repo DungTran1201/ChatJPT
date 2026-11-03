@@ -1,5 +1,7 @@
 'use client';
 
+import { useApp } from '@/context/AppContext';
+
 import { VoiceService } from '@/services/voiceService';
 import { VoiceItem } from '@/types';
 
@@ -13,6 +15,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { formatErrorMessage } from '@/lib/errors';
 
 export default function CreateSenseiPage() {
+  const { t } = useApp();
   const router = useRouter();
 
   const [name, setName] = useState('');
@@ -56,21 +59,21 @@ export default function CreateSenseiPage() {
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setErrorMsg('Vui lòng nhập tên cho Sensei.');
+      setErrorMsg('Please enter a name for the Sensei.');
       return;
     }
     if (trimmedName.length > 100) {
-      setErrorMsg('Tên Sensei không được vượt quá 100 ký tự.');
+      setErrorMsg('Sensei name cannot exceed 100 characters.');
       return;
     }
 
     const trimmedContent = content.trim();
     if (!trimmedContent) {
-      setErrorMsg('Vui lòng nhập chỉ thị Persona cốt lõi cho AI.');
+      setErrorMsg('Please enter core persona instructions.');
       return;
     }
     if (content.length > 10000) {
-      setErrorMsg('Nội dung chỉ dẫn không được vượt quá 10.000 ký tự.');
+      setErrorMsg('Instructions cannot exceed 10,000 characters.');
       return;
     }
 
@@ -94,7 +97,7 @@ export default function CreateSenseiPage() {
 
       router.push('/prompts');
     } catch (err: any) {
-      setErrorMsg(formatErrorMessage(err, 'Lỗi khi lưu thông tin Sensei. Vui lòng thử lại.'));
+      setErrorMsg(formatErrorMessage(err, 'Error saving Sensei profile.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -121,8 +124,8 @@ export default function CreateSenseiPage() {
       <div className="page-container" style={{ maxWidth: '860px' }}>
         {/* Page Header */}
         <PageHeader
-          title="Thêm Sensei Mới (New Sensei Guidance)"
-          description="Thiết lập một trợ lý giáo viên tiếng Nhật mới với các thông tin nhân bản học, tính cách, cấp độ và chỉ thị sư phạm."
+          title="New Sensei Guidance"
+          description="Configure a new Japanese Sensei persona with customized level, personality, teaching style, and voice."
         >
           <button
             type="button"
@@ -131,7 +134,7 @@ export default function CreateSenseiPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="chevronLeft" size={13} />
-            <span>Quay lại danh sách Sensei</span>
+            <span>Back to Sensei Roster</span>
           </button>
         </PageHeader>
 
@@ -158,20 +161,20 @@ export default function CreateSenseiPage() {
         <form onSubmit={handleSubmit} className="card" style={{ padding: '1.75rem' }}>
           {/* Section 1: Basic Human Identity */}
           <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-            1. Thông Tin Nhận Diện & Nhân Bản Học
+            1. Identity & Profile Information
           </h4>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
             {/* Field: Name */}
             <div>
               <label htmlFor="sensei-name" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Tên Sensei <span style={{ color: 'var(--danger)' }}>*</span>
+                Sensei Name <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <input
                 id="sensei-name"
                 type="text"
                 className="input"
-                placeholder="Ví dụ: Sakura-sensei (桜先生)"
+                placeholder="e.g. Sakura Sensei (桜先生)"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 maxLength={100}
@@ -182,7 +185,7 @@ export default function CreateSenseiPage() {
             {/* Field: Japanese Level */}
             <div>
               <label htmlFor="sensei-level" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Trình Độ Tiếng Nhật Chuyên Trách <span style={{ color: 'var(--danger)' }}>*</span>
+                Target JLPT Level <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <select
                 id="sensei-level"
@@ -190,19 +193,19 @@ export default function CreateSenseiPage() {
                 value={japaneseLevel}
                 onChange={e => setJapaneseLevel(e.target.value)}
               >
-                <option value="N5">JLPT N5 (Sơ cấp cơ bản)</option>
-                <option value="N4">JLPT N4 (Sơ cấp nâng cao & Kaiwa)</option>
-                <option value="N3">JLPT N3 (Trung cấp & Sắc thái ngữ cảnh)</option>
-                <option value="N2">JLPT N2 (Trung thượng cấp & Thương mại)</option>
-                <option value="N1">JLPT N1 (Cao cấp & Kính ngữ thượng thừa)</option>
-                <option value="ALL">Tổng Hợp Đa Cấp Độ</option>
+                <option value="N5">JLPT N5 (Beginner)</option>
+                <option value="N4">JLPT N4 (Elementary & Kaiwa)</option>
+                <option value="N3">JLPT N3 (Intermediate)</option>
+                <option value="N2">JLPT N2 (Upper Intermediate & Business)</option>
+                <option value="N1">JLPT N1 (Advanced & Keigo)</option>
+                <option value="ALL">All Levels / General</option>
               </select>
             </div>
 
             {/* Field: Age */}
             <div>
               <label htmlFor="sensei-age" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Tuổi
+                Age
               </label>
               <input
                 id="sensei-age"
@@ -219,7 +222,7 @@ export default function CreateSenseiPage() {
             {/* Field: VoiceVox Character Voice */}
             <div>
               <label htmlFor="sensei-voice" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Giọng Nói VoiceVox Nhân Vật (Character Voice)
+                VoiceVox Character Voice
               </label>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <select
@@ -229,10 +232,10 @@ export default function CreateSenseiPage() {
                   onChange={e => setVoiceId(e.target.value)}
                   style={{ flex: 1 }}
                 >
-                  <option value="">-- Mặc định (Kasukabe Tsumugi) --</option>
+                  <option value="">-- Default (Kasukabe Tsumugi) --</option>
                   {availableVoices.map(v => (
                     <option key={v.id} value={v.id}>
-                      {v.character_name} - {v.name} ({v.gender === 'female' ? 'Nữ' : 'Nam'})
+                      {v.character_name} - {v.name} ({v.gender === 'female' ? 'Female' : 'Male'})
                     </option>
                   ))}
                 </select>
@@ -240,7 +243,7 @@ export default function CreateSenseiPage() {
                   type="button"
                   onClick={handleTestVoice}
                   disabled={playingTestAudio}
-                  title="Nghe thử giọng mẫu"
+                  title="Test Voice Sample"
                   style={{
                     padding: '8px 12px',
                     borderRadius: '8px',
@@ -257,7 +260,7 @@ export default function CreateSenseiPage() {
                   }}
                 >
                   <Icon name="voice" size={14} />
-                  {playingTestAudio ? 'Đang phát...' : 'Nghe thử'}
+                  {playingTestAudio ? 'Playing...' : 'Test Voice'}
                 </button>
               </div>
             </div>
@@ -265,7 +268,7 @@ export default function CreateSenseiPage() {
             {/* Field: Gender / Pronoun */}
             <div>
               <label htmlFor="sensei-gender" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Giới Tính & Xưng Hô
+                Gender & Persona Pronoun
               </label>
               <select
                 id="sensei-gender"
@@ -273,29 +276,29 @@ export default function CreateSenseiPage() {
                 value={gender}
                 onChange={e => setGender(e.target.value)}
               >
-                <option value="female">Cô giáo (Nữ - Watashi)</option>
-                <option value="male">Thầy giáo (Nam - Boku/Watashi)</option>
-                <option value="other">Trung tính / Khác</option>
+                <option value="female">Female Sensei (Watashi)</option>
+                <option value="male">Male Sensei (Boku/Watashi)</option>
+                <option value="other">Neutral / Other</option>
               </select>
             </div>
           </div>
 
           {/* Section 2: Personality & Teaching Style */}
           <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: '1.25rem 0 1rem 0', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-            2. Tính Cách Sư Phạm & Đặc Trưng Giao Tiếp
+            2. Teaching Personality & Catchphrase
           </h4>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
             {/* Field: Personality */}
             <div>
               <label htmlFor="sensei-personality" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Nét Tính Cách Đặc Trưng
+                Personality Traits
               </label>
               <input
                 id="sensei-personality"
                 type="text"
                 className="input"
-                placeholder="Ví dụ: Dịu dàng, Kiên nhẫn, luôn khích lệ"
+                placeholder="e.g. Gentle, patient, encouraging"
                 value={personality}
                 onChange={e => setPersonality(e.target.value)}
                 maxLength={255}
@@ -305,13 +308,13 @@ export default function CreateSenseiPage() {
             {/* Field: Catchphrase */}
             <div>
               <label htmlFor="sensei-catchphrase" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Câu Nói Cửa Miệng / Lời Chào
+                Signature Catchphrase / Greeting
               </label>
               <input
                 id="sensei-catchphrase"
                 type="text"
                 className="input"
-                placeholder="Ví dụ: 「一緒に一歩ずつ勉強しましょうね！」"
+                placeholder="e.g. 「一緒に一歩ずつ勉強しましょうね！」"
                 value={catchphrase}
                 onChange={e => setCatchphrase(e.target.value)}
                 maxLength={255}
@@ -323,13 +326,13 @@ export default function CreateSenseiPage() {
             {/* Field: Teaching Style */}
             <div>
               <label htmlFor="sensei-teaching" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Phương Pháp Sư Phạm & Furigana
+                Teaching Methodology & Furigana
               </label>
               <textarea
                 id="sensei-teaching"
                 className="input"
                 rows={2}
-                placeholder="Ví dụ: Luôn cung cấp phiên âm Furigana, giải thích song ngữ Nhật - Việt chi tiết..."
+                placeholder="e.g. Provide Furigana ruby, detailed grammar explanations, polite tone..."
                 value={teachingStyle}
                 onChange={e => setTeachingStyle(e.target.value)}
               />
@@ -338,13 +341,13 @@ export default function CreateSenseiPage() {
             {/* Field: Hobbies */}
             <div>
               <label htmlFor="sensei-hobbies" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Sở Thích & Đề Tài Quan Tâm
+                Hobbies & Topics of Interest
               </label>
               <textarea
                 id="sensei-hobbies"
                 className="input"
                 rows={2}
-                placeholder="Ví dụ: Làm bánh ngọt Wagashi, trà đạo, du lịch Kyoto, anime đời thường..."
+                placeholder="e.g. Wagashi sweets, tea ceremony, Kyoto travel, slice-of-life anime..."
                 value={hobbies}
                 onChange={e => setHobbies(e.target.value)}
               />
@@ -353,13 +356,13 @@ export default function CreateSenseiPage() {
 
           <div style={{ marginBottom: '1.25rem' }}>
             <label htmlFor="sensei-avatar" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-              Ảnh Đại Diện (Avatar URL)
+              Avatar Image (URL)
             </label>
             <input
               id="sensei-avatar"
               type="url"
               className="input"
-              placeholder="https://... (Để trống để tự động tạo avatar anime)"
+              placeholder="https://... (Leave empty for automated anime avatar)"
               value={avatarUrl}
               onChange={e => setAvatarUrl(e.target.value)}
             />
@@ -367,16 +370,16 @@ export default function CreateSenseiPage() {
 
           {/* Section 3: AI Persona Core Instructions */}
           <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: '1.25rem 0 1rem 0', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-            3. Chỉ Thị Persona Cốt Lõi (AI System Prompt)
+            3. Core Persona Instructions (AI System Prompt)
           </h4>
 
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
               <label htmlFor="sensei-content" style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                Nội Dung Chỉ Dẫn Nhập Vai (System Prompt Instructions) <span style={{ color: 'var(--danger)' }}>*</span>
+                Persona System Prompt Instructions <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <span style={{ fontSize: '0.75rem', color: content.length > 10000 ? 'var(--danger)' : 'var(--text-muted)' }}>
-                {content.length.toLocaleString()} / 10,000 ký tự
+                {content.length.toLocaleString()} / 10,000 chars
               </span>
             </div>
             <textarea
@@ -389,7 +392,7 @@ export default function CreateSenseiPage() {
                 lineHeight: 1.6,
                 resize: 'vertical',
               }}
-              placeholder={`Bạn là Sakura-sensei, 24 tuổi, giáo viên tiếng Nhật chuyên cấp độ N5...\n1. Luôn dịu dàng, kiên nhẫn và giải thích song ngữ Nhật - Việt.\n2. Mọi câu tiếng Nhật luôn kèm Furigana và phân tích trợ từ rõ ràng...`}
+              placeholder={`You are Sakura-sensei, 24 years old, a gentle Japanese teacher specializing in JLPT N5...\n1. Always speak patiently and provide clear bilingual explanations.\n2. Include Furigana [漢字](かんじ) and breakdown key grammatical particles...`}
               value={content}
               onChange={e => setContent(e.target.value)}
               required
@@ -406,7 +409,7 @@ export default function CreateSenseiPage() {
               style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
             />
             <label htmlFor="sensei-default" style={{ fontSize: '0.85rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
-              Đặt làm Sensei mặc định đồng hành trong các cuộc hội thoại mới
+              Set as default companion Sensei for new conversations
             </label>
           </div>
 
@@ -418,14 +421,14 @@ export default function CreateSenseiPage() {
               onClick={handleCancel}
               disabled={isSubmitting}
             >
-              Hủy
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Đang lưu Sensei...' : 'Lưu Sensei Mới'}
+              {isSubmitting ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>
@@ -433,9 +436,9 @@ export default function CreateSenseiPage() {
 
       <ConfirmDialog
         isOpen={showExitConfirm}
-        title="Bỏ các thay đổi chưa lưu?"
-        message="Bạn có thông tin Sensei chưa được lưu. Nếu thoát bây giờ, các thay đổi sẽ bị mất."
-        confirmLabel="Rời khỏi"
+        title="Discard unsaved changes?"
+        message="You have unsaved changes. Leaving now will discard all modifications."
+        confirmLabel="Leave"
         isDestructive
         onConfirm={() => router.push('/prompts')}
         onCancel={() => setShowExitConfirm(false)}

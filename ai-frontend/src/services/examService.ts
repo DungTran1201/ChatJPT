@@ -43,7 +43,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Không thể tải danh sách đề thi');
+      throw new Error(err.detail || 'Failed to load exam list');
     }
     return res.json();
   }
@@ -63,7 +63,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Không thể tải nội dung đề thi');
+      throw new Error(err.detail || 'Failed to load exam details');
     }
     return res.json();
   }
@@ -80,7 +80,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Không thể tạo đề thi mới');
+      throw new Error(err.detail || 'Failed to create new exam');
     }
     return res.json();
   }
@@ -96,7 +96,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Không thể xóa đề thi');
+      throw new Error(err.detail || 'Failed to delete exam');
     }
   }
 
@@ -115,7 +115,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Lỗi khi nộp bài thi');
+      throw new Error(err.detail || 'Failed to submit exam answers');
     }
     return res.json();
   }
@@ -141,7 +141,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Không thể tải kho tài liệu');
+      throw new Error(err.detail || 'Failed to load reference materials');
     }
     return res.json();
   }
@@ -161,7 +161,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Không thể tra cứu tri thức');
+      throw new Error(err.detail || 'Failed to query reference knowledge base');
     }
     return res.json();
   }
@@ -180,7 +180,7 @@ export class ExamService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Không thể tạo liên kết tài liệu mới');
+      throw new Error(err.detail || 'Failed to create reference link');
     }
     return res.json();
   }

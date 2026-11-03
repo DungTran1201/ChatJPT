@@ -156,9 +156,9 @@ export default function SettingsPage() {
   ];
 
   const FONT_SIZE_PRESETS = [
-    { id: 'small', label: 'Nhỏ (13px)', desc: 'Mật độ cao, hiển thị nhiều nội dung hơn' },
-    { id: 'medium', label: 'Tiêu chuẩn (14px)', desc: 'Cân bằng chuẩn' },
-    { id: 'large', label: 'Lớn (15px)', desc: 'Dễ đọc, thoáng mắt' },
+    { id: 'small', label: t('settings.font_small'), desc: t('settings.font_small_desc') },
+    { id: 'medium', label: t('settings.font_medium'), desc: t('settings.font_medium_desc') },
+    { id: 'large', label: t('settings.font_large'), desc: t('settings.font_large_desc') },
   ];
 
   // Tab 4: Models state (FR-021 to FR-026, FR-035 to FR-039)
@@ -845,7 +845,7 @@ export default function SettingsPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Không thể lưu cài đặt tùy chọn.');
+      if (!res.ok) throw new Error(data.detail || 'Failed to save preferences.');
 
       await refreshUser();
       if (overrides?.lang !== undefined) {
@@ -853,7 +853,7 @@ export default function SettingsPage() {
       }
       showToast('success', t('settings.prefs_saved_success'));
     } catch (err: any) {
-      showToast('error', err.message || 'Lỗi lưu tùy chọn giao diện.');
+      showToast('error', err.message || 'Error saving preferences.');
     } finally {
       setSavingPreferences(false);
     }
@@ -863,11 +863,11 @@ export default function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      showToast('error', 'Chỉ hỗ trợ tệp hình ảnh hợp lệ (PNG, JPG, WebP).');
+      showToast('error', 'Only valid image files are supported (PNG, JPG, WebP).');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast('error', 'Kích thước tệp ảnh tối đa là 5MB.');
+      showToast('error', 'Maximum image file size is 5MB.');
       return;
     }
     const reader = new FileReader();
@@ -875,7 +875,7 @@ export default function SettingsPage() {
       const result = event.target?.result as string;
       if (result) {
         setCustomBgUrl(result);
-        showToast('success', 'Đã nạp ảnh thành công. Nhấn "Lưu Thay Đổi Giao Diện" để áp dụng.');
+        showToast('success', 'Image loaded successfully. Click Save Preferences to apply.');
       }
     };
     reader.readAsDataURL(file);
@@ -915,11 +915,11 @@ export default function SettingsPage() {
           response_bilingual_mode: responseBilingualMode,
         }),
       });
-      if (!res.ok) throw new Error('Không thể lưu cài đặt phản hồi');
+      if (!res.ok) throw new Error('Failed to save response formatting');
       await refreshUser();
       showToast('success', t('settings.responses_saved_success'));
     } catch (err: any) {
-      showToast('error', err.message || 'Lỗi khi lưu cài đặt form trả lời');
+      showToast('error', err.message || 'Error saving response settings');
     } finally {
       setSavingResponses(false);
     }
@@ -1643,7 +1643,7 @@ export default function SettingsPage() {
                       }}
                       onBlur={() => handleUpdatePreferences({ accent: customHex })}
                       style={{ width: '28px', height: '28px', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
-                      title="Chọn màu bằng bảng màu"
+                      title="Color Spectrum Picker"
                     />
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', padding: '2px 8px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
                       {customHex.toUpperCase()}
@@ -1710,10 +1710,10 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                 <input
                   type="text"
-                  value={customBgUrl.startsWith('data:image') ? '[Tệp ảnh đã tải từ máy tính]' : customBgUrl}
+                  value={customBgUrl.startsWith('data:image') ? '[Uploaded Image File]' : customBgUrl}
                   disabled={customBgUrl.startsWith('data:image')}
                   onChange={(e) => setCustomBgUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/... (URL hình ảnh)"
+                  placeholder="https://images.unsplash.com/... (Image URL)"
                   className="input"
                   style={{ flex: 1, minWidth: '240px' }}
                 />
@@ -1991,13 +1991,19 @@ export default function SettingsPage() {
                   👁️ {t('settings.responses_preview_title')}
                 </span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  Minh họa trực tiếp mẫu câu từ tài liệu học tập
+                  {t('settings.responses_preview_sub') || 'Real-time demonstration of Japanese pedagogical formatting'}
                 </span>
               </div>
 
               {/* Interlinear Preview Component */}
               <JapaneseInterlinearView
-                content={`{はい}[g-green] {どうぞ}[g-green]\n(Của bạn đây)\n\nもっと たくさん [欲しい](ほしい) ん です けど\n(Tôi muốn nhiều hơn cơ)\n\nこれ だけ いただく わ\n(Tôi chỉ xin thế này thôi)`}
+                content={
+                  language === 'en'
+                    ? `{はい}[g-green] {どうぞ}[g-green]\n(Here you are.)\n\nもっと たくさん [欲しい](ほしい) ん です けど\n(I would like some more, though.)\n\nこれ だけ いただく わ\n(I will just take this much.)`
+                    : language === 'ja'
+                    ? `{はい}[g-green] {どうぞ}[g-green]\n(お渡しします)\n\nもっと たくさん [欲しい](ほしい) ん です けど\n(もう少しいただきたいのですが)\n\nこれ だけ いただく わ\n(これだけにいたします)`
+                    : `{はい}[g-green] {どうぞ}[g-green]\n(Của bạn đây)\n\nもっと たくさん [欲しい](ほしい) ん です けど\n(Tôi muốn nhiều hơn cơ)\n\nこれ だけ いただく わ\n(Tôi chỉ xin thế này thôi)`
+                }
                 showTranslation={responseShowTranslation}
                 showFurigana={responseShowFurigana}
                 highlightGrammar={responseHighlightGrammar}
@@ -2009,20 +2015,52 @@ export default function SettingsPage() {
               {responseGrammarBreakdown && (
                 <div style={{ marginTop: '1.25rem' }}>
                   <GrammarBreakdownCard
-                    items={[
-                      {
-                        term: '【〜たい / 欲しい】',
-                        category: 'Nguyện vọng',
-                        meaning: 'Diễn tả mong muốn của bản thân ("muốn có / muốn làm gì").',
-                        nuance: 'Thường kết hợp với trợ từ が, diễn đạt cảm xúc một cách tự nhiên, lịch thiệp.',
-                      },
-                      {
-                        term: '【〜けど】',
-                        category: 'Liên từ nối',
-                        meaning: 'Tuy nhiên, nhưng mà...',
-                        nuance: 'Đặt ở cuối câu để ngắt câu mềm mại (kết thúc mở), tạo sự khiêm nhường, tránh nói cụt lủn trong văn hóa Kaiwa.',
-                      },
-                    ]}
+                    items={
+                      language === 'en'
+                        ? [
+                            {
+                              term: '【〜たい / 欲しい】',
+                              category: 'Desire / Want',
+                              meaning: 'Expresses speaker\'s personal wish ("want / want to do something").',
+                              nuance: 'Frequently combined with particle が to convey emotion politely and naturally.',
+                            },
+                            {
+                              term: '【〜けど】',
+                              category: 'Conjunction',
+                              meaning: 'However, but, although...',
+                              nuance: 'Placed at end of sentence to soften tone with an open-ended closure, reflecting polite Japanese Kaiwa etiquette.',
+                            },
+                          ]
+                        : language === 'ja'
+                        ? [
+                            {
+                              term: '【〜たい / 欲しい】',
+                              category: '願望表現',
+                              meaning: '話者の希望や欲求を表す表現 (「〜が欲しい / 〜したい」)。',
+                              nuance: '助詞「が」とともに用いられ、丁寧で自然な感情表現として会話で多用されます。',
+                            },
+                            {
+                              term: '【〜けど】',
+                              category: '接続助詞',
+                              meaning: '〜だが、けれど...',
+                              nuance: '文末を和らげる「ぼかし表現」として、会話で断定を避け謙虚な余韻を残します。',
+                            },
+                          ]
+                        : [
+                            {
+                              term: '【〜たい / 欲しい】',
+                              category: 'Nguyện vọng',
+                              meaning: 'Diễn tả mong muốn của bản thân ("muốn có / muốn làm gì").',
+                              nuance: 'Thường kết hợp với trợ từ が, diễn đạt cảm xúc một cách tự nhiên, lịch thiệp.',
+                            },
+                            {
+                              term: '【〜けど】',
+                              category: 'Liên từ nối',
+                              meaning: 'Tuy nhiên, nhưng mà...',
+                              nuance: 'Đặt ở cuối câu để ngắt câu mềm mại (kết thúc mở), tạo sự khiêm nhường, tránh nói cụt lủn trong văn hóa Kaiwa.',
+                            },
+                          ]
+                    }
                   />
                 </div>
               )}
@@ -2033,7 +2071,7 @@ export default function SettingsPage() {
               {/* Section 1: Pedagogical Interlinear Structure */}
               <div style={{ marginBottom: '1.75rem' }}>
                 <h4 style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.4rem' }}>
-                  1. Cấu Trúc Hiển Thị Sư Phạm (Interlinear Layout)
+                  {t('settings.responses_layout_header') || '1. Pedagogical Layout & Interlinear Structure'}
                 </h4>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '0.85rem' }}>
@@ -2162,7 +2200,7 @@ export default function SettingsPage() {
               {/* Section 2: Learning Assistance & Audio */}
               <div style={{ marginBottom: '2rem' }}>
                 <h4 style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.4rem' }}>
-                  2. Trợ Năng Học Tập & Tương Tác Chatbot (Learning & Audio)
+                  {t('settings.responses_audio_header') || '2. Learning Assistant & Audio Features'}
                 </h4>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '0.85rem', marginBottom: '1.25rem' }}>
@@ -2235,9 +2273,9 @@ export default function SettingsPage() {
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
                   {[
-                    { id: 'interlinear', label: t('settings.responses_mode_interlinear'), desc: 'Furigana + Romaji + Dịch dưới' },
-                    { id: 'parallel', label: t('settings.responses_mode_parallel'), desc: 'Khối tiếng Nhật rồi đến dịch' },
-                    { id: 'japanese_only', label: t('settings.responses_mode_jp_only'), desc: 'Không hiện dịch (Luyện N1/N2)' },
+                    { id: 'interlinear', label: t('settings.responses_mode_interlinear'), desc: t('settings.responses_mode_interlinear_desc') },
+                    { id: 'parallel', label: t('settings.responses_mode_parallel'), desc: t('settings.responses_mode_parallel_desc') },
+                    { id: 'japanese_only', label: t('settings.responses_mode_jp_only'), desc: t('settings.responses_mode_jp_only_desc') },
                   ].map(mode => (
                     <div
                       key={mode.id}
@@ -2271,7 +2309,7 @@ export default function SettingsPage() {
                     color: 'var(--accent-fg)', border: 'none', cursor: savingResponses ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {savingResponses ? 'Đang lưu...' : t('settings.responses_save_btn')}
+                  {savingResponses ? t('common.saving') : t('settings.responses_save_btn')}
                 </button>
               </div>
             </form>

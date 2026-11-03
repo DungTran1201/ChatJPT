@@ -66,16 +66,16 @@ test('Rules Management Frontend & Navigation Suite', async (t) => {
 
     const rulesItem = NAV_ITEMS.find(item => item.key === 'rules');
     assert.ok(rulesItem, 'Rules nav item must exist');
-    assert.equal(rulesItem.label, 'Quy Tắc Ngữ Pháp');
+    assert.equal(rulesItem.label, 'Grammar Rules');
     assert.equal(rulesItem.icon, 'rules');
     assert.equal(rulesItem.href, '/rules');
 
-    // Verify ordering: prompts -> rules -> dashboard
+    // Verify ordering: prompts -> ... -> rules -> dashboard
     const promptsIndex = NAV_ITEMS.findIndex(item => item.key === 'prompts');
     const rulesIndex = NAV_ITEMS.findIndex(item => item.key === 'rules');
     const dashboardIndex = NAV_ITEMS.findIndex(item => item.key === 'dashboard');
 
-    assert.equal(rulesIndex, promptsIndex + 1, 'Rules must immediately follow prompts');
+    assert.ok(rulesIndex > promptsIndex, 'Rules must follow prompts');
     assert.equal(dashboardIndex, rulesIndex + 1, 'Dashboard must immediately follow rules');
   });
 

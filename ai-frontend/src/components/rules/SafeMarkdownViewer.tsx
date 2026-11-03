@@ -59,7 +59,7 @@ export default function SafeMarkdownViewer({ content }: { content: string }) {
   if (!content || !content.trim()) {
     return (
       <div style={{ color: 'var(--text-disabled)', fontStyle: 'italic', padding: '1rem 0' }}>
-        Chưa có nội dung để hiển thị xem trước.
+        No content available for preview.
       </div>
     );
   }
@@ -110,7 +110,7 @@ export default function SafeMarkdownViewer({ content }: { content: string }) {
                     fontWeight: 500
                   }}
                 >
-                  {copiedIndex === index ? '✓ Đã chép' : 'Sao chép'}
+                  {copiedIndex === index ? '✓ Copied' : 'Copy'}
                 </button>
               </div>
               <pre style={{ margin: 0, padding: '12px', overflowX: 'auto', fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}>

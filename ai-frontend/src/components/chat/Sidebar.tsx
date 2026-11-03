@@ -30,13 +30,13 @@ import { useApp } from '@/context/AppContext';
 
 // ── Nav items – driven by pathname ─────────────────────────────────────
 export const NAV_ITEMS: { key: string; label: string; icon: IconName; href: string }[] = [
-  { key: 'chat',        label: 'Luyện Kaiwa (Chat)', icon: 'chat',      href: '/chat' },
-  { key: 'prompts',     label: 'Chỉ Dẫn Sensei',     icon: 'prompts',   href: '/prompts' },
-  { key: 'voices',      label: 'Quản Lý Giọng Nói (Voices)', icon: 'voice',     href: '/voices' },
-  { key: 'exams',       label: 'Kho Đề Thi & Tài Liệu', icon: 'exam',   href: '/exams' },
-  { key: 'rules',       label: 'Quy Tắc Ngữ Pháp',   icon: 'rules',     href: '/rules' },
-  { key: 'dashboard',   label: 'Tổng Quan Học Tập',  icon: 'dashboard', href: '/dashboard' },
-  { key: 'settings',    label: 'Cài Đặt Hệ Thống',   icon: 'settings',  href: '/settings' },
+  { key: 'chat', label: 'Kaiwa Practice (Chat)', icon: 'chat', href: '/chat' },
+  { key: 'prompts', label: 'Sensei Guidance', icon: 'prompts', href: '/prompts' },
+  { key: 'voices', label: 'Voice Management', icon: 'voice', href: '/voices' },
+  { key: 'exams', label: 'Exam Bank & Materials', icon: 'exam', href: '/exams' },
+  { key: 'rules', label: 'Grammar Rules', icon: 'rules', href: '/rules' },
+  { key: 'dashboard', label: 'Study Overview', icon: 'dashboard', href: '/dashboard' },
+  { key: 'settings', label: 'System Settings', icon: 'settings', href: '/settings' },
 ];
 
 
@@ -174,15 +174,25 @@ export default function Sidebar({
       {/* Primary nav */}
       <nav aria-label="Primary" style={{ padding: '0 8px 6px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
         {NAV_ITEMS.map(item => {
-                    const isLocked = false;
+          const isLocked = false;
           const isActive = navIsActive(pathname, item.href);
           const href = isLocked ? '/settings?tab=connections' : item.href;
+          const itemLabel = appContext.t ? (
+            item.key === 'chat' ? appContext.t('nav.kaiwa') :
+            item.key === 'prompts' ? appContext.t('nav.sensei') :
+            item.key === 'voices' ? appContext.t('nav.voices') :
+            item.key === 'exams' ? appContext.t('nav.exams') :
+            item.key === 'rules' ? appContext.t('nav.grammar') :
+            item.key === 'dashboard' ? appContext.t('nav.overview') :
+            item.key === 'settings' ? appContext.t('nav.settings') :
+            item.label
+          ) : item.label;
           const tooltip = isLocked
             ? (collapsed ? 'Bot (Locked: Connect Discord account)' : 'Connect your Discord account to unlock Bot Management')
-            : (collapsed ? item.label : undefined);
+            : (collapsed ? itemLabel : undefined);
           const ariaLabel = isLocked
             ? 'Bot (Locked: Connect your Discord account to unlock Bot Management)'
-            : item.label;
+            : itemLabel;
 
           return (
             <Link
@@ -248,14 +258,7 @@ export default function Sidebar({
                 {!collapsed && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1, minWidth: 0 }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {appContext.t ? (
-                        item.key === 'chat' ? appContext.t('nav.kaiwa') :
-                        item.key === 'prompts' ? appContext.t('nav.sensei') :
-                        item.key === 'rules' ? appContext.t('nav.grammar') :
-                        item.key === 'dashboard' ? appContext.t('nav.overview') :
-                        item.key === 'settings' ? appContext.t('nav.settings') :
-                        item.label
-                      ) : item.label}
+                      {itemLabel}
                     </span>
                     {isLocked && (
                       <span

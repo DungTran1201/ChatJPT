@@ -55,7 +55,7 @@ export default function SenseiGuidanceListPage() {
       const res = await SystemPromptService.getPrompts(debouncedQuery, sortOption, selectedLevel);
       setPrompts(res.items || res.prompts || []);
     } catch (err: any) {
-      setError(formatErrorMessage(err, 'Không thể tải danh sách Sensei'));
+      setError(formatErrorMessage(err, t('prompts.load_error') || 'Error loading Sensei roster'));
     } finally {
       setLoading(false);
     }
@@ -70,10 +70,10 @@ export default function SenseiGuidanceListPage() {
       const detail = await SystemPromptService.getPrompt(prompt.id);
       await navigator.clipboard.writeText(detail.content);
       setCopiedId(prompt.id);
-      showToast('success', `Đã sao chép chỉ dẫn persona của "${prompt.name}"`);
+      showToast('success', `${t('common.copied')}: "${prompt.name}"`);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err: any) {
-      showToast('error', formatErrorMessage(err, 'Lỗi khi sao chép nội dung'));
+      showToast('error', formatErrorMessage(err, t('common.error')));
     }
   };
 
@@ -81,10 +81,10 @@ export default function SenseiGuidanceListPage() {
     try {
       setCloningId(prompt.id);
       const cloned = await SystemPromptService.clonePrompt(prompt.id);
-      showToast('success', `Đã nhân bản Sensei: "${cloned.name}"`);
+      showToast('success', `${t('common.clone')}: "${cloned.name}"`);
       loadPrompts();
     } catch (err: any) {
-      showToast('error', formatErrorMessage(err, 'Lỗi khi nhân bản Sensei'));
+      showToast('error', formatErrorMessage(err, t('common.error')));
     } finally {
       setCloningId(null);
     }
@@ -95,11 +95,11 @@ export default function SenseiGuidanceListPage() {
     try {
       setIsDeleting(true);
       await SystemPromptService.deletePrompt(promptToDelete.id);
-      showToast('success', `Đã xóa Sensei "${promptToDelete.name}" thành công`);
+      showToast('success', `${t('prompts.delete_title')}: "${promptToDelete.name}"`);
       setPromptToDelete(null);
       loadPrompts();
     } catch (err: any) {
-      showToast('error', formatErrorMessage(err, 'Lỗi khi xóa Sensei'));
+      showToast('error', formatErrorMessage(err, t('common.error')));
     } finally {
       setIsDeleting(false);
     }
@@ -146,11 +146,11 @@ export default function SenseiGuidanceListPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="upload" size={14} />
-            <span>Nhập từ tệp</span>
+            <span>{t('common.import_from_file')}</span>
           </button>
           <Link href="/prompts/new" className="btn btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Icon name="plus" size={14} />
-            <span>Thêm Sensei Mới</span>
+            <span>{t('prompts.new_sensei')}</span>
           </Link>
         </PageHeader>
 
@@ -184,7 +184,7 @@ export default function SenseiGuidanceListPage() {
                 type="search"
                 className="input"
                 style={{ paddingLeft: '32px', height: '36px', fontSize: '0.8125rem' }}
-                placeholder={t('prompts.search_placeholder') || 'Tìm Sensei theo tên, tính cách hoặc phong cách giảng dạy...'}
+                placeholder={t('prompts.search_placeholder') || 'Search Sensei by name, personality, or teaching style...'}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
@@ -194,7 +194,7 @@ export default function SenseiGuidanceListPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <label htmlFor="sortSelect" style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-                  Sắp xếp:
+                  {t('common.sort_by')}
                 </label>
                 <select
                   id="sortSelect"
@@ -203,9 +203,9 @@ export default function SenseiGuidanceListPage() {
                   onChange={e => setSortOption(e.target.value)}
                   style={{ height: '36px', padding: '0 0.5rem', fontSize: '0.8125rem', width: 'auto' }}
                 >
-                  <option value="level_asc">Trình độ (N5 → N1)</option>
-                  <option value="updated_desc">Mới cập nhật</option>
-                  <option value="name_asc">Tên (A → Z)</option>
+                  <option value="level_asc">{t('prompts.sort_level')}</option>
+                  <option value="updated_desc">{t('prompts.sort_updated')}</option>
+                  <option value="name_asc">{t('prompts.sort_name')}</option>
                 </select>
               </div>
 
@@ -213,11 +213,11 @@ export default function SenseiGuidanceListPage() {
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={loadPrompts}
-                title="Làm mới danh sách Sensei"
+                title={t('prompts.refresh_tooltip')}
                 style={{ height: '36px' }}
               >
                 <Icon name="refresh" size={13} />
-                <span>Làm mới</span>
+                <span>{t('common.refresh')}</span>
               </button>
 
               <span
@@ -228,14 +228,14 @@ export default function SenseiGuidanceListPage() {
                   borderLeft: '1px solid var(--border-subtle)',
                 }}
               >
-                {prompts.length} Sensei
+                {prompts.length} {t('prompts.count_suffix')}
               </span>
             </div>
           </div>
 
           {/* Level Filter Chips */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginRight: '4px' }}>Cấp độ JLPT:</span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginRight: '4px' }}>{t('prompts.jlpt_level_label')}</span>
             {['ALL', 'N5', 'N4', 'N3', 'N2', 'N1'].map(lvl => {
               const active = selectedLevel === lvl;
               const badgeStyle = getLevelBadgeStyle(lvl);
@@ -256,7 +256,7 @@ export default function SenseiGuidanceListPage() {
                     border: `1px solid ${active ? (lvl === 'ALL' ? 'var(--primary, #10b981)' : badgeStyle.border) : 'var(--border-subtle)'}`,
                   }}
                 >
-                  {lvl === 'ALL' ? 'Tất cả cấp độ' : `JLPT ${lvl}`}
+                  {lvl === 'ALL' ? t('common.all_levels') : `JLPT ${lvl}`}
                 </button>
               );
             })}
@@ -285,7 +285,7 @@ export default function SenseiGuidanceListPage() {
               className="btn btn-danger btn-sm"
               onClick={loadPrompts}
             >
-              Thử lại
+              {t('common.retry')}
             </button>
           </div>
         )}
@@ -293,7 +293,7 @@ export default function SenseiGuidanceListPage() {
         {/* Loading State */}
         {loading && (
           <div style={{ padding: '4rem 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-            Đang tải thông tin đội ngũ Sensei...
+            {t('prompts.loading')}
           </div>
         )}
 
@@ -311,14 +311,14 @@ export default function SenseiGuidanceListPage() {
               <Icon name="user" size={36} />
             </div>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-              Chưa có Sensei nào
+              {t('prompts.empty_title')}
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', maxWidth: '440px', margin: '0 auto 1.5rem auto' }}>
-              Thêm Sensei hướng dẫn đầu tiên của bạn để thiết lập trợ lý ảo dạy tiếng Nhật theo đúng tính cách và trình độ bạn mong muốn.
+              {t('prompts.empty_desc')}
             </p>
             <Link href="/prompts/new" className="btn btn-primary" style={{ textDecoration: 'none' }}>
               <Icon name="plus" size={14} />
-              <span>Thêm Sensei Mới</span>
+              <span>{t('prompts.new_sensei')}</span>
             </Link>
           </div>
         )}
@@ -336,17 +336,17 @@ export default function SenseiGuidanceListPage() {
               <Icon name="search" size={28} />
             </div>
             <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-              Không tìm thấy Sensei phù hợp
+              {t('prompts.no_results_title')}
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', marginBottom: '1.25rem' }}>
-              Không có Sensei nào khớp với từ khóa &ldquo;{debouncedQuery}&rdquo;. Hãy thử tìm bằng từ khóa khác.
+              {t('prompts.no_results_desc')}
             </p>
             <button
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => setSearchQuery('')}
             >
-              Xóa từ khóa
+              {t('common.clear_search')}
             </button>
           </div>
         )}
@@ -425,7 +425,7 @@ export default function SenseiGuidanceListPage() {
                           </span>
 
                           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            {prompt.age || 25} tuổi • {prompt.gender === 'male' ? 'Thầy giáo' : 'Cô giáo'}
+                            {prompt.age || 25} {t('common.years_old')} • {prompt.gender === 'male' ? t('common.teacher_male') : t('common.teacher_female')}
                           </span>
 
                           {prompt.is_system_preset && (
@@ -439,7 +439,7 @@ export default function SenseiGuidanceListPage() {
                                 border: '1px solid rgba(56, 189, 248, 0.25)',
                               }}
                             >
-                              Mẫu Hệ Thống
+                              {t('common.system_preset')}
                             </span>
                           )}
                         </div>
@@ -465,14 +465,14 @@ export default function SenseiGuidanceListPage() {
                     {prompt.personality && (
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <span style={{ color: badgeStyle.color }}>✦</span>
-                        <span style={{ fontWeight: 500 }}>Tính cách:</span>
+                        <span style={{ fontWeight: 500 }}>{t('prompts.personality_prefix')}</span>
                         <span style={{ color: 'var(--text-primary)' }}>{prompt.personality}</span>
                       </div>
                     )}
 
                     {prompt.teaching_style && (
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
-                        <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>Phong cách: </span>
+                        <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>{t('prompts.style_prefix')} </span>
                         <span>{prompt.teaching_style}</span>
                       </div>
                     )}
@@ -500,7 +500,7 @@ export default function SenseiGuidanceListPage() {
                     {/* Hobbies */}
                     {prompt.hobbies && (
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                        <span>Sở thích: {prompt.hobbies}</span>
+                        <span>{t('prompts.hobbies_prefix')} {prompt.hobbies}</span>
                       </div>
                     )}
                   </div>
@@ -514,10 +514,10 @@ export default function SenseiGuidanceListPage() {
                         onClick={() => handleCopyContent(prompt)}
                         className={`btn btn-sm ${copiedId === prompt.id ? 'btn-primary' : 'btn-secondary'}`}
                         style={{ flex: 1 }}
-                        title="Sao chép chỉ thị Persona"
+                        title={t('prompts.copy_persona_title')}
                       >
                         <Icon name={copiedId === prompt.id ? 'check' : 'copy'} size={13} />
-                        <span>{copiedId === prompt.id ? 'Đã chép' : 'Sao chép'}</span>
+                        <span>{copiedId === prompt.id ? t('common.copied') : t('common.copy')}</span>
                       </button>
 
                       {/* Clone */}
@@ -526,10 +526,10 @@ export default function SenseiGuidanceListPage() {
                         onClick={() => handleClone(prompt)}
                         disabled={cloningId === prompt.id}
                         className="btn btn-secondary btn-sm"
-                        title="Nhân bản Sensei này"
+                        title={t('prompts.clone_title')}
                       >
                         <Icon name="doc" size={13} />
-                        <span>Nhân bản</span>
+                        <span>{t('common.clone')}</span>
                       </button>
 
                       {/* Edit */}
@@ -537,10 +537,10 @@ export default function SenseiGuidanceListPage() {
                         href={`/prompts/${prompt.id}/edit`}
                         className="btn btn-secondary btn-sm"
                         style={{ textDecoration: 'none' }}
-                        title="Chỉnh sửa thông tin Sensei"
+                        title={t('prompts.edit_title')}
                       >
                         <Icon name="edit" size={13} />
-                        <span>Sửa</span>
+                        <span>{t('common.edit')}</span>
                       </Link>
 
                       {/* Delete */}
@@ -549,8 +549,8 @@ export default function SenseiGuidanceListPage() {
                           type="button"
                           onClick={() => setPromptToDelete(prompt)}
                           className="btn-icon"
-                          title="Xóa Sensei"
-                          aria-label="Xóa Sensei"
+                          title={t('prompts.delete_title')}
+                          aria-label={t('prompts.delete_title')}
                           style={{ color: 'var(--text-muted)' }}
                           onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; }}
                           onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
@@ -559,7 +559,7 @@ export default function SenseiGuidanceListPage() {
                         </button>
                       ) : (
                         <span
-                          title="Sensei mẫu được bảo vệ của hệ thống"
+                          title={t('prompts.delete_preset_title')}
                           style={{ color: 'var(--text-disabled)', display: 'flex', padding: '4px' }}
                         >
                           <Icon name="lock" size={13} />
@@ -589,9 +589,9 @@ export default function SenseiGuidanceListPage() {
       {/* Delete Confirmation Modal */}
       <ConfirmDialog
         isOpen={Boolean(promptToDelete)}
-        title="Xác nhận xóa Sensei"
-        message={`Bạn có chắc chắn muốn xóa Sensei "${promptToDelete?.name}"? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xác nhận xóa"
+        title={t('prompts.delete_dialog_title')}
+        message={`${t('prompts.delete_dialog_msg')} ("${promptToDelete?.name}")`}
+        confirmLabel={t('prompts.delete_title')}
         isDestructive
         isLoading={isDeleting}
         onConfirm={handleDeleteConfirm}
@@ -606,7 +606,7 @@ export default function SenseiGuidanceListPage() {
           onClose={() => setShowTextImportModal(false)}
           onSuccess={() => {
             setShowTextImportModal(false);
-            showToast('success', 'Đã nhập Sensei từ tệp thành công');
+            showToast('success', t('prompts.import_success') || 'Sensei imported successfully');
             loadPrompts();
           }}
         />

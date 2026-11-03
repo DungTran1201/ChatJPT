@@ -46,7 +46,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
       const data = await ApiKeyService.fetchApiKeys();
       setKeys(data);
     } catch (err: any) {
-      showToast('error', err.message || 'Không thể tải danh sách API Keys.');
+      showToast('error', err.message || 'Failed to load API keys list.');
     } finally {
       setLoading(false);
     }
@@ -78,20 +78,20 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
   const handleSaveKey = async (item: ProviderKeyStatus) => {
     const rawValue = (inputValues[item.provider] || '').trim();
     if (!rawValue) {
-      showToast('error', 'Vui lòng nhập khóa API trước khi lưu.');
+      showToast('error', 'Please enter an API key before saving.');
       return;
     }
 
     setSavingProvider(item.provider);
     try {
       const res = await ApiKeyService.saveApiKey(item.provider, rawValue);
-      showToast('success', res.message || `Đã lưu khóa API cho ${item.name}.`);
+      showToast('success', res.message || `Saved API key for ${item.name}.`);
       setEditingProvider(prev => ({ ...prev, [item.provider]: false }));
       setInputValues(prev => ({ ...prev, [item.provider]: '' }));
       setShowPassword(prev => ({ ...prev, [item.provider]: false }));
       await loadKeys();
     } catch (err: any) {
-      showToast('error', err.message || 'Lỗi khi lưu khóa API.');
+      showToast('error', err.message || 'Error saving API key.');
     } finally {
       setSavingProvider(null);
     }
@@ -103,13 +103,13 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
     try {
       const res = await ApiKeyService.testConnection(item.provider, candidate || undefined);
       if (res.healthy) {
-        showToast('success', `${res.message} (Độ trễ: ${res.latency_ms}ms)`);
+        showToast('success', `${res.message} (Latency: ${res.latency_ms}ms)`);
       } else {
-        showToast('error', res.message || 'Kiểm tra kết nối thất bại.');
+        showToast('error', res.message || 'Connection test failed.');
       }
       await loadKeys();
     } catch (err: any) {
-      showToast('error', err.message || 'Lỗi kiểm tra kết nối.');
+      showToast('error', err.message || 'Connection test error.');
     } finally {
       setTestingProvider(null);
     }
@@ -121,12 +121,12 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
     setDeletingProvider(provider);
     try {
       const res = await ApiKeyService.deleteApiKey(provider);
-      showToast('success', res.message || `Đã xóa khóa cá nhân.`);
+      showToast('success', res.message || 'Personal key removed.');
       setConfirmDeleteProvider(null);
       handleCancelEdit(provider);
       await loadKeys();
     } catch (err: any) {
-      showToast('error', err.message || 'Lỗi khi xóa khóa cá nhân.');
+      showToast('error', err.message || 'Error deleting personal key.');
     } finally {
       setDeletingProvider(null);
     }
@@ -135,7 +135,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
   const handleSaveSystemEnv = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminEnvVal.trim()) {
-      showToast('error', 'Vui lòng nhập giá trị biến môi trường.');
+      showToast('error', 'Please enter an environment variable value.');
       return;
     }
     setSavingAdminEnv(true);
@@ -145,7 +145,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
       setAdminEnvVal('');
       await loadKeys();
     } catch (err: any) {
-      showToast('error', err.message || 'Lỗi khi cập nhật biến hệ thống.');
+      showToast('error', err.message || 'Error updating system environment.');
     } finally {
       setSavingAdminEnv(false);
     }
@@ -167,8 +167,8 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
               <span>{t('apikeys.title')}</span>
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.35rem', maxWidth: '750px', lineHeight: 1.5 }}>
-              Cấu hình khóa API cho các nhà cung cấp mô hình AI và công cụ tìm kiếm. Khóa cá nhân của bạn được mã hóa an toàn bằng 
-              <strong> AES-256-GCM</strong> tại tầng cơ sở dữ liệu, có quyền ưu tiên cao hơn cấu hình mặc định server và có hiệu lực ngay tức thì ở runtime.
+              Configure API keys for AI model providers and external services. Your personal keys are encrypted using 
+              <strong> AES-256-GCM</strong> at the database layer with higher priority than server defaults, taking effect immediately at runtime.
             </p>
           </div>
 
@@ -200,7 +200,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
           <Icon name="shield" size={18} style={{ color: '#3b82f6', flexShrink: 0 }} />
           <div>
             <strong style={{ color: 'var(--text-primary)' }}>{t('apikeys.security_notice')} </strong>
-            Hệ thống không bao giờ trả về khóa API dạng plaintext về trình duyệt sau khi đã lưu. Chỉ trạng thái cấu hình và ký tự gợi ý đã che giấu được hiển thị.
+            The system never transmits plaintext API keys to the browser after saving. Only configuration status and masked hints are displayed.
           </div>
         </div>
 
@@ -219,8 +219,8 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
         }}>
           <Icon name="cpu" size={18} style={{ color: '#10b981', flexShrink: 0, marginTop: '2px' }} />
           <div>
-            <strong style={{ color: 'var(--text-primary)' }}>Chế độ Tự Động Chuyển Vùng & Ngoại Tuyến (Offline Semantic Cache): </strong>
-            Khi mô hình đang chat hết hạn ngạch (HTTP 429), hệ thống tự động chuyển tiếp sang mô hình khả dụng khác với trọn vẹn ngữ cảnh hội thoại. Trường hợp không cấu hình khóa API hoặc thiết bị không có GPU/CPU để chạy mô hình cục bộ, website tức thì chuyển sang <strong>Offline Semantic Cache</strong> để phục vụ học tập tiếng Nhật tốc độ cao.
+            <strong style={{ color: 'var(--text-primary)' }}>Auto-Failover & Offline Semantic Cache: </strong>
+            When an active model exceeds rate limits (HTTP 429), the system automatically routes to another available model with zero context loss. If no API keys are present or hardware cannot run local models, the platform instantly engages <strong>Offline Semantic Cache</strong> for high-speed offline Japanese language learning.
           </div>
         </div>
       </div>
@@ -257,11 +257,11 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
           <Icon name="refresh" size={24} className="spin" style={{ marginBottom: '0.5rem' }} />
-          <div>Đang nạp danh mục cấu hình API keys...</div>
+          <div>Loading API keys configuration catalog...</div>
         </div>
       ) : filteredKeys.length === 0 ? (
         <div className="card" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-          Không có nhà cung cấp nào trong danh mục này.
+          No providers found in this category.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -290,7 +290,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                   gap: '4px'
                 }}>
                   <Icon name="user" size={11} />
-                  <span>Khóa cá nhân</span>
+                  <span>Personal Key</span>
                 </span>
               );
             } else if (item.source === 'SYSTEM') {
@@ -308,7 +308,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                   gap: '4px'
                 }}>
                   <Icon name="workspace" size={11} />
-                  <span>Mặc định hệ thống (.env)</span>
+                  <span>System Default (.env)</span>
                 </span>
               );
             } else {
@@ -322,7 +322,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                   border: '1px solid var(--border)',
                   fontWeight: 500
                 }}>
-                  Chưa cấu hình
+                  Not Configured
                 </span>
               );
             }
@@ -339,7 +339,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                   gap: '4px'
                 }}>
                   <Icon name="check" size={12} />
-                  <span>Đã kiểm tra kết nối</span>
+                  <span>Connection Verified</span>
                 </span>
               );
             } else if (item.validation_status === 'INVALID' || item.validation_status === 'ERROR') {
@@ -352,7 +352,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                   gap: '4px'
                 }}>
                   <Icon name="alert" size={12} />
-                  <span>Kết nối lỗi hoặc khóa không hợp lệ</span>
+                  <span>Connection Error or Invalid Key</span>
                 </span>
               );
             }
@@ -384,7 +384,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                       {item.description}
                     </p>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'flex', gap: '12px' }}>
-                      <span>Biến tương ứng: <code style={{ color: 'var(--accent)', background: 'var(--bg-secondary)', padding: '1px 4px', borderRadius: '4px' }}>{item.env_var}</code></span>
+                      <span>Environment Variable: <code style={{ color: 'var(--accent)', background: 'var(--bg-secondary)', padding: '1px 4px', borderRadius: '4px' }}>{item.env_var}</code></span>
                       {item.doc_url && (
                         <a
                           href={item.doc_url}
@@ -392,7 +392,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                           rel="noopener noreferrer"
                           style={{ color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
                         >
-                          <span>Lấy khóa</span>
+                          <span>Get Key</span>
                           <Icon name="external" size={11} />
                         </a>
                       )}
@@ -408,10 +408,10 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                       onClick={() => handleTestConnection(item)}
                       disabled={isTesting || (!item.is_configured && !currentInput)}
                       style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-                      title="Kiểm tra kết nối thực tế tới API nhà cung cấp"
+                      title="Verify actual connection to provider API"
                     >
                       <Icon name="refresh" size={12} className={isTesting ? 'spin' : ''} />
-                      <span>{isTesting ? 'Đang kiểm tra...' : 'Test kết nối'}</span>
+                      <span>{isTesting ? 'Testing...' : 'Test Connection'}</span>
                     </button>
 
                     {item.has_personal_key && !isEditing && (
@@ -422,7 +422,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                         onClick={() => setConfirmDeleteProvider(item)}
                         disabled={isDeleting}
                         style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
-                        title="Xóa khóa cá nhân và hoàn tác về mặc định server"
+                        title="Delete personal key and revert to server default"
                       >
                         <Icon name="trash" size={12} />
                         <span>{t('apikeys.delete_key')}</span>
@@ -451,7 +451,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                         </span>
                         {item.updated_at && (
                           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            Cập nhật: {new Date(item.updated_at).toLocaleDateString()}
+                            Updated: {new Date(item.updated_at).toLocaleDateString()}
                           </span>
                         )}
                       </div>
@@ -464,7 +464,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                         style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
                         <Icon name="edit" size={12} />
-                        <span>{item.has_personal_key ? 'Đổi khóa' : 'Ghi đè bằng khóa cá nhân'}</span>
+                        <span>{item.has_personal_key ? 'Change Key' : 'Override with Personal Key'}</span>
                       </button>
                     </div>
                   ) : (
@@ -477,7 +477,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                             id={`input-key-${item.provider}`}
                             value={currentInput}
                             onChange={(e) => handleInputChange(item.provider, e.target.value)}
-                            placeholder={item.placeholder || `Nhập khóa API cho ${item.name}...`}
+                            placeholder={item.placeholder || `Enter API key for ${item.name}...`}
                             style={{
                               width: '100%',
                               padding: '0.5rem 2.5rem 0.5rem 0.75rem',
@@ -508,7 +508,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                                 display: 'flex',
                                 alignItems: 'center'
                               }}
-                              title={isPasswordVisible ? 'Ẩn khóa' : 'Hiện khóa'}
+                              title={isPasswordVisible ? 'Hide Key' : 'Show Key'}
                             >
                               <Icon name={isPasswordVisible ? 'close' : 'sparkles'} size={14} />
                             </button>
@@ -524,7 +524,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                           style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                         >
                           <Icon name="check" size={13} />
-                          <span>{isSaving ? 'Đang lưu...' : 'Lưu khóa'}</span>
+                          <span>{isSaving ? 'Saving...' : 'Save Key'}</span>
                         </button>
 
                         {(item.is_configured || isEditing) && (
@@ -535,13 +535,13 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                             disabled={isSaving}
                             style={{ fontSize: '0.8rem', padding: '0.5rem 0.85rem' }}
                           >
-                            Hủy
+                            Cancel
                           </button>
                         )}
                       </div>
 
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        Khóa sẽ được mã hóa AES-256-GCM và áp dụng tức thì cho tài khoản của bạn (không làm ảnh hưởng người dùng khác).
+                        Key will be encrypted with AES-256-GCM and applied immediately to your profile without affecting others.
                       </div>
                     </div>
                   )}
@@ -581,7 +581,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Icon name="shield" size={16} style={{ color: 'var(--accent)' }} />
               <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Cấu hình Biến Môi Trường Toàn Cục (.env) — Dành cho Quản Trị Viên
+                Global Environment Configuration (.env) — Admin Only
               </span>
             </div>
             <Icon name={showAdminSection ? 'chevronUp' : 'chevronDown'} size={16} style={{ color: 'var(--text-muted)' }} />
@@ -590,7 +590,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
           {showAdminSection && (
             <form onSubmit={handleSaveSystemEnv} style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 }}>
-                Cập nhật biến toàn cục trong file <code>.env</code> của hệ thống máy chủ thông qua ghi file nguyên tử (Atomic write) và tự động tạo backup. Thay đổi này làm giá trị mặc định cho toàn bộ người dùng chưa cài đặt khóa cá nhân.
+                Update global environment variables in server <code>.env</code> via atomic write with automated backup. Serves as default for all users without personal overrides.
               </p>
 
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -619,7 +619,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                   type="password"
                   value={adminEnvVal}
                   onChange={(e) => setAdminEnvVal(e.target.value)}
-                  placeholder="Nhập giá trị mới cho .env..."
+                  placeholder="Enter new value for .env..."
                   style={{
                     flex: 1,
                     minWidth: '220px',
@@ -639,12 +639,12 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                   disabled={savingAdminEnv || !adminEnvVal.trim()}
                   style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
                 >
-                  {savingAdminEnv ? 'Đang ghi file...' : 'Cập nhật .env'}
+                  {savingAdminEnv ? 'Writing file...' : 'Update .env'}
                 </button>
               </div>
 
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                Lưu ý: Thay đổi file <code>.env</code> sẽ yêu cầu khởi động lại tiến trình backend/demo để áp dụng đầy đủ.
+                Note: Modifying <code>.env</code> requires restarting the backend service to fully reload.
               </div>
             </form>
           )}
@@ -665,13 +665,13 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
         }}>
           <div className="card" style={{ maxWidth: '420px', width: '100%', padding: '1.5rem', background: 'var(--bg-card)' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              Xác nhận xóa khóa cá nhân?
+              Confirm deletion of personal key?
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Bạn có chắc chắn muốn xóa khóa cá nhân của nhà cung cấp <strong>{confirmDeleteProvider.name}</strong>?
+              Are you sure you want to remove the personal key for <strong>{confirmDeleteProvider.name}</strong>?
               {confirmDeleteProvider.has_system_key
-                ? ' Hệ thống sẽ tự động hoàn tác về sử dụng cấu hình mặc định từ máy chủ.'
-                : ' Bạn sẽ không thể sử dụng các mô hình của nhà cung cấp này cho đến khi cấu hình lại khóa.'}
+                ? ' The platform will automatically revert to using the server default configuration.'
+                : ' You will not be able to use models from this provider until a valid key is provided.'}
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1.25rem' }}>
@@ -681,7 +681,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                 onClick={() => setConfirmDeleteProvider(null)}
                 disabled={Boolean(deletingProvider)}
               >
-                Hủy bỏ
+                Cancel
               </button>
               <button
                 type="button"
@@ -690,7 +690,7 @@ export default function ApiKeysTab({ showToast, userEmail }: ApiKeysTabProps) {
                 disabled={Boolean(deletingProvider)}
                 style={{ background: '#ef4444', borderColor: '#ef4444' }}
               >
-                {deletingProvider ? 'Đang xóa...' : 'Xác nhận xóa'}
+                {deletingProvider ? 'Deleting...' : 'Confirm Delete'}
               </button>
             </div>
           </div>

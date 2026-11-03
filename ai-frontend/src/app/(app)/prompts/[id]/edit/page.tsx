@@ -1,5 +1,7 @@
 'use client';
 
+import { useApp } from '@/context/AppContext';
+
 import { VoiceService } from '@/services/voiceService';
 import { VoiceItem } from '@/types';
 
@@ -15,6 +17,7 @@ import { LibraryAssetManager } from '@/components/ui/AttachmentUploader';
 import { AttachmentItem } from '@/services/attachmentService';
 
 export default function EditSenseiPage() {
+  const { t } = useApp();
   const router = useRouter();
   const params = useParams();
   const promptId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
@@ -69,7 +72,7 @@ export default function EditSenseiPage() {
         setIsSystemPreset(Boolean(data.is_system_preset));
         setAttachments(data.attachments || []);
       } catch (err: any) {
-        setLoadError(formatErrorMessage(err, 'Sensei không tồn tại hoặc bạn không có quyền truy cập.'));
+        setLoadError(formatErrorMessage(err, 'Sensei does not exist or you do not have permission to view it.'));
       } finally {
         setLoading(false);
       }
@@ -88,13 +91,13 @@ export default function EditSenseiPage() {
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setErrorMsg('Vui lòng nhập tên cho Sensei.');
+      setErrorMsg('Please enter a name for the Sensei.');
       return;
     }
 
     const trimmedContent = content.trim();
     if (!trimmedContent) {
-      setErrorMsg('Vui lòng nhập chỉ thị Persona cốt lõi cho AI.');
+      setErrorMsg('Please enter core persona instructions.');
       return;
     }
 
@@ -118,7 +121,7 @@ export default function EditSenseiPage() {
 
       router.push('/prompts');
     } catch (err: any) {
-      setErrorMsg(formatErrorMessage(err, 'Lỗi khi cập nhật thông tin Sensei. Vui lòng thử lại.'));
+      setErrorMsg(formatErrorMessage(err, 'Failed to update Sensei guidance. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -127,7 +130,7 @@ export default function EditSenseiPage() {
   if (loading) {
     return (
       <div style={{ padding: '4rem 0', textAlign: 'center', color: 'var(--text-muted)' }}>
-        Đang tải thông tin Sensei...
+        Loading Sensei profile...
       </div>
     );
   }
@@ -137,7 +140,7 @@ export default function EditSenseiPage() {
       <div className="page-container" style={{ maxWidth: '860px', padding: '2rem 1rem' }}>
         <div className="card" style={{ padding: '2rem', textAlign: 'center', borderColor: 'var(--danger)' }}>
           <p style={{ color: 'var(--danger)', marginBottom: '1rem' }}>{loadError}</p>
-          <Link href="/prompts" className="btn btn-secondary">Quay lại danh sách Sensei</Link>
+          <Link href="/prompts" className="btn btn-secondary">Back to Sensei Roster</Link>
         </div>
       </div>
     );
@@ -164,8 +167,8 @@ export default function EditSenseiPage() {
       <div className="page-container" style={{ maxWidth: '860px' }}>
         {/* Page Header */}
         <PageHeader
-          title={`Chỉnh Sửa Sensei: ${name}`}
-          description={isSystemPreset ? "Sensei mẫu hệ thống - Khi sửa, hệ thống sẽ lưu thành phiên bản tùy chỉnh cá nhân của bạn." : "Cập nhật phong cách sư phạm, tính cách, cấp độ và chỉ thị Persona cho Sensei."}
+          title={`Edit Sensei: ${name}`}
+          description={isSystemPreset ? "System Preset Sensei - Modifications will be automatically duplicated as your customized personal version." : "Update pedagogical style, personality traits, target proficiency level, and system instructions."}
         >
           <button
             type="button"
@@ -174,7 +177,7 @@ export default function EditSenseiPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <Icon name="chevronLeft" size={13} />
-            <span>Quay lại danh sách Sensei</span>
+            <span>Back to Sensei Roster</span>
           </button>
         </PageHeader>
 
@@ -201,13 +204,13 @@ export default function EditSenseiPage() {
         <form onSubmit={handleSubmit} className="card" style={{ padding: '1.75rem' }}>
           {/* Section 1: Basic Identity */}
           <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-            1. Thông Tin Nhận Diện & Nhân Bản Học
+            1. Identity & Profile Information
           </h4>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
             <div>
               <label htmlFor="edit-name" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Tên Sensei <span style={{ color: 'var(--danger)' }}>*</span>
+                Sensei Name <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <input
                 id="edit-name"
@@ -222,7 +225,7 @@ export default function EditSenseiPage() {
 
             <div>
               <label htmlFor="edit-level" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Trình Độ Tiếng Nhật Chuyên Trách
+                Target JLPT Proficiency Level
               </label>
               <select
                 id="edit-level"
@@ -230,18 +233,18 @@ export default function EditSenseiPage() {
                 value={japaneseLevel}
                 onChange={e => setJapaneseLevel(e.target.value)}
               >
-                <option value="N5">JLPT N5 (Sơ cấp cơ bản)</option>
-                <option value="N4">JLPT N4 (Sơ cấp nâng cao & Kaiwa)</option>
-                <option value="N3">JLPT N3 (Trung cấp & Sắc thái ngữ cảnh)</option>
-                <option value="N2">JLPT N2 (Trung thượng cấp & Thương mại)</option>
-                <option value="N1">JLPT N1 (Cao cấp & Kính ngữ thượng thừa)</option>
-                <option value="ALL">Tổng Hợp Đa Cấp Độ</option>
+                <option value="N5">JLPT N5 (Beginner)</option>
+                <option value="N4">JLPT N4 (Elementary & Kaiwa)</option>
+                <option value="N3">JLPT N3 (Intermediate)</option>
+                <option value="N2">JLPT N2 (Upper Intermediate & Business)</option>
+                <option value="N1">JLPT N1 (Advanced & Keigo)</option>
+                <option value="ALL">All Levels / General</option>
               </select>
             </div>
 
             <div>
               <label htmlFor="edit-age" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Tuổi
+                Age
               </label>
               <input
                 id="edit-age"
@@ -256,7 +259,7 @@ export default function EditSenseiPage() {
 
             <div>
               <label htmlFor="edit-voice" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Giọng Nói VoiceVox Nhân Vật (Character Voice)
+                VoiceVox Character Voice
               </label>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <select
@@ -266,10 +269,10 @@ export default function EditSenseiPage() {
                   onChange={e => setVoiceId(e.target.value)}
                   style={{ flex: 1 }}
                 >
-                  <option value="">-- Mặc định (Kasukabe Tsumugi) --</option>
+                  <option value="">-- Default (Kasukabe Tsumugi) --</option>
                   {availableVoices.map(v => (
                     <option key={v.id} value={v.id}>
-                      {v.character_name} - {v.name} ({v.gender === 'female' ? 'Nữ' : 'Nam'})
+                      {v.character_name} - {v.name} ({v.gender === 'female' ? 'Female' : 'Male'})
                     </option>
                   ))}
                 </select>
@@ -277,7 +280,7 @@ export default function EditSenseiPage() {
                   type="button"
                   onClick={handleTestVoice}
                   disabled={playingTestAudio}
-                  title="Nghe thử giọng mẫu"
+                  title="Test Voice Sample"
                   style={{
                     padding: '8px 12px',
                     borderRadius: '8px',
@@ -294,14 +297,14 @@ export default function EditSenseiPage() {
                   }}
                 >
                   <Icon name="voice" size={14} />
-                  {playingTestAudio ? 'Đang phát...' : 'Nghe thử'}
+                  {playingTestAudio ? 'Playing...' : 'Test Voice'}
                 </button>
               </div>
             </div>
 
             <div>
               <label htmlFor="edit-gender" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Giới Tính & Xưng Hô
+                Gender & Persona Pronoun
               </label>
               <select
                 id="edit-gender"
@@ -309,22 +312,22 @@ export default function EditSenseiPage() {
                 value={gender}
                 onChange={e => setGender(e.target.value)}
               >
-                <option value="female">Cô giáo (Nữ - Watashi)</option>
-                <option value="male">Thầy giáo (Nam - Boku/Watashi)</option>
-                <option value="other">Trung tính / Khác</option>
+                <option value="female">Female Sensei (Watashi)</option>
+                <option value="male">Male Sensei (Boku/Watashi)</option>
+                <option value="other">Neutral / Other</option>
               </select>
             </div>
           </div>
 
           {/* Section 2: Personality & Teaching Style */}
           <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: '1.25rem 0 1rem 0', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-            2. Tính Cách Sư Phạm & Đặc Trưng Giao Tiếp
+            2. Teaching Personality & Catchphrase
           </h4>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
             <div>
               <label htmlFor="edit-personality" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Nét Tính Cách Đặc Trưng
+                Personality Traits
               </label>
               <input
                 id="edit-personality"
@@ -338,7 +341,7 @@ export default function EditSenseiPage() {
 
             <div>
               <label htmlFor="edit-catchphrase" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Câu Nói Cửa Miệng / Lời Chào
+                Signature Catchphrase / Greeting
               </label>
               <input
                 id="edit-catchphrase"
@@ -354,7 +357,7 @@ export default function EditSenseiPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
             <div>
               <label htmlFor="edit-teaching" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Phương Pháp Sư Phạm & Furigana
+                Teaching Methodology & Furigana
               </label>
               <textarea
                 id="edit-teaching"
@@ -367,7 +370,7 @@ export default function EditSenseiPage() {
 
             <div>
               <label htmlFor="edit-hobbies" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Sở Thích & Đề Tài Quan Tâm
+                Hobbies & Topics of Interest
               </label>
               <textarea
                 id="edit-hobbies"
@@ -381,7 +384,7 @@ export default function EditSenseiPage() {
 
           <div style={{ marginBottom: '1.25rem' }}>
             <label htmlFor="edit-avatar" style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-              Ảnh Đại Diện (Avatar URL)
+              Avatar Image (URL)
             </label>
             <input
               id="edit-avatar"
@@ -394,16 +397,16 @@ export default function EditSenseiPage() {
 
           {/* Section 3: AI Persona Core Instructions */}
           <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', margin: '1.25rem 0 1rem 0', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-            3. Chỉ Thị Persona Cốt Lõi (AI System Prompt)
+            3. Core Persona Instructions (AI System Prompt)
           </h4>
 
           <div style={{ marginBottom: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
               <label htmlFor="edit-content" style={{ color: 'var(--text-primary)', fontSize: '0.8125rem', fontWeight: 600 }}>
-                Nội Dung Chỉ Dẫn Nhập Vai (System Prompt Instructions) <span style={{ color: 'var(--danger)' }}>*</span>
+                Persona System Prompt Instructions <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <span style={{ fontSize: '0.75rem', color: content.length > 10000 ? 'var(--danger)' : 'var(--text-muted)' }}>
-                {content.length.toLocaleString()} / 10,000 ký tự
+                {content.length.toLocaleString()} / 10,000 chars
               </span>
             </div>
             <textarea
@@ -432,7 +435,7 @@ export default function EditSenseiPage() {
               style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
             />
             <label htmlFor="edit-default" style={{ fontSize: '0.85rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
-              Đặt làm Sensei mặc định đồng hành trong các cuộc hội thoại mới
+              Set as default companion Sensei for new conversations
             </label>
           </div>
 
@@ -444,14 +447,14 @@ export default function EditSenseiPage() {
               onClick={handleCancel}
               disabled={isSubmitting}
             >
-              Hủy
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Đang cập nhật Sensei...' : 'Lưu Thay Đổi'}
+              {isSubmitting ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>

@@ -14,3 +14,4 @@ To re-download or update files from Google Drive:
 python tools/download_all_drive_materials.py
 python tools/sync_local_materials_to_db.py
 ```
+

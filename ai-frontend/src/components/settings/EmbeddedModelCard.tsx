@@ -88,7 +88,7 @@ export default function EmbeddedModelCard() {
     if (!eligibility?.eligible) {
       setToastMsg({
         type: 'error',
-        text: 'Cấu hình phần cứng chưa đạt yêu cầu tối thiểu. Không thể tải mô hình trực tiếp.',
+        text: 'Hardware requirements not met. Cannot download embedded model.',
       });
       return;
     }
@@ -107,13 +107,13 @@ export default function EmbeddedModelCard() {
       }
       setToastMsg({
         type: 'success',
-        text: 'Đã tải và cấu hình thành công mô hình siêu nhẹ nhúng trực tiếp!',
+        text: 'Embedded lightweight model downloaded and ready!',
       });
       fetchData();
     } catch (err: any) {
       setToastMsg({
         type: 'error',
-        text: err.message || 'Lỗi khi tải mô hình',
+        text: err.message || 'Error downloading model',
       });
     } finally {
       setDownloading(false);
@@ -121,7 +121,7 @@ export default function EmbeddedModelCard() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Bạn có chắc chắn muốn xóa tệp mô hình nhúng để giải phóng dung lượng ổ đĩa?')) {
+    if (!confirm('Are you sure you want to delete the embedded model file to free up disk space?')) {
       return;
     }
     try {
@@ -129,12 +129,12 @@ export default function EmbeddedModelCard() {
       if (res.ok) {
         setToastMsg({
           type: 'success',
-          text: 'Đã xóa mô hình nhúng và giải phóng bộ nhớ ổ đĩa.',
+          text: 'Embedded model file removed and disk space freed.',
         });
         fetchData();
       }
     } catch (err: any) {
-      setToastMsg({ type: 'error', text: 'Lỗi khi xóa mô hình' });
+      setToastMsg({ type: 'error', text: 'Error deleting model' });
     }
   };
 
@@ -195,15 +195,15 @@ export default function EmbeddedModelCard() {
               color: isModelReady ? 'var(--primary, #3fb950)' : '#eab308',
               border: `1px solid ${isModelReady ? 'var(--primary, #238636)' : 'rgba(234, 179, 8, 0.3)'}`
             }}>
-              {isModelReady ? '● Đã Sẵn Sàng Chạy' : '○ Chưa Tải Về'}
+              {isModelReady ? '● Ready to Run' : '○ Not Downloaded'}
             </span>
           </div>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
-            Qwen 2.5 0.5B (Mô Hình Siêu Nhẹ Nhúng Trực Tiếp)
+            Qwen 2.5 0.5B (Direct Embedded In-Project Model)
           </h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px', maxWidth: '720px' }}>
-            Mô hình chạy trực tiếp trong tiến trình backend mà không cần kết nối qua Ollama hay bất kỳ máy chủ bên ngoài nào.
-            Hệ thống yêu cầu kiểm tra phần cứng thiết bị trước khi cho phép tải về và sử dụng.
+            Executes directly in the backend process without Ollama daemon or any external cloud services.
+            System checks device hardware before enabling download and local execution.
           </p>
         </div>
 
@@ -214,7 +214,7 @@ export default function EmbeddedModelCard() {
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.825rem' }}
         >
           <Icon name="refresh" size={14} />
-          <span>Kiểm Tra Lại</span>
+          <span>Re-check Hardware</span>
         </button>
       </div>
 
@@ -235,7 +235,7 @@ export default function EmbeddedModelCard() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Icon name="cpu" size={16} />
-              <span>Kiểm Tra Phần Cứng Thiết Bị</span>
+              <span>Hardware Eligibility Check</span>
             </span>
             <span style={{
               fontSize: '0.75rem',
@@ -245,7 +245,7 @@ export default function EmbeddedModelCard() {
               background: eligibility?.eligible ? 'rgba(35, 134, 54, 0.2)' : 'rgba(218, 54, 51, 0.2)',
               color: eligibility?.eligible ? '#3fb950' : '#f85149'
             }}>
-              {eligibility?.eligible ? 'ĐỦ ĐIỀU KIỆN' : 'CHƯA ĐỦ ĐIỀU KIỆN'}
+              {eligibility?.eligible ? 'ELIGIBLE' : 'INELIGIBLE'}
             </span>
           </div>
 
@@ -280,7 +280,7 @@ export default function EmbeddedModelCard() {
           </div>
 
           <div style={{ marginTop: '10px', fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
-            Hệ điều hành: {eligibility?.metrics.os_name} ({eligibility?.metrics.architecture})
+            Operating System: {eligibility?.metrics.os_name} ({eligibility?.metrics.architecture})
           </div>
         </div>
 
@@ -294,7 +294,7 @@ export default function EmbeddedModelCard() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Icon name="sparkles" size={16} style={{ color: '#eab308' }} />
-              <span>Semantic Cache Kiến Thức Tiếng Nhật</span>
+              <span>Japanese Linguistic Semantic Cache</span>
             </span>
             <span style={{
               fontSize: '0.75rem',
@@ -315,11 +315,11 @@ export default function EmbeddedModelCard() {
               background: 'rgba(255, 255, 255, 0.02)',
               border: '1px solid var(--border-subtle)'
             }}>
-              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Cơ Sở Tri Thức Sẵn Có</div>
+              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Pre-built Knowledge Base</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#38bdf8', marginTop: '2px' }}>
                 {cacheStats?.total_entries ? cacheStats.total_entries.toLocaleString() : '10,500+'}
               </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Câu hỏi JLPT, Trợ từ, Kaiwa</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>JLPT questions, Particles, Kaiwa</div>
             </div>
 
             <div style={{
@@ -328,11 +328,11 @@ export default function EmbeddedModelCard() {
               background: 'rgba(255, 255, 255, 0.02)',
               border: '1px solid var(--border-subtle)'
             }}>
-              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Lượt Tra Cứu (Hits)</div>
+              <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Cache Hits</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#3fb950', marginTop: '2px' }}>
                 {cacheStats?.total_hits ? cacheStats.total_hits.toLocaleString() : '0'}
               </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Phản hồi sub-5ms</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Sub-5ms Latency</div>
             </div>
           </div>
 
@@ -348,7 +348,7 @@ export default function EmbeddedModelCard() {
             gap: '6px'
           }}>
             <Icon name="check" size={14} style={{ color: '#38bdf8' }} />
-            <span>Tự động học mọi câu hỏi & câu trả lời (Deduplication: không lưu trùng lặp)</span>
+            <span>Continuous learning on question-response pairs (Deduplication enabled)</span>
           </div>
         </div>
       </div>
@@ -367,10 +367,10 @@ export default function EmbeddedModelCard() {
           {isModelReady ? (
             <span style={{ color: '#3fb950', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Icon name="check" size={16} />
-              <span>Mô hình đã được lưu trữ trong dự án (`ai-backend/models/embedded/qwen2.5-0.5b.bin`). Bạn có thể chọn mô hình này trong khung chat.</span>
+              <span>Model weights ready in workspace (`ai-backend/models/embedded/qwen2.5-0.5b.bin`). You can select this model in the chat composer.</span>
             </span>
           ) : (
-            <span>Mô hình chưa được tải về. Nhấn &apos;Tải Mô Hình&apos; sau khi kiểm tra phần cứng đạt chuẩn để sử dụng trực tiếp.</span>
+            <span>Model weights not downloaded. Click 'Download Model' after checking hardware compatibility to enable local inference.</span>
           )}
         </div>
 
@@ -390,7 +390,7 @@ export default function EmbeddedModelCard() {
               }}
             >
               <Icon name="upload" size={14} />
-              <span>{downloading ? 'Đang Tải Mô Hình...' : 'Tải Mô Hình Nhúng Trực Tiếp (~380MB)'}</span>
+              <span>{downloading ? 'Downloading Model...' : 'Download Embedded Model (~380MB)'}</span>
             </button>
           ) : (
             <button
@@ -405,7 +405,7 @@ export default function EmbeddedModelCard() {
               }}
             >
               <Icon name="trash" size={14} />
-              <span>Xóa Mô Hình (Giải Phóng Dung Lượng)</span>
+              <span>Delete Model (Free Up Disk Space)</span>
             </button>
           )}
         </div>

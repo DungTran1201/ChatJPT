@@ -21,7 +21,7 @@ export class ApiKeyService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể tải danh sách cấu hình khóa API.');
+      throw new Error(err.detail || 'Failed to load API key configurations.');
     }
 
     return res.json();
@@ -43,7 +43,7 @@ export class ApiKeyService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể lưu khóa API.');
+      throw new Error(err.detail || 'Failed to save API key.');
     }
 
     return res.json();
@@ -60,7 +60,7 @@ export class ApiKeyService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể xóa khóa cá nhân.');
+      throw new Error(err.detail || 'Failed to delete personal API key.');
     }
 
     return res.json();
@@ -81,7 +81,7 @@ export class ApiKeyService {
 
     const data = await res.json().catch(() => ({ detail: res.statusText }));
     if (!res.ok) {
-      throw new Error(data.detail || data.message || 'Kiểm tra kết nối thất bại.');
+      throw new Error(data.detail || data.message || 'API connection check failed.');
     }
 
     return data;
@@ -102,7 +102,7 @@ export class ApiKeyService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể cập nhật cấu hình hệ thống .env.');
+      throw new Error(err.detail || 'Failed to update system .env configuration.');
     }
 
     return res.json();

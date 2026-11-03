@@ -246,28 +246,113 @@ async def stream_message_endpoint(
 
         if user_lang == "vi":
             lang_label = "tiếng Việt"
-            formatting_rules.append(
+            trans_prefix = "Bản dịch"
+            breakdown_title = "### 🔍 Phân tích Ngữ pháp & Từ vựng"
+            meaning_label = "Ý nghĩa"
+            nuance_label = "Sắc thái & Cách dùng"
+            lang_directive = (
                 "QUY TẮC BẮT BUỘC VỀ NGÔN NGỮ (TUYỆT ĐỐI TUÂN THỦ):\n"
                 "1. Người học đang sử dụng giao diện TIẾNG VIỆT.\n"
                 "2. TUYỆT ĐỐI KHÔNG DÙNG TIẾNG ANH trong bất kỳ câu dịch hay phần giải thích nào.\n"
-                "3. Toàn bộ bản dịch đặt dưới mỗi câu tiếng Nhật PHẢI 100% LÀ TIẾNG VIỆT.\n"
+                "3. Toàn bộ dòng dịch đặt dưới mỗi câu tiếng Nhật PHẢI 100% LÀ TIẾNG VIỆT (định dạng `(Bản dịch: <tiếng Việt>)`).\n"
                 "4. Toàn bộ phần phân tích ngữ pháp, từ vựng và sắc thái PHẢI 100% LÀ TIẾNG VIỆT (dùng thuật ngữ 'Khiêm nhường ngữ', 'Tôn kính ngữ', v.v. - TUYỆT ĐỐI KHÔNG dùng tiếng Anh)."
+            )
+            romaji_rule = (
+                "QUY TẮC CẤM TỰ SINH ROMAJI (TUYỆT ĐỐI TUÂN THỦ):\n"
+                "- TUYỆT ĐỐI KHÔNG tự viết dòng phiên âm Romaji (như 'hajimemashite...', 'watashi wa...', 'go[指導]...').\n"
+                "- Giao diện web đã tự động tạo và hiển thị Romaji Hepburn chuẩn xác phía dưới từng từ.\n"
+                "- Bạn chỉ xuất câu tiếng Nhật đính kèm Furigana Ruby `[漢字](かんじ)` và dòng `(Bản dịch: ...)` ngay bên dưới."
+            )
+            few_shot = (
+                f"\n--- MẪU TRÌNH BÀY CHUẨN CỦA SENSEI (BẮT BUỘC TUÂN THỦ CHÍNH XÁC THEO MẪU NÀY) ---\n"
+                f"{{はい}}[g-green]、[元気](げんき)ですよ！[一緒](いっしょ)に[日本語](にほんご)を[勉強](べんきょう)しましょうね！\n"
+                f"(Bản dịch: Vâng, tôi rất khỏe! Chúng ta cùng nhau học tiếng Nhật nhé!)\n\n"
+                f"[今日](きょう)は{{どんな}}[g-green][気分](きぶん)ですか？[何](なに)か{{面白い}}[g-green][出来事](できごと)はありましたか？\n"
+                f"(Bản dịch: Hôm nay tâm trạng bạn thế nào? Có chuyện gì vui không?)\n\n"
+                f"---\n"
+                f"### 🔍 Phân tích Ngữ pháp & Từ vựng\n"
+                f"1. **【〜ましょう】** *(Động từ thể rủ rê / Lịch sự)*\n"
+                f"- *Ý nghĩa:* Diễn tả lời mời hoặc đề xuất cùng làm việc gì đó một cách thân thiện.\n"
+                f"- *Sắc thái & Cách dùng:* Tạo cảm giác gắn kết, ấm áp và khích lệ người học tham gia.\n\n"
+                f"2. **【〜ですか】** *(Trợ từ nghi vấn)*\n"
+                f"- *Ý nghĩa:* Dùng ở cuối câu để tạo câu hỏi lịch thiệp.\n"
+                f"- *Sắc thái & Cách dùng:* Bày tỏ sự quan tâm chân thành đến người đối thoại."
             )
         elif user_lang == "ja":
             lang_label = "日本語"
-            formatting_rules.append(
-                "言語規則: ユーザーの表示言語は日本語です。要約や解説はすべて自然な日本語で記述してください。"
+            trans_prefix = "要約"
+            breakdown_title = "### 🔍 文法・語彙の重要分析"
+            meaning_label = "意味"
+            nuance_label = "ニュアンスと用法"
+            lang_directive = (
+                "言語規則（厳格に遵守）:\n"
+                "1. ユーザーの表示言語は日本語です。\n"
+                "2. 翻訳・要約および解説はすべて自然で丁寧な日本語で記述してください。\n"
+                "3. 各日本語文の直下には要約行 `(要約: <現代日本語訳>)` を配置してください。"
+            )
+            romaji_rule = (
+                "ローマ字出力禁止（厳格）:\n"
+                "- ローマ字の読み仮名行（'hajimemashite...', 'watashi wa...' 等）は一切出力しないでください。\n"
+                "- WebUI側で自動的に正確なヘボン式ローマ字が単語ごとに下部にレンダリングされます。\n"
+                "- あなたはルビ記号 `[漢字](かんじ)` と直下の要約行のみを記述してください。"
+            )
+            few_shot = (
+                f"\n--- 先生の標準回答形式（必ずこの形式に従ってください） ---\n"
+                f"{{はい}}[g-green]、[元気](げんき)ですよ！[一緒](いっしょ)に[日本語](にほんご)を[勉強](べんきょう)しましょうね！\n"
+                f"(要約: はい、とても元気ですよ！一緒に楽しく日本語を学びましょう！)\n\n"
+                f"[今日](きょう)は{{どんな}}[g-green][気分](きぶん)ですか？[何](なに)か{{面白い}}[g-green][出来事](できごと)はありましたか？\n"
+                f"(要約: 今日のご気分はいかがですか？何か興味深い出来事はありましたか？)\n\n"
+                f"---\n"
+                f"### 🔍 文法・語彙の重要分析\n"
+                f"1. **【〜ましょう】** *(勧誘・丁寧な促し)*\n"
+                f"- *意味:* 相手に対して一緒に何かをしようと促す丁寧な表現。\n"
+                f"- *ニュアンスと用法:* 学習者に寄り添い、安心感と積極性を引き出す温かい響きを持ちます。\n\n"
+                f"2. **【〜ですか】** *(丁寧な疑問終助詞)*\n"
+                f"- *意味:* 文末に付けて丁寧な質問を作る表現。\n"
+                f"- *ニュアンスと用法:* 相手を尊重しつつ、親身に問いかけるニュアンスです。"
             )
         else:
             lang_label = "English"
-            formatting_rules.append(
-                "LANGUAGE RULE: Provide all translations and grammar breakdown in English."
+            trans_prefix = "Translation"
+            breakdown_title = "### 🔍 Grammar & Vocabulary Breakdown"
+            meaning_label = "Meaning"
+            nuance_label = "Nuance & Usage"
+            lang_directive = (
+                "STRICT LANGUAGE DIRECTIVE:\n"
+                "1. The learner's interface language is ENGLISH.\n"
+                "2. DO NOT use Vietnamese in any translation or explanation.\n"
+                "3. Every Japanese sentence MUST have an English translation line below it: `(Translation: <English>)`.\n"
+                "4. All grammar explanations, lexical definitions, and nuances MUST be 100% in natural English."
+            )
+            romaji_rule = (
+                "ROMAJI RESTRICTION (CRITICAL):\n"
+                "- DO NOT output any Romaji pronunciation lines (such as 'hajimemashite...', 'watashi wa...', 'go[指導]...').\n"
+                "- The web UI automatically calculates and renders clean Hepburn Romaji beneath each word token.\n"
+                "- Only output the Japanese sentence with Furigana Ruby `[漢字](かんじ)` and the Translation line below it."
+            )
+            few_shot = (
+                f"\n--- SENSEI STANDARD RESPONSE TEMPLATE (STRICTLY FOLLOW THIS FORMAT) ---\n"
+                f"{{はい}}[g-green]、[元気](げんき)ですよ！[一緒](いっしょ)に[日本語](にほんご)を[勉強](べんきょう)しましょうね！\n"
+                f"(Translation: Yes, I am doing great! Let's study Japanese together!)\n\n"
+                f"[今日](きょう)は{{どんな}}[g-green][気分](きぶん)ですか？[何](なに)か{{面白い}}[g-green][出来事](できごと)はありましたか？\n"
+                f"(Translation: How are you feeling today? Did anything fun or interesting happen?)\n\n"
+                f"---\n"
+                f"### 🔍 Grammar & Vocabulary Breakdown\n"
+                f"1. **【〜ましょう】** *(Volitional verb form / Polite proposal)*\n"
+                f"- *Meaning:* Expresses a friendly invitation or suggestion to do something together.\n"
+                f"- *Nuance & Usage:* Fosters an encouraging, warm, and collaborative learning dynamic.\n\n"
+                f"2. **【〜ですか】** *(Polite interrogative particle)*\n"
+                f"- *Meaning:* Attached to the end of a sentence to formulate a polite question.\n"
+                f"- *Nuance & Usage:* Conveys sincere courtesy and interest toward the learner."
             )
 
+        formatting_rules.append(lang_directive)
+        formatting_rules.append(romaji_rule)
         formatting_rules.append(
-            "QUY TẮC CHỮ TIẾNG NHẬT TỰ NHIÊN (KHÔNG CHÈN DẤU CÁCH BỪA BÃI):\n"
-            "- Viết câu tiếng Nhật tự nhiên, KHÔNG chèn khoảng trắng bừa bãi giữa các từ tiếng Nhật hoặc trước/sau dấu câu (、, 。, ！, ？).\n"
-            "- Ví dụ: viết 「さあ、今日はどんな気分？」, TUYỆT ĐỐI KHÔNG viết 「さあ 、 今日 は どんな 気分 ？ 」."
+            "QUY TẮC CÂU THOẠI & LỜI CHÀO (ÁP DỤNG CHO MỌI TIN NHẮN, KỂ CẢ 'hello' HOẶC LỜI CHÀO):\n"
+            "- Tuyệt đối KHÔNG trả lời bằng văn bản thuần túy thiếu Furigana hay thiếu dòng dịch.\n"
+            "- Tuyệt đối KHÔNG viết hành động kịch bản dạng (*静かに一礼し...*) hay lời thoại trong 「...」 đơn độc.\n"
+            "- Viết câu tiếng Nhật tự nhiên, KHÔNG chèn khoảng trắng bừa bãi giữa các từ tiếng Nhật hoặc trước/sau dấu câu (、, 。, ！, ？)."
         )
 
         if current_user.get("response_show_furigana", 1):
@@ -281,42 +366,29 @@ async def stream_message_endpoint(
             )
         if current_user.get("response_show_translation", 1):
             formatting_rules.append(
-                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu thoại tiếng Nhật BẮT BUỘC PHẢI CÓ dòng dịch nghĩa sang {lang_label} đặt ngay bên dưới trên một dòng riêng biệt, định dạng: `(Bản dịch: <nội dung dịch>)`. Bắt buộc 100% bằng {lang_label}."
+                f"- DÒNG DỊCH NGHĨA DƯỚI CÂU: Mỗi câu thoại tiếng Nhật BẮT BUỘC PHẢI CÓ dòng dịch nghĩa sang {lang_label} đặt ngay bên dưới trên một dòng riêng biệt, định dạng: `({trans_prefix}: <nội dung dịch>)`. Bắt buộc 100% bằng {lang_label}."
             )
         if current_user.get("response_grammar_breakdown", 1):
             formatting_rules.append(
-                f"- PHÂN TÍCH TỪ VỰNG & NGỮ PHÁP (ĐÓNG KHUNG CẤU TRÚC RÕ RÀNG):\n"
-                f"Ở cuối câu trả lời, hãy tạo khối phân tích riêng biệt ngăn cách bởi một dòng kẻ `---` và tiêu đề `### 🔍 Phân tích Ngữ pháp & Từ vựng`.\n"
+                f"- KHỐI PHÂN TÍCH NGỮ PHÁP & TỪ VỰNG (ĐÓNG KHUNG CẤU TRÚC RÕ RÀNG):\n"
+                f"Ở cuối câu trả lời, hãy tạo khối phân tích riêng biệt ngăn cách bởi một dòng kẻ `---` và tiêu đề `{breakdown_title}`.\n"
                 f"Mỗi điểm ngữ pháp hoặc từ vựng trọng tâm BẮT BUỘC PHẢI ĐƯỢC ĐÁNH SỐ VÀ CÓ TIÊU ĐỀ RÕ RÀNG:\n"
                 f"1. **【Cấu trúc/Từ vựng】** *(Phân loại / Cấp độ)*\n"
-                f"- *Ý nghĩa:* Giải thích cụ thể bằng {lang_label}\n"
-                f"- *Sắc thái:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}\n\n"
+                f"- *{meaning_label}:* Giải thích cụ thể bằng {lang_label}\n"
+                f"- *{nuance_label}:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}\n\n"
                 f"2. **【Cấu trúc/Từ vựng tiếp theo】** *(Phân loại / Cấp độ)*\n"
-                f"- *Ý nghĩa:* Giải thích cụ thể bằng {lang_label}\n"
-                f"- *Sắc thái:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}"
+                f"- *{meaning_label}:* Giải thích cụ thể bằng {lang_label}\n"
+                f"- *{nuance_label}:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}"
             )
 
-        # Add explicit FEW-SHOT template matching Settings preview
-        formatting_rules.append(
-            f"\n--- MẪU TRÌNH BÀY CHUẨN CỦA SENSEI (BẮT BUỘC TUÂN THỦ CHÍNH XÁC THEO MẪU NÀY) ---\n"
-            f"{{はい}}[g-green]、[元気](げんき)ですよ！[一緒](いっしょ)に[日本語](にほんご)を[勉強](べんきょう)しましょうね！\n"
-            f"(Bản dịch: Vâng, tôi rất khỏe! Chúng ta cùng nhau học tiếng Nhật nhé!)\n\n"
-            f"[今日](きょう)は{{どんな}}[g-green][気分](きぶん)ですか？[何](なに)か{{面白い}}[g-green][出来事](できごと)はありましたか？\n"
-            f"(Bản dịch: Hôm nay tâm trạng bạn thế nào? Có chuyện gì vui không?)\n\n"
-            f"---\n"
-            f"### 🔍 Phân tích Ngữ pháp & Từ vựng\n"
-            f"1. **【〜ましょう】** *(Động từ thể rủ rê / Lịch sự)*\n"
-            f"- *Ý nghĩa:* Diễn tả lời mời hoặc đề xuất cùng làm việc gì đó một cách thân thiện.\n"
-            f"- *Sắc thái:* Tạo cảm giác gắn kết, ấm áp và khích lệ người học tham gia.\n\n"
-            f"2. **【〜ですか】** *(Trợ từ nghi vấn)*\n"
-            f"- *Ý nghĩa:* Dùng ở cuối câu để tạo câu hỏi lịch thiệp.\n"
-            f"- *Sắc thái:* Bày tỏ sự quan tâm chân thành đến người đối thoại."
-        )
+        formatting_rules.append(few_shot)
 
         if formatting_rules:
             formatting_prompt = "\n".join(formatting_rules)
             if sensei_instruction:
-                sensei_instruction += f"\n\nQUY CHUẨN ĐỊNH DẠNG CÂU TRẢ LỜI CỦA SENSEI (RESPONSES SPEC):\n{formatting_prompt}"
+                # Add language override to persona instructions
+                lang_override = f"[CRITICAL: Response must be formatted in {lang_label}. Do NOT use any other language for translations/breakdown.]\n"
+                sensei_instruction = f"{lang_override}{sensei_instruction}\n\nQUY CHUẨN ĐỊNH DẠNG CÂU TRẢ LỜI CỦA SENSEI (RESPONSES SPEC):\n{formatting_prompt}"
             else:
                 sensei_instruction = f"QUY CHUẨN ĐỊNH DẠNG CÂU TRẢ LỜI CỦA SENSEI (RESPONSES SPEC):\n{formatting_prompt}"
 

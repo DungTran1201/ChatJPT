@@ -8,8 +8,10 @@ import PageHeader from '@/components/ui/PageHeader';
 import Icon from '@/components/ui/Icon';
 import Toast, { ToastMessage } from '@/components/ui/Toast';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useApp } from '@/context/AppContext';
 
 export default function VoiceManagementPage() {
+  const { t } = useApp();
   const [voices, setVoices] = useState<VoiceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [engineStatus, setEngineStatus] = useState<VoiceEngineStatus | null>(null);
@@ -72,7 +74,7 @@ export default function VoiceManagementPage() {
       setVoices(voicesRes.items || []);
       setEngineStatus(statusRes);
     } catch (err: any) {
-      addToast('error', err?.message || 'Không thể tải dữ liệu giọng đọc.');
+      addToast('error', err?.message || 'Failed to load voices data.');
     } finally {
       setLoading(false);
     }
@@ -90,15 +92,15 @@ export default function VoiceManagementPage() {
       setEngineStatus(statusRes);
       if (statusRes.engine_available) {
         if (statusRes.engine_mode === 'embedded_core') {
-          addToast('success', `VoiceVox Core nhúng sẵn đang hoạt động (${statusRes.loaded_models_count || 16} models VVM)!`);
+          addToast('success', `VoiceVox Core ready (${statusRes.loaded_models_count || 16} models VVM)!`);
         } else {
-          addToast('success', `VoiceVox Engine đã kết nối (v${statusRes.version || '0.14'})!`);
+          addToast('success', `VoiceVox Engine connected (v${statusRes.version || '0.14'})!`);
         }
       } else {
-        addToast('info', 'VoiceVox Engine hiện đang ngoại tuyến. Hệ thống sẽ sử dụng âm học Fallback.');
+        addToast('info', 'VoiceVox Engine offline. Using acoustic fallback mode.');
       }
     } catch (err: any) {
-      addToast('error', 'Lỗi kiểm tra engine: ' + err?.message);
+      addToast('error', 'Engine check error: ' + err?.message);
     } finally {
       setCheckingEngine(false);
     }
@@ -136,9 +138,9 @@ export default function VoiceManagementPage() {
         const u = new SpeechSynthesisUtterance(voice.sample_text || 'こんにちは！');
         u.lang = 'ja-JP';
         window.speechSynthesis.speak(u);
-        addToast('info', 'Đang phát âm thanh qua Web Speech (Fallback)');
+        addToast('info', 'Playing audio via Web Speech fallback');
       } else {
-        addToast('error', 'Không thể phát âm thanh: ' + (err?.message || 'Lỗi'));
+        addToast('error', 'Failed to play audio: ' + (err?.message || 'Error'));
       }
     }
   };
@@ -168,7 +170,7 @@ export default function VoiceManagementPage() {
       });
       await VoiceService.playAudioBlob(blob);
     } catch (err: any) {
-      addToast('error', 'Lỗi nghe thử: ' + err?.message);
+      addToast('error', 'Audio test error: ' + err?.message);
     } finally {
       setPreviewingTuning(false);
     }
@@ -187,10 +189,10 @@ export default function VoiceManagementPage() {
         sample_text: tuneSampleText.trim(),
       });
       setVoices((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
-      addToast('success', `Đã lưu thông số âm học cho '${updated.name}'!`);
+      addToast('success', `Saved acoustic parameters for '${updated.name}'`);
       setTuningVoice(null);
     } catch (err: any) {
-      addToast('error', 'Không thể lưu thông số: ' + err?.message);
+      addToast('error', 'Failed to save parameters: ' + err?.message);
     } finally {
       setSavingTuning(false);
     }
@@ -199,14 +201,14 @@ export default function VoiceManagementPage() {
   // 4. Create Custom Voice
   const handleCreateVoice = async () => {
     if (!createForm.name.trim() || !createForm.character_name.trim()) {
-      addToast('info', 'Vui lòng điền đầy đủ Tên Voice và Tên Nhân Vật.');
+      addToast('info', 'Please provide both Voice Name and Character Name.');
       return;
     }
     setCreating(true);
     try {
       const newVoice = await VoiceService.createVoice(createForm);
       setVoices((prev) => [newVoice, ...prev]);
-      addToast('success', `Đã tạo giọng đọc '${newVoice.name}' thành công!`);
+      addToast('success', `Created voice '${newVoice.name}' successfully!`);
       setShowCreateModal(false);
       setCreateForm({
         name: '',
@@ -222,7 +224,7 @@ export default function VoiceManagementPage() {
         sample_text: 'こんにちは！日本語の勉強を一緒に頑張りましょう。',
       });
     } catch (err: any) {
-      addToast('error', 'Lỗi tạo giọng: ' + err?.message);
+      addToast('error', 'Voice creation error: ' + err?.message);
     } finally {
       setCreating(false);
     }
@@ -234,9 +236,9 @@ export default function VoiceManagementPage() {
     try {
       await VoiceService.deleteVoice(voiceToDelete.id);
       setVoices((prev) => prev.filter((v) => v.id !== voiceToDelete.id));
-      addToast('success', `Đã xóa giọng đọc '${voiceToDelete.name}'.`);
+      addToast('success', `Deleted voice '${voiceToDelete.name}'.`);
     } catch (err: any) {
-      addToast('error', 'Không thể xóa: ' + err?.message);
+      addToast('error', 'Failed to delete voice: ' + err?.message);
     } finally {
       setVoiceToDelete(null);
     }
@@ -279,8 +281,8 @@ export default function VoiceManagementPage() {
     <div style={{ padding: '24px 32px', maxWidth: '1440px', margin: '0 auto', minHeight: '100%' }}>
       {/* Page Header */}
       <PageHeader
-        title="Quản Lý Giọng Nói Nhân Vật (VoiceVox Voices)"
-        description="Quản lý danh mục giọng đọc tiếng Nhật VoiceVox, tinh chỉnh tham số âm học, nghe thử tức thì và gán giọng cho từng Sensei."
+        title={t('voices.title')}
+        description={t('voices.sub')}
         actions={
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
@@ -302,7 +304,7 @@ export default function VoiceManagementPage() {
               }}
             >
               <Icon name="refresh" size={14} />
-              {checkingEngine ? 'Đang Kiểm Tra...' : 'Kiểm Tra Engine'}
+              {checkingEngine ? t('voices.checking_engine') : t('voices.check_engine')}
             </button>
             <button
               type="button"
@@ -322,7 +324,7 @@ export default function VoiceManagementPage() {
               }}
             >
               <Icon name="plus" size={14} />
-              Thêm Giọng Mới
+              {t('voices.add_voice')}
             </button>
           </div>
         }
@@ -357,16 +359,16 @@ export default function VoiceManagementPage() {
             <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>
               {engineStatus?.engine_available
                 ? engineStatus.engine_mode === 'embedded_core'
-                  ? `VoiceVox Engine Đang Hoạt Động (Nhúng Sẵn / voicevox_core v${engineStatus.version || '0.17.1'})`
-                  : `VoiceVox Engine Online (v${engineStatus.version || '0.14'})`
-                : 'VoiceVox Engine Ngoại Tuyến (Chế Độ Fallback Âm Học Sẵn Sàng)'}
+                  ? t('voices.engine_active_embedded') + ` (v${engineStatus.version || '0.17.1'})`
+                  : t('voices.engine_active_server') + ` (v${engineStatus.version || '0.14'})`
+                : t('voices.engine_offline')}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
               {engineStatus?.engine_available
                 ? engineStatus.engine_mode === 'embedded_core'
-                  ? `Động cơ nơ-ron nhúng cục bộ qua ONNX Runtime | Đã nạp ${engineStatus.loaded_models_count || 16} mô hình VVM (${engineStatus.supported_speakers_count || 30} nhân vật) | Đã đệm ${engineStatus.cached_audio_count} âm thanh trong RAM.`
-                  : `Kết nối tới ${engineStatus.engine_url} | Độ trễ: ${engineStatus.latency_ms || 15}ms | Đã đệm ${engineStatus.cached_audio_count} âm thanh trong RAM.`
-                : 'Cổng 50021 chưa khởi chạy daemon VoiceVox. Hệ thống tự động sử dụng bộ phát âm học nội tại & Web Speech.'}
+                  ? t('voices.engine_embedded_desc').replace('{models}', String(engineStatus.loaded_models_count || 16)).replace('{speakers}', String(engineStatus.supported_speakers_count || 30)).replace('{cache}', String(engineStatus.cached_audio_count || 0))
+                  : `${engineStatus.engine_url} | ${engineStatus.latency_ms || 15}ms | ${engineStatus.cached_audio_count} audio cache`
+                : t('voices.engine_offline_desc')}
             </div>
           </div>
         </div>
@@ -388,7 +390,7 @@ export default function VoiceManagementPage() {
             }}
           >
             <Icon name="prompts" size={12} />
-            Đến Trang Sensei
+            {t('voices.to_sensei')}
           </Link>
         </div>
       </div>
@@ -424,7 +426,7 @@ export default function VoiceManagementPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo tên nhân vật (e.g. つむぎ, めたん, ずんだもん)..."
+            placeholder={t('voices.search_placeholder')}
             style={{
               width: '100%',
               padding: '8px 12px 8px 36px',
@@ -441,13 +443,13 @@ export default function VoiceManagementPage() {
         {/* Gender Filter Chips */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginRight: '4px' }}>
-            Giới tính:
+            {t('prompts.age_gender')}:
           </span>
           {[
-            { id: 'all', label: 'Tất Cả' },
-            { id: 'female', label: 'Nữ' },
-            { id: 'male', label: 'Nam' },
-            { id: 'other', label: 'Khác' },
+            { id: 'all', label: t('voices.gender_all') },
+            { id: 'female', label: t('voices.gender_female') },
+            { id: 'male', label: t('voices.gender_male') },
+            { id: 'other', label: t('voices.gender_other') },
           ].map((item) => (
             <button
               key={item.id}
@@ -474,7 +476,7 @@ export default function VoiceManagementPage() {
 
         {/* Style Filter Dropdown */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Phong cách:</span>
+          <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{t('prompts.teaching_style')}:</span>
           <select
             value={styleFilter}
             onChange={(e) => setStyleFilter(e.target.value)}
@@ -488,7 +490,7 @@ export default function VoiceManagementPage() {
               outline: 'none',
             }}
           >
-            <option value="all">Tất Cả Phong Cách</option>
+            <option value="all">{t('voices.style_all')}</option>
             {availableStyles.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -501,7 +503,7 @@ export default function VoiceManagementPage() {
       {/* Voice Cards Grid */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-          Đang tải danh mục VoiceVox...
+          {t('common.loading')}
         </div>
       ) : filteredVoices.length === 0 ? (
         <div
@@ -516,10 +518,10 @@ export default function VoiceManagementPage() {
         >
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎙️</div>
           <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Không tìm thấy giọng đọc phù hợp
+            {t('voices.empty_title') || 'No matching voices found'}
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc giới tính/phong cách.
+            {t('voices.empty_desc') || 'Try adjusting your search query or gender/style filter.'}
           </div>
         </div>
       ) : (
@@ -611,7 +613,7 @@ export default function VoiceManagementPage() {
                           fontWeight: 600,
                         }}
                       >
-                        {voice.gender === 'female' ? 'Nữ' : 'Nam'}
+                        {voice.gender === 'female' ? t('voices.gender_female') : t('voices.gender_male')}
                       </span>
                     </div>
 
@@ -675,25 +677,25 @@ export default function VoiceManagementPage() {
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Tốc độ</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('voices.speed')}</div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {voice.speed_scale}x
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Cao độ</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('voices.pitch')}</div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {voice.pitch_scale > 0 ? `+${voice.pitch_scale}` : voice.pitch_scale}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Ngữ điệu</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('voices.intonation')}</div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {voice.intonation_scale}x
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Âm lượng</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('voices.volume')}</div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {voice.volume_scale}x
                     </div>
@@ -744,10 +746,10 @@ export default function VoiceManagementPage() {
                   >
                     <Icon name={isPlaying ? 'stop' : 'voice'} size={14} />
                     {isSynthesizing
-                      ? 'Đang tổng hợp...'
+                      ? t('voices.synthesizing')
                       : isPlaying
-                      ? 'Dừng phát'
-                      : 'Nghe thử mẫu'}
+                      ? 'Stop'
+                      : t('voices.play_sample')}
                   </button>
 
                   <button
@@ -768,7 +770,7 @@ export default function VoiceManagementPage() {
                     }}
                   >
                     <Icon name="edit" size={13} />
-                    Tùy chỉnh
+                    {t('voices.customize')}
                   </button>
 
                   {!voice.is_system_preset && (
@@ -831,7 +833,7 @@ export default function VoiceManagementPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Tùy Chỉnh Âm Học (Acoustic Tuning)
+                  {t('voices.tune_modal_title')}
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                   {tuningVoice.character_name} - {tuningVoice.name}
@@ -858,7 +860,7 @@ export default function VoiceManagementPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                   <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                    Tốc độ phát âm (Speed Scale)
+                    {t('voices.speed')} (Speed Scale)
                   </span>
                   <span style={{ color: 'var(--accent-color, #10b981)', fontWeight: 600 }}>
                     {tuneSpeed.toFixed(2)}x
@@ -874,9 +876,9 @@ export default function VoiceManagementPage() {
                   style={{ width: '100%', accentColor: 'var(--accent-color, #10b981)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <span>0.5x (Chậm)</span>
-                  <span>1.0x (Chuẩn)</span>
-                  <span>2.0x (Nhanh)</span>
+                  <span>0.5x (Slow)</span>
+                  <span>1.0x (Normal)</span>
+                  <span>2.0x (Fast)</span>
                 </div>
               </div>
 
@@ -884,7 +886,7 @@ export default function VoiceManagementPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                   <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                    Cao độ giọng (Pitch Scale)
+                    {t('voices.pitch')} (Pitch Scale)
                   </span>
                   <span style={{ color: 'var(--accent-color, #10b981)', fontWeight: 600 }}>
                     {tunePitch > 0 ? `+${tunePitch.toFixed(2)}` : tunePitch.toFixed(2)}
@@ -900,9 +902,9 @@ export default function VoiceManagementPage() {
                   style={{ width: '100%', accentColor: 'var(--accent-color, #10b981)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <span>-0.15 (Trầm)</span>
-                  <span>0.00 (Chuẩn)</span>
-                  <span>+0.15 (Bổng)</span>
+                  <span>-0.15 (Low)</span>
+                  <span>0.00 (Normal)</span>
+                  <span>+0.15 (High)</span>
                 </div>
               </div>
 
@@ -910,7 +912,7 @@ export default function VoiceManagementPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                   <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                    Luyến láy / Ngữ điệu (Intonation Scale)
+                    {t('voices.intonation')} (Intonation Scale)
                   </span>
                   <span style={{ color: 'var(--accent-color, #10b981)', fontWeight: 600 }}>
                     {tuneIntonation.toFixed(2)}x
@@ -926,9 +928,9 @@ export default function VoiceManagementPage() {
                   style={{ width: '100%', accentColor: 'var(--accent-color, #10b981)' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <span>0.0x (Phẳng)</span>
-                  <span>1.0x (Tự nhiên)</span>
-                  <span>2.0x (Sinh động)</span>
+                  <span>0.0x (Flat)</span>
+                  <span>1.0x (Natural)</span>
+                  <span>2.0x (Expressive)</span>
                 </div>
               </div>
 
@@ -936,7 +938,7 @@ export default function VoiceManagementPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
                   <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                    Âm lượng (Volume Scale)
+                    {t('voices.volume')} (Volume Scale)
                   </span>
                   <span style={{ color: 'var(--accent-color, #10b981)', fontWeight: 600 }}>
                     {tuneVolume.toFixed(2)}x
@@ -956,7 +958,7 @@ export default function VoiceManagementPage() {
               {/* Sample Text */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500, marginBottom: '6px' }}>
-                  Câu thoại thử nghiệm (Japanese Sample Text)
+                  {t('voices.tune_sample_label')} (Japanese Sample Text)
                 </label>
                 <textarea
                   value={tuneSampleText}
@@ -998,7 +1000,7 @@ export default function VoiceManagementPage() {
                 }}
               >
                 <Icon name="voice" size={14} />
-                {previewingTuning ? 'Đang phát...' : 'Nghe thử ngay'}
+                {previewingTuning ? t('voices.playing') : t('voices.play_sample')}
               </button>
 
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -1015,7 +1017,7 @@ export default function VoiceManagementPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  Đóng
+                  {t('common.close')}
                 </button>
                 <button
                   type="button"
@@ -1032,7 +1034,7 @@ export default function VoiceManagementPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  {savingTuning ? 'Đang lưu...' : 'Lưu Thiết Lập'}
+                  {savingTuning ? t('voices.saving_params') : t('voices.save_params')}
                 </button>
               </div>
             </div>
@@ -1073,7 +1075,7 @@ export default function VoiceManagementPage() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Thêm Hồ Sơ Giọng Mới
+                {t('voices.create_modal_title')}
               </div>
               <button
                 type="button"
@@ -1086,13 +1088,13 @@ export default function VoiceManagementPage() {
 
             <div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Tên hiển thị hồ sơ *
+                Display Name *
               </label>
               <input
                 type="text"
                 value={createForm.name}
                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                placeholder="e.g. Tsumugi (Tươi Vui / Tự Nhiên)"
+                placeholder="e.g. Tsumugi (Joyful / Natural)"
                 style={{
                   width: '100%',
                   padding: '8px 12px',
@@ -1108,7 +1110,7 @@ export default function VoiceManagementPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                  Tên nhân vật gốc *
+                  Character Name *
                 </label>
                 <input
                   type="text"
@@ -1151,7 +1153,7 @@ export default function VoiceManagementPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                  Giới tính
+                  Gender
                 </label>
                 <select
                   value={createForm.gender}
@@ -1166,15 +1168,15 @@ export default function VoiceManagementPage() {
                     fontSize: '13px',
                   }}
                 >
-                  <option value="female">Nữ (Female)</option>
-                  <option value="male">Nam (Male)</option>
-                  <option value="other">Khác (Other)</option>
+                  <option value="female">{t('voices.gender_female')} (Female)</option>
+                  <option value="male">{t('voices.gender_male')} (Male)</option>
+                  <option value="other">{t('voices.gender_other')} (Other)</option>
                 </select>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                  Phong cách
+                  Style
                 </label>
                 <input
                   type="text"
@@ -1196,13 +1198,13 @@ export default function VoiceManagementPage() {
 
             <div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Mô tả tính cách giọng đọc
+                Voice Description
               </label>
               <textarea
                 value={createForm.description}
                 onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
                 rows={2}
-                placeholder="Đặc tính âm sắc, đối tượng phù hợp..."
+                placeholder="Tone characteristics, target audience..."
                 style={{
                   width: '100%',
                   padding: '8px 12px',
@@ -1229,7 +1231,7 @@ export default function VoiceManagementPage() {
                   cursor: 'pointer',
                 }}
               >
-                Hủy
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -1246,7 +1248,7 @@ export default function VoiceManagementPage() {
                   cursor: 'pointer',
                 }}
               >
-                {creating ? 'Đang tạo...' : 'Tạo Giọng Đọc'}
+                {creating ? t('common.saving') : t('voices.add_voice')}
               </button>
             </div>
           </div>
@@ -1256,10 +1258,10 @@ export default function VoiceManagementPage() {
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={!!voiceToDelete}
-        title="Xóa Hồ Sơ Giọng Đọc"
-        message={`Bạn có chắc chắn muốn xóa giọng đọc '${voiceToDelete?.name}'? Thao tác này không thể hoàn tác.`}
-        confirmLabel="Xóa Hồ Sơ"
-        cancelLabel="Hủy"
+        title={t('common.delete')}
+        message={`Delete voice '${voiceToDelete?.name}'? This action cannot be undone.`}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         isDestructive={true}
         onConfirm={handleDeleteVoice}
         onCancel={() => setVoiceToDelete(null)}

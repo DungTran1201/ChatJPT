@@ -79,14 +79,14 @@ export default function HomePage() {
             className="btn btn-secondary"
             style={{ fontSize: '0.85rem', padding: '6px 14px' }}
           >
-            Đăng Nhập
+            Sign In
           </Link>
           <Link
             href="/register"
             className="btn btn-primary"
             style={{ fontSize: '0.85rem', padding: '6px 16px' }}
           >
-            Bắt Đầu Học Ngay
+            Get Started
           </Link>
         </nav>
       </header>
@@ -120,7 +120,7 @@ export default function HomePage() {
               marginBottom: '1.5rem',
             }}
           >
-            <span>🌸 Nền Tảng Học Tiếng Nhật Thông Minh Cùng AI Sensei 3D</span>
+            <span>🌸 Intelligent Japanese Learning Platform with 3D AI Sensei</span>
           </div>
 
           <h1
@@ -133,7 +133,7 @@ export default function HomePage() {
               color: 'var(--text-primary)',
             }}
           >
-            Làm Chủ Tiếng Nhật Cùng <span style={{ background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ChatJPT</span>
+            Master Japanese with <span style={{ background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ChatJPT</span>
           </h1>
 
           <p
@@ -146,7 +146,7 @@ export default function HomePage() {
               margin: '0 auto 2.25rem',
             }}
           >
-            Hệ sinh thái học tiếng Nhật toàn diện tích hợp Trợ lý ảo AI 3D (Virtual Sensei), Luyện Kaiwa phản xạ thực chiến, Chấm chữa ngữ pháp (Grammar Doctor) và Tra cứu Hán tự chuyên sâu từ N5 đến N1.
+            Comprehensive Japanese learning ecosystem featuring 3D Virtual Sensei, real-life conversational Kaiwa drills, pedagogical Grammar Doctor, and deep Kanji study from N5 to N1.
           </p>
 
           <div style={{ display: 'flex', gap: '0.85rem', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -155,7 +155,7 @@ export default function HomePage() {
               className="btn btn-primary"
               style={{ padding: '12px 28px', fontSize: '1rem', fontWeight: 600 }}
             >
-              <span>Vào Không Gian Học Tập</span>
+              <span>Enter Learning Workspace</span>
             </Link>
 
             <Link
@@ -163,7 +163,7 @@ export default function HomePage() {
               className="btn btn-secondary"
               style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: 600 }}
             >
-              <span>Kho Quy Tắc &amp; Prompts</span>
+              <span>Rules &amp; Prompts Library</span>
             </Link>
           </div>
         </div>
@@ -185,32 +185,32 @@ export default function HomePage() {
             {
               icon: 'chat' as const,
               title: '3D VRM Virtual Sensei',
-              desc: 'Gia sư ảo 3D biểu cảm tự nhiên, chớp mắt, nhịp thở và cử chỉ động viên sinh động theo từng câu trả lời.',
+              desc: 'Interactive 3D tutor with natural facial expressions, blinking, breathing cycles, and encouraging gestures.',
             },
             {
               icon: 'chat' as const,
-              title: 'Luyện Kaiwa Phản Xạ',
-              desc: 'Thực hành hội thoại theo tình huống thực tế (baito, mua sắm, phỏng vấn, công sở Keigo) phân loại JLPT N5 - N1.',
+              title: 'Reflexive Kaiwa Practice',
+              desc: 'Practice real-life conversational dialogue (part-time work, shopping, interviews, Keigo business contexts) across JLPT N5 - N1.',
             },
             {
               icon: 'rules' as const,
               title: 'Grammar Doctor',
-              desc: 'Tự động phát hiện lỗi sai trợ từ (は/が, に/で), thể động từ (Te, Ta, Nai, Bị động) và hướng dẫn sửa chi tiết.',
+              desc: 'Automated detection of particle mistakes (wa/ga, ni/de), verb conjugations, and thorough pedagogical feedback.',
             },
             {
               icon: 'prompts' as const,
               title: 'Kanji & Furigana Breakdown',
-              desc: 'Hiển thị Furigana, Romaji, Onyomi, Kunyomi và số nét Hán tự trực quan ngay trong khung đàm thoại.',
+              desc: 'Dynamic Furigana ruby, Hepburn romaji, stroke order, and detailed readings displayed right inside the chat.',
             },
             {
               icon: 'rules' as const,
-              title: 'Rules & Prompts Sư Phạm',
-              desc: 'Tùy biến linh hoạt bộ quy tắc giảng dạy và prompts mẫu với 4 chế độ kích hoạt thông minh (Always-on, Model decision, Glob, Manual).',
+              title: 'Pedagogical Rules & Prompts',
+              desc: 'Customizable pedagogical rule sets and companion system prompts with 4 smart trigger modes (Always-on, Model decision, Glob, Manual).',
             },
             {
               icon: 'settings' as const,
-              title: 'Bảo Vệ Khóa Cá Nhân (BYOK)',
-              desc: 'Mã hóa AES-256 an toàn khóa API riêng (Gemini, OpenAI, Claude, DeepSeek, Groq) cùng cơ chế tự động Failover.',
+              title: 'Bring Your Own Key (BYOK)',
+              desc: 'AES-256 secure encryption for personal API keys (Gemini, OpenAI, Claude, Groq) with seamless auto-failover.',
             },
           ].map((item, idx) => (
             <div
@@ -245,7 +245,7 @@ export default function HomePage() {
           background: 'var(--bg-surface)',
         }}
       >
-        © 2026 ChatJPT — Hệ Sinh Thái Học Tiếng Nhật Thông Minh Tích Hợp AI Trợ Lý Ảo 3D.
+        © 2026 ChatJPT — Intelligent Japanese Learning Platform with 3D AI Assistant.
       </footer>
     </div>
   );

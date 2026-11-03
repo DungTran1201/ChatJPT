@@ -139,7 +139,7 @@ export default function MessageComposer({
     japanese_level: 'N5',
     age: 24,
     gender: 'female',
-    personality: 'Dịu dàng, kiên nhẫn',
+    personality: 'Gentle, patient',
     avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=sakura',
   };
 
@@ -157,15 +157,15 @@ export default function MessageComposer({
       const lowerName = f.name.toLowerCase();
       const isBlocked = BLOCKED_EXTS.some(ext => lowerName.endsWith(ext));
       if (isBlocked) {
-        alert(`Tệp '${f.name}' bị chặn vì lý do bảo mật an toàn.`);
+        alert(`File '${f.name}' was blocked for safety reasons.`);
         continue;
       }
       if (f.size > MAX_SIZE_BYTES) {
-        alert(`Tệp '${f.name}' vượt quá dung lượng tối đa cho phép (20 MB).`);
+        alert(`File '${f.name}' exceeds the maximum allowed size (20 MB).`);
         continue;
       }
       if (f.size === 0) {
-        alert(`Tệp '${f.name}' rỗng (0 bytes).`);
+        alert(`File '${f.name}' is empty (0 bytes).`);
         continue;
       }
 
@@ -212,7 +212,7 @@ export default function MessageComposer({
               ? {
                   ...item,
                   status: 'FAILED',
-                  error: err.message || 'Lỗi tải tệp',
+                  error: err.message || 'File upload failed',
                 }
               : item
           )
@@ -236,7 +236,7 @@ export default function MessageComposer({
   const handleSendMessageWithAttachments = () => {
     const isUploadingAny = stagedFiles.some(f => f.status === 'UPLOADING');
     if (isUploadingAny) {
-      alert('Vui lòng đợi tệp hoàn tất tải lên.');
+      alert('Please wait for files to finish uploading.');
       return;
     }
     const readyIds = stagedFiles.filter(f => f.status === 'READY' && f.id).map(f => f.id!);
@@ -350,7 +350,7 @@ export default function MessageComposer({
               <button
                 type="button"
                 onClick={() => setShowDualSelector(v => !v)}
-                title="Chọn Sensei đồng hành và Mô hình AI (Dual Independent Scroll)"
+                title={t('composer.selector_title')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -462,7 +462,7 @@ export default function MessageComposer({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '1rem' }}>🎓</span>
                       <span style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        Chọn Sensei Hướng Dẫn & Mô Hình AI
+                        {t('composer.selector_title')}
                       </span>
                     </div>
                     <button
@@ -502,14 +502,14 @@ export default function MessageComposer({
                       {/* Column Header */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-disabled)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                          Sensei Đồng Hành ({filteredSenseis.length})
+                          {t('composer.sensei_col_title')} ({filteredSenseis.length})
                         </span>
                         <Link
                           href="/prompts"
                           style={{ fontSize: '0.7rem', color: 'var(--accent)', textDecoration: 'none' }}
                           onClick={() => setShowDualSelector(false)}
                         >
-                          Quản lý Sensei →
+                          {t('composer.manage_sensei')}
                         </Link>
                       </div>
 
@@ -531,7 +531,7 @@ export default function MessageComposer({
                           type="text"
                           value={senseiSearch}
                           onChange={(e) => setSenseiSearch(e.target.value)}
-                          placeholder="Tìm Sensei theo tên, tính cách..."
+                          placeholder={t('composer.search_sensei_placeholder')}
                           style={{
                             width: '100%',
                             padding: '5px 24px 5px 26px',
@@ -584,7 +584,7 @@ export default function MessageComposer({
                                 transition: 'all var(--transition-fast)',
                               }}
                             >
-                              {lvl === 'ALL' ? 'Tất cả' : lvl}
+                              {lvl === 'ALL' ? t('composer.all_levels') : lvl}
                             </button>
                           );
                         })}
@@ -607,11 +607,11 @@ export default function MessageComposer({
                       >
                         {loadingSenseis ? (
                           <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-disabled)' }}>
-                            Đang tải danh sách Sensei...
+                            {t('composer.loading_sensei')}
                           </div>
                         ) : filteredSenseis.length === 0 ? (
                           <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-disabled)' }}>
-                            Không tìm thấy Sensei phù hợp
+                            {t('composer.no_sensei_found')}
                           </div>
                         ) : (
                           filteredSenseis.map((s) => {
@@ -695,7 +695,7 @@ export default function MessageComposer({
                       {/* Column Header */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-disabled)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                          Mô Hình AI ({activeModels.length})
+                          {t('composer.model_col_title')} ({activeModels.length})
                         </span>
                         <span style={{ fontSize: '0.68rem', color: 'var(--accent)', fontWeight: 600 }}>
                           Auto Failover
@@ -772,7 +772,7 @@ export default function MessageComposer({
                               }}
                             >
                               <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Gemini 2.5 Flash</div>
-                              <div style={{ fontSize: '0.68rem', color: 'var(--text-disabled)' }}>Google Gemini • Khuyến nghị</div>
+                              <div style={{ fontSize: '0.68rem', color: 'var(--text-disabled)' }}>Google Gemini • {t('composer.recommended')}</div>
                             </div>
                             <div
                               onClick={() => onSelectModel?.('gpt-4o-mini')}
@@ -785,7 +785,7 @@ export default function MessageComposer({
                               }}
                             >
                               <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>GPT-4o mini</div>
-                              <div style={{ fontSize: '0.68rem', color: 'var(--text-disabled)' }}>OpenAI • Dự phòng</div>
+                              <div style={{ fontSize: '0.68rem', color: 'var(--text-disabled)' }}>OpenAI • {t('composer.fallback')}</div>
                             </div>
                           </>
                         )}
@@ -806,7 +806,7 @@ export default function MessageComposer({
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}>
-                      <span>Đang chọn:</span>
+                      <span>{t('composer.currently_selected')}</span>
                       <strong style={{ color: 'var(--text-primary)' }}>{activeSensei.name}</strong>
                       <span style={{ color: 'var(--text-disabled)' }}>•</span>
                       <strong style={{ color: 'var(--accent)' }}>{currentModel.name}</strong>
@@ -825,7 +825,7 @@ export default function MessageComposer({
                         cursor: 'pointer',
                       }}
                     >
-                      Áp Dụng
+                      {t('composer.apply')}
                     </button>
                   </div>
                 </div>

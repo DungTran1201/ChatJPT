@@ -17,8 +17,9 @@ logger = logging.getLogger("exams_api")
 
 exams_router = APIRouter(prefix="/exams", tags=["Exam Management & Reference Materials"])
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-DATA_DIR = BASE_DIR / "ai-backend" / "data"
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent.parent
+PROJECT_ROOT = BACKEND_DIR.parent
+DATA_DIR = BACKEND_DIR / "data"
 MATERIALS_DIR = DATA_DIR / "reference_materials"
 
 VALID_LEVELS = {"N5", "N4", "N3", "N2", "N1", "KAIWA", "GENERAL"}
@@ -203,8 +204,8 @@ def resolve_material_file(mat_id: str) -> Optional[Path]:
                     safe_name = item.get("safe_name", "")
                     stem = Path(safe_name).stem
                     candidate_id = f"loc_{lvl.lower()}_{re.sub(r'[^a-zA-Z0-9]', '_', stem)[:28].strip('_').lower()}"
-                    if candidate_id == mat_id or mat_id.replace("mat_", "") in candidate_id:
-                        p = BASE_DIR / item.get("local_path", "")
+                    if candidate_id == mat_id or mat_id.replace("mat_", "") in candidate_id or candidate_id in mat_id:
+                        p = PROJECT_ROOT / item.get("local_path", "")
                         if p.exists() and p.is_file():
                             return p
         except Exception as e:

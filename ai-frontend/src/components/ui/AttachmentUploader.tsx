@@ -122,7 +122,7 @@ export function ComposerAttachmentChips({ files, onRemove, onRetry }: ComposerAt
                 {f.name}
               </span>
               <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                {f.status === 'UPLOADING' ? `Đang tải: ${f.progress || 0}%` : formatBytes(f.size)}
+                {f.status === 'UPLOADING' ? `Uploading: ${f.progress || 0}%` : formatBytes(f.size)}
               </span>
             </div>
 
@@ -144,8 +144,8 @@ export function ComposerAttachmentChips({ files, onRemove, onRetry }: ComposerAt
               <button
                 type="button"
                 onClick={() => onRetry(idx)}
-                title={f.error || 'Thử lại'}
-                aria-label={`Thử lại tải tệp ${f.name}`}
+                title={f.error || 'Retry'}
+                aria-label={`Retry uploading ${f.name}`}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -163,7 +163,7 @@ export function ComposerAttachmentChips({ files, onRemove, onRetry }: ComposerAt
             <button
               type="button"
               onClick={() => onRemove(idx)}
-              aria-label={`Xóa tệp ${f.name}`}
+              aria-label={`Remove file ${f.name}`}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -224,8 +224,8 @@ export function AttachmentButton({ onFilesSelected, disabled = false, maxFiles =
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={disabled}
-        aria-label="Đính kèm tệp từ máy tính"
-        title="Đính kèm tệp (Ảnh, PDF, Tài liệu, Code)"
+        aria-label="Attach file from computer"
+        title="Attach file (Images, PDF, Documents, Code)"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -277,7 +277,7 @@ export function MessageAttachments({ attachments }: MessageAttachmentsProps) {
         gap: '8px',
         marginTop: '8px',
       }}
-      aria-label="Tệp đính kèm tin nhắn"
+      aria-label="Message attachments"
     >
       {attachments.map(att => {
         const isImage = att.mime_type.startsWith('image/');
@@ -337,7 +337,7 @@ export function MessageAttachments({ attachments }: MessageAttachmentsProps) {
                 <a
                   href={downloadUrl}
                   download={att.filename}
-                  title="Tải ảnh về máy"
+                  title="Download image"
                   style={{
                     color: 'var(--accent)',
                     flexShrink: 0,
@@ -396,8 +396,8 @@ export function MessageAttachments({ attachments }: MessageAttachmentsProps) {
                 href={viewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Xem tệp trực tiếp"
-                aria-label={`Xem tệp ${att.filename}`}
+                title="Preview file"
+                aria-label={`Preview file ${att.filename}`}
                 style={{
                   color: 'var(--text-secondary)',
                   padding: '3px',
@@ -412,8 +412,8 @@ export function MessageAttachments({ attachments }: MessageAttachmentsProps) {
               <a
                 href={downloadUrl}
                 download={att.filename}
-                title="Tải tệp xuống"
-                aria-label={`Tải xuống tệp ${att.filename}`}
+                title="Download file"
+                aria-label={`Download file ${att.filename}`}
                 style={{
                   color: 'var(--accent)',
                   padding: '3px',
@@ -465,7 +465,7 @@ export function LibraryAssetManager({
       setAttachments(items);
       onAttachmentChanged?.();
     } catch (err: any) {
-      console.error('Không thể nạp danh sách tài nguyên:', err);
+      console.error('Failed to load asset list:', err);
     }
   };
 
@@ -481,19 +481,19 @@ export function LibraryAssetManager({
       await AttachmentService.uploadAttachment(file, contextType, contextId);
       await reloadAttachments();
     } catch (err: any) {
-      setUploadError(err.message || 'Lỗi khi tải tài nguyên lên.');
+      setUploadError(err.message || 'Failed to upload asset.');
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleDelete = async (attId: string, attName: string) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa tài nguyên '${attName}' khỏi thư viện?`)) return;
+    if (!window.confirm(`Are you sure you want to delete asset '${attName}' from the library?`)) return;
     try {
       await AttachmentService.deleteAttachment(attId);
       await reloadAttachments();
     } catch (err: any) {
-      alert(err.message || 'Không thể xóa tài nguyên.');
+      alert(err.message || 'Failed to delete asset.');
     }
   };
 
@@ -510,10 +510,10 @@ export function LibraryAssetManager({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
         <div>
           <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Tài nguyên hỗ trợ (Library Assets)
+            Supporting Resources (Library Assets)
           </h4>
           <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Lưu trữ tài liệu tham khảo, schema, cấu hình đính kèm cho {contextType === 'skill' ? 'Skill' : 'System Prompt'}.
+            Store reference documentation, schemas, and configurations attached to {contextType === 'skill' ? 'Skill' : 'System Prompt'}.
           </p>
         </div>
         {!readonly && (
@@ -548,7 +548,7 @@ export function LibraryAssetManager({
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              <span>{isUploading ? 'Đang tải lên…' : 'Tải tài nguyên lên'}</span>
+              <span>{isUploading ? 'Uploading…' : 'Upload Asset'}</span>
             </button>
           </div>
         )}
@@ -581,7 +581,7 @@ export function LibraryAssetManager({
             borderRadius: 'var(--radius-md)',
           }}
         >
-          Chưa có tài nguyên nào được đính kèm. Nhấp vào &quot;Tải tài nguyên lên&quot; để thêm tệp.
+          No assets attached yet. Click &quot;Upload Asset&quot; to add files.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -652,13 +652,13 @@ export function LibraryAssetManager({
                     border: '1px solid var(--border-default)',
                   }}
                 >
-                  Tải xuống
+                  Download
                 </a>
                 {!readonly && (
                   <button
                     type="button"
                     onClick={() => handleDelete(att.id, att.filename)}
-                    aria-label={`Xóa tài nguyên ${att.filename}`}
+                    aria-label={`Delete asset ${att.filename}`}
                     style={{
                       background: 'transparent',
                       border: 'none',

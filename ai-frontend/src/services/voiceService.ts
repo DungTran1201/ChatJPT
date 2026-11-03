@@ -78,7 +78,7 @@ export class VoiceService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể tải danh sách giọng đọc.');
+      throw new Error(err.detail || 'Failed to load voice roster.');
     }
 
     return res.json();
@@ -95,7 +95,7 @@ export class VoiceService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không tìm thấy thông tin giọng đọc.');
+      throw new Error(err.detail || 'Voice profile not found.');
     }
 
     return res.json();
@@ -113,7 +113,7 @@ export class VoiceService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể tạo giọng đọc tùy chỉnh.');
+      throw new Error(err.detail || 'Failed to create custom voice.');
     }
 
     return res.json();
@@ -131,7 +131,7 @@ export class VoiceService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể cập nhật tham số giọng đọc.');
+      throw new Error(err.detail || 'Failed to update voice parameters.');
     }
 
     return res.json();
@@ -148,7 +148,7 @@ export class VoiceService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(err.detail || 'Không thể xóa giọng đọc.');
+      throw new Error(err.detail || 'Failed to delete voice.');
     }
 
     return res.json();
@@ -165,7 +165,7 @@ export class VoiceService {
     });
 
     if (!res.ok) {
-      throw new Error('Lỗi tổng hợp âm thanh.');
+      throw new Error('Audio speech synthesis failed.');
     }
 
     return res.blob();
@@ -189,7 +189,7 @@ export class VoiceService {
     });
 
     if (!res.ok) {
-      throw new Error('Lỗi tổng hợp âm thanh giọng nhân vật.');
+      throw new Error('Character voice synthesis failed.');
     }
 
     return res.blob();

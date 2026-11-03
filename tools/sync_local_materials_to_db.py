@@ -228,3 +228,4 @@ def sync_to_db():
 
 if __name__ == '__main__':
     sync_to_db()
+

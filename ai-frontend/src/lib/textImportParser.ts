@@ -81,20 +81,20 @@ export async function readAndValidateTextFile(file: File): Promise<{
 
   if (!ALLOWED_TEXT_EXTENSIONS.includes(ext as any)) {
     throw new Error(
-      `Định dạng tệp "${ext || 'không có phần mở rộng'}" không được hỗ trợ. Các định dạng văn bản cho phép: ${ALLOWED_TEXT_EXTENSIONS.join(', ')}.`
+      `File format "${ext || 'no extension'}" is not supported. Supported text extensions: ${ALLOWED_TEXT_EXTENSIONS.join(', ')}.`
     );
   }
 
   if (file.size > MAX_TEXT_FILE_SIZE_BYTES) {
     const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
-    throw new Error(`Dung lượng tệp (${sizeMb} MB) vượt quá giới hạn tối đa 5 MB.`);
+    throw new Error(`File size (${sizeMb} MB) exceeds maximum limit of 5 MB.`);
   }
 
   // Check sample buffer for binary
   const sampleSlice = file.slice(0, 4096);
   const sampleBuffer = await sampleSlice.arrayBuffer();
   if (isBinaryBuffer(new Uint8Array(sampleBuffer))) {
-    throw new Error('Tệp có dấu hiệu chứa dữ liệu nhị phân hoặc không thể giải mã văn bản thuần túy.');
+    throw new Error('File appears to contain binary data or cannot be decoded as clean text.');
   }
 
   // Read full text
@@ -109,7 +109,7 @@ export async function readAndValidateTextFile(file: File): Promise<{
   const normalized = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
   if (!normalized.trim()) {
-    throw new Error('Nội dung tệp rỗng hoặc chỉ chứa khoảng trắng.');
+    throw new Error('File content is empty or contains only whitespace.');
   }
 
   return {
@@ -255,33 +255,33 @@ export function extractItemMetadata(
     finalName = toKebabCase(suggestedName);
     const nameRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
     if (!nameRegex.test(finalName)) {
-      validationErrors.push('Tên Skill chỉ được chứa chữ thường (a-z), số (0-9) và dấu gạch nối (-).');
+      validationErrors.push('Skill name may only contain lowercase letters (a-z), numbers (0-9), and hyphens (-).');
     }
     if (frontmatter?.description) {
       description = String(frontmatter.description).trim().slice(0, 1024);
     } else {
-      description = `Kỹ năng được nhập từ tệp ${filename}`;
+      description = `Skill imported from file ${filename}`;
     }
   } else if (target === 'rules') {
     finalName = suggestedName.slice(0, 100);
     if (!finalName) {
-      validationErrors.push('Tên quy tắc không được để trống.');
+      validationErrors.push('Rule name cannot be empty.');
     }
     if (frontmatter?.description) {
       description = String(frontmatter.description).trim().slice(0, 500);
     } else {
-      description = `Quy tắc được nhập từ tệp ${filename}`;
+      description = `Rule imported from file ${filename}`;
     }
   } else {
     // System Prompts
     finalName = suggestedName.slice(0, 100);
     if (!finalName) {
-      validationErrors.push('Tên System Prompt không được để trống.');
+      validationErrors.push('System Prompt name cannot be empty.');
     }
     if (frontmatter?.description) {
       description = String(frontmatter.description).trim().slice(0, 500);
     } else {
-      description = `Chỉ dẫn hệ thống được nhập từ tệp ${filename}`;
+      description = `System guidance imported from file ${filename}`;
     }
   }
 

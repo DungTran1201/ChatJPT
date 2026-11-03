@@ -294,7 +294,7 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
               try {
                 const obj = JSON.parse(m[1]);
                 const newModel = obj.to_model || 'offline-semantic-cache';
-                const reason = obj.reason || obj.message || 'Mô hình tự động chuyển tiếp';
+                const reason = obj.reason || obj.message || 'Automatic model failover';
                 setMessages(prev => prev.map(msg =>
                   msg.id === assistantPlaceholderId
                     ? { ...msg, model: newModel, model_used: newModel, failoverNotice: reason }
