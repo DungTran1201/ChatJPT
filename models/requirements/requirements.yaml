@@ -489,6 +489,24 @@ requirements:
   actors:
   - Registered User
   notes: 'RETIRED: Phân tách khỏi phạm vi ứng dụng web học tiếng Nhật tập trung'
+- id: FR-067
+  name: Sensei Response Form Customization & Pedagogical Controls
+  type: functional
+  capability: CAP-PEDAGOGY
+  priority: MUST
+  status: IMPLEMENTED
+  actors:
+  - Registered User
+  - Guest
+- id: FR-068
+  name: Interlinear Pedagogical Japanese Layout & Formatted Markdown Architecture
+  type: functional
+  capability: CAP-PEDAGOGY
+  priority: MUST
+  status: IMPLEMENTED
+  actors:
+  - Registered User
+  - Guest
 - id: FR-069
   name: VoiceVox Character Voice Catalog & Filtering
   type: functional

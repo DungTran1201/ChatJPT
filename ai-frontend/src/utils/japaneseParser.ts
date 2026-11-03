@@ -373,7 +373,7 @@ export function parsePedagogicalBlocks(text: string): JapaneseSentenceBlock[] {
   for (const rawLine of rawLines) {
     const inlineMatch = rawLine.match(/^(.*?)\s*[\(（](?:Bản dịch|Dịch)?\s*:?\s*([^\)）]+)[\)）]\s*$/i);
     if (inlineMatch && hasJapaneseText(inlineMatch[1])) {
-      lines.push(inlineMatch[1].trim());
+      lines.push(normalizeJapaneseRawText(inlineMatch[1].trim()));
       lines.push(`(Bản dịch: ${inlineMatch[2].trim()})`);
     } else {
       lines.push(rawLine);
@@ -414,11 +414,12 @@ export function parsePedagogicalBlocks(text: string): JapaneseSentenceBlock[] {
         }
       }
 
-      const tokens = tokenizeJapaneseLine(currentLine);
+      const normalizedLine = normalizeJapaneseRawText(currentLine);
+      const tokens = tokenizeJapaneseLine(normalizedLine);
       blocks.push({
         tokens,
         translation,
-        rawText: currentLine,
+        rawText: normalizedLine,
       });
     } else {
       // Regular markdown / non-dialogue line
@@ -434,9 +435,47 @@ export function parsePedagogicalBlocks(text: string): JapaneseSentenceBlock[] {
 }
 
 /**
+ * Clean and normalize messy LLM bracket outputs, stray spaces, and malformed furigana.
+ */
+export function normalizeJapaneseRawText(line: string): string {
+  if (!line) return '';
+  let res = line;
+
+  // 1. Convert `（ 漢字 かんじ ） [ ]` or `( 漢字 かんじ ) [ ]` or `( 漢字 かんじ )` -> `[漢字](かんじ)`
+  res = res.replace(/[（\(]\s*([\u4E00-\u9FAF\u3040-\u309F\u30A0-\u30FF]+)\s+([\u3040-\u309F\u30A0-\u30FF]+)\s*[）\)]\s*(?:\[\s*\])?/g, '[$1]($2)');
+
+  // 2. Convert `（ 漢字 ） [ かんじ ]` or `( 漢字 ) [ かんじ ]` -> `[漢字](かんじ)`
+  res = res.replace(/[（\(]\s*([\u4E00-\u9FAF]+)\s*[）\)]\s*\[\s*([\u3040-\u309F\u30A0-\u30FF]+)\s*\]/g, '[$1]($2)');
+
+  // 3. Convert `{漢字}[かんじ]` (when bracket is Kana, NOT grammar tags like g-green, green, orange) -> `[漢字](かんじ)`
+  res = res.replace(/\{([^{}]+)\}\[(?!g-green|green|g-orange|orange|particle|phrase)([\u3040-\u309F\u30A0-\u30FF]+)\]/g, '[$1]($2)');
+
+  // 4. Convert `[漢字]{かんじ}` -> `[漢字](かんじ)`
+  res = res.replace(/\[([^\]]+)\]\{([\u3040-\u309F\u30A0-\u30FF]+)\}/g, '[$1]($2)');
+
+  // 5. Convert `漢字(かんじ)` or `漢字（かんじ）` (Kanji immediately followed by Kana in parens) -> `[漢字](かんじ)`
+  res = res.replace(/([\u4E00-\u9FAF]+)[（\(]([\u3040-\u309F\u30A0-\u30FF]+)[）\)]/g, '[$1]($2)');
+
+  // 6. Remove empty brackets like `[ ]`, `( )`, `（ ）`, `{ }`
+  res = res.replace(/\[\s*\]|\(\s*\)|（\s*）|\{\s*\}/g, '');
+
+  // 7. Remove stray opening square brackets before words like `[ コンビニ` -> `コンビニ`
+  res = res.replace(/(^|\s)\[\s+/g, '$1');
+
+  // 8. Remove spaces before punctuation ` 、` -> `、`, ` 。` -> `。`, ` ！` -> `！`, ` ？` -> `？`, ` !` -> `!`, ` ?` -> `?`
+  res = res.replace(/\s+([、。！？!?])/g, '$1');
+
+  // 9. Trim redundant spaces
+  res = res.replace(/[ \t]{2,}/g, ' ');
+
+  return res.trim();
+}
+
+/**
  * Tokenize a Japanese line into word blocks with Furigana, Romaji, and Grammar Highlights
  */
 export function tokenizeJapaneseLine(line: string): JapaneseToken[] {
+  const cleanLine = normalizeJapaneseRawText(line);
   const tokens: JapaneseToken[] = [];
 
   // Match patterns:
@@ -448,9 +487,9 @@ export function tokenizeJapaneseLine(line: string): JapaneseToken[] {
   let lastIndex = 0;
   let match;
 
-  while ((match = tokenRegex.exec(line)) !== null) {
+  while ((match = tokenRegex.exec(cleanLine)) !== null) {
     if (match.index > lastIndex) {
-      const normalPart = line.slice(lastIndex, match.index).trim();
+      const normalPart = cleanLine.slice(lastIndex, match.index).trim();
       if (normalPart) {
         tokens.push(...tokenizeNormalSegment(normalPart));
       }

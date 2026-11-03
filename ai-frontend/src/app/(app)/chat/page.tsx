@@ -16,6 +16,7 @@ export default function ChatPage() {
     setActiveConvId,
     fetchConversations,
     createConversation,
+    language,
     t,
   } = useApp();
 
@@ -81,6 +82,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isSendingConvIdRef = useRef<string | null>(null);
 
   // ── Load models ───────────────────────────────────────────────────
   useEffect(() => {
@@ -102,6 +104,11 @@ export default function ChatPage() {
       setMessages([]);
       return;
     }
+    // If conversation change was initiated by our current message submission, skip overwriting
+    if (isSendingConvIdRef.current === activeConvId) {
+      isSendingConvIdRef.current = null;
+      return;
+    }
     let isCancelled = false;
     (async () => {
       try {
@@ -120,7 +127,14 @@ export default function ChatPage() {
               isStreaming: isRunning,
             };
           });
-          setMessages(loadedMsgs);
+          setMessages(prev => {
+            // If there is an active streaming message placeholder, preserve it
+            const hasStreamingMsg = prev.some(m => m.isStreaming || m.id.startsWith('assistant-'));
+            if (hasStreamingMsg) {
+              return prev;
+            }
+            return loadedMsgs;
+          });
         }
       } catch (err) {
         console.error('Failed to load messages:', err);
@@ -129,7 +143,7 @@ export default function ChatPage() {
     return () => {
       isCancelled = true;
     };
-}, [activeConvId]);
+  }, [activeConvId]);
 
 // Clean up client subscription on unmount without cancelling backend turn
 useEffect(() => {
@@ -175,6 +189,7 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
   if (!targetConvId) {
     targetConvId = await createConversation();
     if (!targetConvId) return;
+    isSendingConvIdRef.current = targetConvId;
   }
 
   let loadedAttachments: AttachmentItem[] = [];
@@ -218,6 +233,7 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
   // ── Standard streaming ───────────────────────────────────────────
   const controller = new AbortController();
   abortControllerRef.current = controller;
+  let accumulatedText = '';
 
   try {
     const response = await fetch(`/api/v1/conversations/${targetConvId}/messages/stream`, {
@@ -227,6 +243,7 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
         content: textToSend.trim(),
         model: selectedModelId,
         sensei_id: selectedSenseiId,
+        language: language,
         attachments: attachmentIds && attachmentIds.length > 0 ? attachmentIds : undefined,
       }),
       signal: controller.signal,
@@ -242,7 +259,6 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
 
     const reader = response.body?.getReader();
     const decoder = new TextDecoder('utf-8');
-    let accumulatedText = '';
 
     if (reader) {
       let buffer = '';
@@ -260,9 +276,15 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
                 const obj = JSON.parse(m[1]);
                 if (obj.token) {
                   accumulatedText += obj.token;
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === assistantPlaceholderId ? { ...msg, content: accumulatedText } : msg
-                  ));
+                  setMessages(prev => {
+                    const exists = prev.some(msg => msg.id === assistantPlaceholderId);
+                    if (!exists) {
+                      return [...prev, { ...assistantMsgPlaceholder, content: accumulatedText }];
+                    }
+                    return prev.map(msg =>
+                      msg.id === assistantPlaceholderId ? { ...msg, content: accumulatedText } : msg
+                    );
+                  });
                 }
               } catch { /* parse error */ }
             }
@@ -286,17 +308,37 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
             if (m) {
               try {
                 const obj = JSON.parse(m[1]);
-                setMessages(prev => prev.map(msg =>
-                  msg.id === assistantPlaceholderId
-                    ? {
-                        ...msg,
-                        model: obj.model || msg.model,
-                        model_used: obj.model || msg.model_used,
-                        sensei_id: obj.sensei_id || msg.sensei_id || selectedSenseiId,
-                        voice_id: obj.voice_id || msg.voice_id || currentVoiceId,
+                setMessages(prev => {
+                  const exists = prev.some(msg => msg.id === assistantPlaceholderId);
+                  if (!exists) {
+                    return [
+                      ...prev,
+                      {
+                        ...assistantMsgPlaceholder,
+                        id: obj.message_id || assistantPlaceholderId,
+                        content: accumulatedText,
+                        model: obj.model || selectedModelId,
+                        model_used: obj.model || selectedModelId,
+                        sensei_id: obj.sensei_id || selectedSenseiId,
+                        voice_id: obj.voice_id || currentVoiceId,
+                        isStreaming: false,
                       }
-                    : msg
-                ));
+                    ];
+                  }
+                  return prev.map(msg =>
+                    msg.id === assistantPlaceholderId
+                      ? {
+                          ...msg,
+                          id: obj.message_id || msg.id,
+                          model: obj.model || msg.model,
+                          model_used: obj.model || msg.model_used,
+                          sensei_id: obj.sensei_id || msg.sensei_id || selectedSenseiId,
+                          voice_id: obj.voice_id || msg.voice_id || currentVoiceId,
+                          isStreaming: false,
+                        }
+                      : msg
+                  );
+                });
               } catch { /* parse error */ }
             }
           } else if (line.includes('event: error')) {
@@ -325,11 +367,24 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
   } finally {
     setIsStreaming(false);
     abortControllerRef.current = null;
-    setMessages(prev => prev.map(m =>
-      m.id === assistantPlaceholderId
-        ? { ...m, isStreaming: false, content: m.content || 'No response received.' }
-        : m
-    ));
+    setMessages(prev => {
+      const hasAssistant = prev.some(m => m.id === assistantPlaceholderId || m.role === 'assistant');
+      if (!hasAssistant && accumulatedText) {
+        return [
+          ...prev,
+          {
+            ...assistantMsgPlaceholder,
+            content: accumulatedText,
+            isStreaming: false,
+          }
+        ];
+      }
+      return prev.map(m =>
+        m.id === assistantPlaceholderId
+          ? { ...m, isStreaming: false, content: m.content || accumulatedText || 'No response received.' }
+          : m
+      );
+    });
     fetchConversations();
   }
 };

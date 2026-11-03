@@ -18,6 +18,7 @@ class MessageStreamRequest(BaseModel):
     content: str = Field(default="", max_length=4000, description="Nội dung prompt câu hỏi (tối đa 4000 ký tự)")
     model: Optional[str] = "gemini-3.8-flash"
     sensei_id: Optional[str] = Field(default=None, description="ID của Sensei đồng hành (N5..N1)")
+    language: Optional[str] = Field(default=None, description="Ngôn ngữ giao diện người dùng (vi, en, ja)")
     attachments: Optional[List[str]] = Field(default=None, description="Danh sách attachment_id đính kèm cho lượt chat này")
 
 async def generate_mock_ai_stream(prompt: str, history: list) -> AsyncGenerator[str, None]:
@@ -239,7 +240,10 @@ async def stream_message_endpoint(
 
         # Định dạng cấu trúc câu trả lời sư phạm của Sensei theo cài đặt người dùng (FR-067, FR-068)
         formatting_rules = []
-        user_lang = current_user.get("language_preference", "vi")
+        user_lang = req.language or current_user.get("language_preference") or "vi"
+        if user_lang not in ("vi", "ja", "en"):
+            user_lang = "vi"
+
         if user_lang == "vi":
             lang_label = "tiếng Việt"
             formatting_rules.append(
@@ -247,7 +251,7 @@ async def stream_message_endpoint(
                 "1. Người học đang sử dụng giao diện TIẾNG VIỆT.\n"
                 "2. TUYỆT ĐỐI KHÔNG DÙNG TIẾNG ANH trong bất kỳ câu dịch hay phần giải thích nào.\n"
                 "3. Toàn bộ bản dịch đặt dưới mỗi câu tiếng Nhật PHẢI 100% LÀ TIẾNG VIỆT.\n"
-                "4. Toàn bộ phần phân tích ngữ pháp, từ vựng và sắc thái PHẢI 100% LÀ TIẾNG VIỆT (dùng thuật ngữ 'Khiêm nhường ngữ', 'Tôn kính ngữ', v.v. - KHÔNG dùng tiếng Anh như 'Humble verb suffix')."
+                "4. Toàn bộ phần phân tích ngữ pháp, từ vựng và sắc thái PHẢI 100% LÀ TIẾNG VIỆT (dùng thuật ngữ 'Khiêm nhường ngữ', 'Tôn kính ngữ', v.v. - TUYỆT ĐỐI KHÔNG dùng tiếng Anh)."
             )
         elif user_lang == "ja":
             lang_label = "日本語"
@@ -260,23 +264,30 @@ async def stream_message_endpoint(
                 "LANGUAGE RULE: Provide all translations and grammar breakdown in English."
             )
 
+        formatting_rules.append(
+            "QUY TẮC CHỮ TIẾNG NHẬT TỰ NHIÊN (KHÔNG CHÈN DẤU CÁCH BỪA BÃI):\n"
+            "- Viết câu tiếng Nhật tự nhiên, KHÔNG chèn khoảng trắng bừa bãi giữa các từ tiếng Nhật hoặc trước/sau dấu câu (、, 。, ！, ？).\n"
+            "- Ví dụ: viết 「さあ、今日はどんな気分？」, TUYỆT ĐỐI KHÔNG viết 「さあ 、 今日 は どんな 気分 ？ 」."
+        )
+
         if current_user.get("response_show_furigana", 1):
             formatting_rules.append(
-                "- FURIGANA: BẮT BUỘC gắn Furigana cho chữ Kanji bằng định dạng Ruby: `[漢字](かんじ)` (ví dụ: `[私](わたし)は[雪](ゆき)と[申](もう)します。`). Giữa các từ hoặc cụm từ nên có khoảng cách nhẹ để hệ thống hiển thị interlinear rõ ràng."
+                "- FURIGANA: BẮT BUỘC gắn Furigana cho chữ Kanji bằng định dạng Ruby Markdown duy nhất: `[漢字](かんじ)` (ví dụ: `[今日](きょう)`, `[元気](げんき)`, `[日本語](にほんご)`).\n"
+                "  TUYỆT ĐỐI KHÔNG DÙNG `{漢字}[かんじ]` hoặc `（ 漢字 かんじ ） [ ]`."
             )
         if current_user.get("response_highlight_grammar", 1):
             formatting_rules.append(
-                "- TÔ MÀU NGỮ PHÁP (MÀU XANH LÁ ĐỒNG NHẤT): Với trợ từ hoặc cấu trúc/ngữ pháp trọng tâm, bọc viền bằng `{từ}[g-green]`. TUYỆT ĐỐI chỉ dùng `[g-green]` (đồng nhất màu xanh lá). TUYỆT ĐỐI KHÔNG dùng màu cam hoặc ngắt đôi từ (ví dụ: `{開けて}[g-green]`, không tách rời `{開}[g-orange]{けて}[g-orange]`)."
+                "- TÔ MÀU NGỮ PHÁP (MÀU XANH LÁ ĐỒNG NHẤT): Với trợ từ hoặc cấu trúc/ngữ pháp trọng tâm, bọc viền bằng `{từ}[g-green]` (đồng nhất màu xanh lá). TUYỆT ĐỐI chỉ dùng `[g-green]`, không dùng màu khác."
             )
         if current_user.get("response_show_translation", 1):
             formatting_rules.append(
-                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu thoại tiếng Nhật BẮT BUỘC PHẢI CÓ dòng dịch nghĩa sang {lang_label} đặt ngay bên dưới trên một dòng riêng biệt (XUỐNG DÒNG, TUYỆT ĐỐI KHÔNG VIẾT CHUNG DÒNG VỚI CÂU TIẾNG NHẬT), định dạng: `(Bản dịch: ...)`. Bắt buộc 100% bằng {lang_label}, không được sót câu nào sang tiếng Anh."
+                f"- BẢN DỊCH DƯỚI CÂU: Mỗi câu thoại tiếng Nhật BẮT BUỘC PHẢI CÓ dòng dịch nghĩa sang {lang_label} đặt ngay bên dưới trên một dòng riêng biệt, định dạng: `(Bản dịch: <nội dung dịch>)`. Bắt buộc 100% bằng {lang_label}."
             )
         if current_user.get("response_grammar_breakdown", 1):
             formatting_rules.append(
                 f"- PHÂN TÍCH TỪ VỰNG & NGỮ PHÁP (ĐÓNG KHUNG CẤU TRÚC RÕ RÀNG):\n"
                 f"Ở cuối câu trả lời, hãy tạo khối phân tích riêng biệt ngăn cách bởi một dòng kẻ `---` và tiêu đề `### 🔍 Phân tích Ngữ pháp & Từ vựng`.\n"
-                f"Mỗi điểm ngữ pháp hoặc từ vựng trọng tâm BẮT BUỘC PHẢI ĐƯỢC ĐÁNH SỐ VÀ CÓ TIÊU ĐỀ RÕ RÀNG, tuyệt đối không liệt kê bullet rời rạc không có chủ thể:\n"
+                f"Mỗi điểm ngữ pháp hoặc từ vựng trọng tâm BẮT BUỘC PHẢI ĐƯỢC ĐÁNH SỐ VÀ CÓ TIÊU ĐỀ RÕ RÀNG:\n"
                 f"1. **【Cấu trúc/Từ vựng】** *(Phân loại / Cấp độ)*\n"
                 f"- *Ý nghĩa:* Giải thích cụ thể bằng {lang_label}\n"
                 f"- *Sắc thái:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}\n\n"
@@ -284,6 +295,23 @@ async def stream_message_endpoint(
                 f"- *Ý nghĩa:* Giải thích cụ thể bằng {lang_label}\n"
                 f"- *Sắc thái:* Hướng dẫn cách dùng và bối cảnh giao tiếp tự nhiên bằng {lang_label}"
             )
+
+        # Add explicit FEW-SHOT template matching Settings preview
+        formatting_rules.append(
+            f"\n--- MẪU TRÌNH BÀY CHUẨN CỦA SENSEI (BẮT BUỘC TUÂN THỦ CHÍNH XÁC THEO MẪU NÀY) ---\n"
+            f"{{はい}}[g-green]、[元気](げんき)ですよ！[一緒](いっしょ)に[日本語](にほんご)を[勉強](べんきょう)しましょうね！\n"
+            f"(Bản dịch: Vâng, tôi rất khỏe! Chúng ta cùng nhau học tiếng Nhật nhé!)\n\n"
+            f"[今日](きょう)は{{どんな}}[g-green][気分](きぶん)ですか？[何](なに)か{{面白い}}[g-green][出来事](できごと)はありましたか？\n"
+            f"(Bản dịch: Hôm nay tâm trạng bạn thế nào? Có chuyện gì vui không?)\n\n"
+            f"---\n"
+            f"### 🔍 Phân tích Ngữ pháp & Từ vựng\n"
+            f"1. **【〜ましょう】** *(Động từ thể rủ rê / Lịch sự)*\n"
+            f"- *Ý nghĩa:* Diễn tả lời mời hoặc đề xuất cùng làm việc gì đó một cách thân thiện.\n"
+            f"- *Sắc thái:* Tạo cảm giác gắn kết, ấm áp và khích lệ người học tham gia.\n\n"
+            f"2. **【〜ですか】** *(Trợ từ nghi vấn)*\n"
+            f"- *Ý nghĩa:* Dùng ở cuối câu để tạo câu hỏi lịch thiệp.\n"
+            f"- *Sắc thái:* Bày tỏ sự quan tâm chân thành đến người đối thoại."
+        )
 
         if formatting_rules:
             formatting_prompt = "\n".join(formatting_rules)
