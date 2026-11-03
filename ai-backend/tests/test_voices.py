@@ -37,7 +37,10 @@ class TestVoicesAPI(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertIn("engine_available", data)
+        self.assertTrue(data["engine_available"])
+        self.assertEqual(data.get("engine_mode"), "embedded_core")
         self.assertIn("engine_url", data)
+        self.assertGreaterEqual(data.get("loaded_models_count", 0), 14)
         self.assertIn("cached_audio_count", data)
 
     def test_list_voices_and_filters(self):

@@ -89,7 +89,11 @@ export default function VoiceManagementPage() {
       const statusRes = await VoiceService.getEngineStatus();
       setEngineStatus(statusRes);
       if (statusRes.engine_available) {
-        addToast('success', `VoiceVox Engine đã kết nối (v${statusRes.version || '0.14'})!`);
+        if (statusRes.engine_mode === 'embedded_core') {
+          addToast('success', `VoiceVox Core nhúng sẵn đang hoạt động (${statusRes.loaded_models_count || 16} models VVM)!`);
+        } else {
+          addToast('success', `VoiceVox Engine đã kết nối (v${statusRes.version || '0.14'})!`);
+        }
       } else {
         addToast('info', 'VoiceVox Engine hiện đang ngoại tuyến. Hệ thống sẽ sử dụng âm học Fallback.');
       }
@@ -352,12 +356,16 @@ export default function VoiceManagementPage() {
           <div>
             <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>
               {engineStatus?.engine_available
-                ? `VoiceVox Engine Online (v${engineStatus.version || '0.14'})`
+                ? engineStatus.engine_mode === 'embedded_core'
+                  ? `VoiceVox Engine Đang Hoạt Động (Nhúng Sẵn / voicevox_core v${engineStatus.version || '0.17.1'})`
+                  : `VoiceVox Engine Online (v${engineStatus.version || '0.14'})`
                 : 'VoiceVox Engine Ngoại Tuyến (Chế Độ Fallback Âm Học Sẵn Sàng)'}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
               {engineStatus?.engine_available
-                ? `Kết nối tới ${engineStatus.engine_url} | Độ trễ: ${engineStatus.latency_ms || 15}ms | Đã đệm ${engineStatus.cached_audio_count} âm thanh trong RAM.`
+                ? engineStatus.engine_mode === 'embedded_core'
+                  ? `Động cơ nơ-ron nhúng cục bộ qua ONNX Runtime | Đã nạp ${engineStatus.loaded_models_count || 16} mô hình VVM (${engineStatus.supported_speakers_count || 30} nhân vật) | Đã đệm ${engineStatus.cached_audio_count} âm thanh trong RAM.`
+                  : `Kết nối tới ${engineStatus.engine_url} | Độ trễ: ${engineStatus.latency_ms || 15}ms | Đã đệm ${engineStatus.cached_audio_count} âm thanh trong RAM.`
                 : 'Cổng 50021 chưa khởi chạy daemon VoiceVox. Hệ thống tự động sử dụng bộ phát âm học nội tại & Web Speech.'}
             </div>
           </div>

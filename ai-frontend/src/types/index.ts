@@ -243,6 +243,9 @@ export interface VoiceEngineStatus {
   latency_ms?: number | null;
   cached_audio_count: number;
   error?: string | null;
+  engine_mode?: 'embedded_core' | 'daemon' | 'offline' | string;
+  loaded_models_count?: number;
+  supported_speakers_count?: number;
 }
 
 export interface VoiceListResponse {

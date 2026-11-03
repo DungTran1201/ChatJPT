@@ -48,3 +48,7 @@ logs/
 
 ai-backend/database/uploads/
 
+
+# VoiceVox Core Engine Binaries & Models (Gigabyte Assets)
+ai-backend/voicevox_core/*
+!ai-backend/voicevox_core/README.md

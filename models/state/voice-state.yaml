@@ -44,3 +44,4 @@ state_machine:
       to: "ARCHIVED"
       trigger: "User deletes custom voice profile"
       guard: "Voice is not an immutable system preset (is_system_preset == false)"
+

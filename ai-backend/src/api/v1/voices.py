@@ -44,6 +44,9 @@ class VoiceEngineStatusResponse(BaseModel):
     latency_ms: Optional[float] = None
     cached_audio_count: int = 0
     error: Optional[str] = None
+    engine_mode: Optional[str] = "embedded_core"
+    loaded_models_count: Optional[int] = 0
+    supported_speakers_count: Optional[int] = 0
 
 class VoiceCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -213,3 +216,4 @@ async def synthesize_by_voice_id(id: str, req: SynthesisRequest):
         volume_scale=volume
     )
     return Response(content=wav_bytes, media_type="audio/wav")
+

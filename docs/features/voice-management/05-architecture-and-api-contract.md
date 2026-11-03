@@ -1,13 +1,14 @@
 # Architecture & API Contract: Voice Management
 
 ## 1. Architectural Component (ADR-015, COMP-005)
-Hệ thống VoiceVox TTS Service được thiết kế theo mô hình Micro-Bridge tích hợp:
+Hệ thống VoiceVox TTS Service được thiết kế theo mô hình Micro-Bridge & In-Process Embedded Engine tích hợp:
 - **Client (Frontend)**: Tương tác qua React hooks, quản lý trình phát âm thanh và kiểm soát cache blob.
 - **Backend Service (`VoicevoxService`)**:
-  - Giao tiếp HTTP với VoiceVox Engine daemon trên cổng `50021`.
-  - Quản lý bộ nhớ đệm nhị phân WAV trong RAM với thuật toán LRU Cache để giảm tải tính toán cho GPU/CPU.
-  - Xử lý bộ lọc tham số âm học an toàn (`SEC-015`).
-  - Cung cấp cơ chế Fallback âm học khi engine ngoại tuyến (`BR-042`).
+  - **Embedded VoiceVox Core Engine (Primary)**: Tích hợp trực tiếp thư viện `voicevox_core` (v0.17.1) chạy in-process trong tiến trình Python kết hợp với DirectML/CPU ONNX Runtime DLL, từ điển OpenJTalk và 16 tệp mô hình nơ-ron VVM (`0.vvm` .. `15.vvm`). Không yêu cầu bật daemon ngoại vi cổng 50021, đảm bảo giọng nói nhân vật chuẩn xác 100% từ GitHub official.
+  - **External VoiceVox HTTP Daemon (Secondary)**: Tự động kiểm tra và kết nối daemon VoiceVox trên cổng `50021` nếu có.
+  - **Acoustic Fallback Synthesis (`BR-042`)**: Bộ sinh âm học multi-tone chuẩn PCM WAV bằng thư viện chuẩn Python khi cả hai động cơ trên không sẵn sàng.
+  - **LRU In-Memory Cache**: Quản lý bộ nhớ đệm nhị phân WAV trong RAM với thuật toán LRU Cache để giảm tải tính toán CPU/GPU.
+  - **Acoustic Modulation Guard (`SEC-015`, `BR-040`)**: Chuẩn hóa và giới hạn các dải tham số `speed_scale`, `pitch_scale`, `intonation_scale`, `volume_scale`.
 
 ---
 
@@ -46,27 +47,37 @@ Hệ thống VoiceVox TTS Service được thiết kế theo mô hình Micro-Bri
 ```
 
 ### `GET /api/v1/voices/status` (OP-049)
-- **Mục đích**: Kiểm tra tình trạng kết nối tới VoiceVox engine cục bộ.
+- **Mục đích**: Kiểm tra tình trạng kết nối tới VoiceVox engine cục bộ (nhúng sẵn hoặc daemon).
 - **Phản hồi (200 OK)**:
 ```json
 {
   "engine_available": true,
-  "engine_url": "http://127.0.0.1:50021",
-  "version": "0.14.4",
-  "latency_ms": 12.5,
-  "cached_audio_count": 42
+  "engine_mode": "embedded_core",
+  "engine_url": "embedded://voicevox_core",
+  "version": "0.17.1 (voicevox_core)",
+  "latency_ms": 0.5,
+  "cached_audio_count": 14,
+  "loaded_models_count": 16,
+  "supported_speakers_count": 30,
+  "error": null
 }
 ```
 
-### `POST /api/v1/voices/{id}/synthesize` (OP-054)
-- **Mục đích**: Tổng hợp văn bản tiếng Nhật thành file âm thanh WAV theo giọng đọc của nhân vật cụ thể.
+### `POST /api/v1/voices/synthesize` (OP-053)
+- **Mục đích**: Tổng hợp giọng nói trực tiếp từ văn bản tiếng Nhật và mã `speaker_id`.
 - **Request Body**:
 ```json
 {
-  "text": "はじめまして、よろしくおねがいします！",
-  "speed_scale": 1.05,
+  "text": "こんにちは、元気ですか？",
+  "speaker_id": 8,
+  "speed_scale": 1.0,
   "pitch_scale": 0.0,
-  "intonation_scale": 1.1
+  "intonation_scale": 1.0,
+  "volume_scale": 1.0
 }
 ```
-- **Phản hồi**: Trực tiếp luồng nhị phân `Content-Type: audio/wav`.
+- **Phản hồi (200 OK)**: Dòng luồng nhị phân âm thanh `audio/wav`.
+
+### `POST /api/v1/voices/{id}/synthesize` (OP-054)
+- **Mục đích**: Tổng hợp giọng nói sử dụng cấu hình âm học đã lưu của hồ sơ voice.
+- **Phản hồi (200 OK)**: Dòng luồng nhị phân âm thanh `audio/wav`.
