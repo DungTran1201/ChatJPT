@@ -1335,3 +1335,24 @@
 - **Responses**:
   - `200 OK`: Stream nhị phân `Content-Type: audio/wav`.
 
+
+---
+
+## 12. Phân Hệ Nhập Liệu Giọng Nói & STT (FEAT-006)
+
+### 12.1 POST /api/v1/chat/stt [OP-066]
+- **Mục đích**: Nhận tệp âm thanh thu âm từ microphone (WebM/WAV) và chuyển đổi thành văn bản đa ngữ (tiếng Việt, tiếng Anh, tiếng Nhật) qua mô hình STT (FR-079, FR-080, BR-047, SEC-021).
+- **Content-Type**: multipart/form-data
+- **Parameters**:
+  - ile: Tệp âm thanh nhị phân (dung lượng <= 10MB - BR-048).
+  - language: Ngôn ngữ gợi ý (vi, en, ja, auto).
+  - duration_ms: Thời lượng ghi âm (tối đa 120,000ms).
+- **Responses**:
+  - 200 OK: Trả về JSON chứa attachment_id, audio_url, transcript, detected_language, confidence.
+  - 400 Bad Request: Định dạng tệp không hợp lệ hoặc giả mạo.
+  - 413 Payload Too Large: Dung lượng tệp vượt quá 10MB.
+
+### 12.2 POST /api/v1/conversations/{conv_id}/messages/audio-stream [OP-067]
+- **Mục đích**: Điều phối văn bản sau STT và tệp âm thanh vào luồng trò chuyện, lưu trữ vào bảng messages và kích hoạt phản hồi SSE từ AI Sensei (FR-081, FR-082, BR-050, SEC-022, UX-016).
+- **Responses**:
+  - 200 OK: Server-Sent Events stream (text/event-stream) chứa các sự kiện token, chunk và done.

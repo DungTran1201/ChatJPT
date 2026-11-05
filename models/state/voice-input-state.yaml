@@ -1,0 +1,86 @@
+version: "1.0"
+metadata:
+  model_id: STATE-VOICE-INPUT
+  title: Multilingual Voice Input and STT Lifecycle State Machine
+  domain: Chat & Conversations Management
+  source_refs:
+    - FR-079
+    - FR-080
+    - FR-081
+    - FR-082
+    - BR-047
+    - BR-048
+    - BR-049
+    - BR-050
+states:
+  - id: IDLE
+    name: Idle Ready
+    description: Microphone is inactive, user can trigger recording button or switch language hint (vi/en/ja).
+    is_initial: true
+  - id: REQUESTING_PERMISSION
+    name: Requesting Mic Permission
+    description: Browser prompts user for audio input permission.
+  - id: PERMISSION_DENIED
+    name: Microphone Permission Denied
+    description: User blocked microphone access; UI displays remediation prompt.
+    is_terminal: false
+  - id: RECORDING
+    name: Actively Recording Spoken Audio
+    description: Audio buffer is being captured into MediaStream/AudioContext; waveform visualizer pulses in real-time.
+  - id: PAUSED
+    name: Recording Paused
+    description: User temporarily halts voice capture; elapsed time is frozen.
+  - id: TRANSCRIBING_CLIENT
+    name: Client-side Preview Transcription
+    description: Optional real-time preview via Web Speech API while audio buffers accumulate.
+  - id: TRANSCRIBING_SERVER
+    name: Server-side STT Processing
+    description: Audio blob uploaded to /api/v1/chat/stt; Whisper/Gemini model produces high-accuracy transcript.
+  - id: READY_TO_SEND
+    name: Voice & Transcript Ready
+    description: Audio player preview is available; user may inspect, edit transcript, or re-record before sending.
+  - id: DISPATCHING_STREAM
+    name: Streaming AI Response
+    description: User voice message is persisted in messages table; LLM streams Kaiwa/Sensei explanation via SSE.
+  - id: CANCELLED
+    name: Recording Cancelled / Discarded
+    description: User clicked cancel or trash; local audio buffers are cleared.
+    is_terminal: true
+transitions:
+  - from: IDLE
+    to: REQUESTING_PERMISSION
+    trigger: CLICK_RECORD_BUTTON
+  - from: REQUESTING_PERMISSION
+    to: RECORDING
+    trigger: PERMISSION_GRANTED
+  - from: REQUESTING_PERMISSION
+    to: PERMISSION_DENIED
+    trigger: PERMISSION_REJECTED
+  - from: RECORDING
+    to: PAUSED
+    trigger: CLICK_PAUSE
+  - from: PAUSED
+    to: RECORDING
+    trigger: CLICK_RESUME
+  - from: RECORDING
+    to: CANCELLED
+    trigger: CLICK_TRASH_DISCARD
+  - from: RECORDING
+    to: TRANSCRIBING_SERVER
+    trigger: STOP_RECORDING_OR_TIMEOUT_120S
+  - from: TRANSCRIBING_SERVER
+    to: READY_TO_SEND
+    trigger: STT_SUCCESS_WITH_TRANSCRIPT
+  - from: TRANSCRIBING_SERVER
+    to: READY_TO_SEND
+    trigger: STT_FALLBACK_TO_CLIENT_PREVIEW
+  - from: READY_TO_SEND
+    to: DISPATCHING_STREAM
+    trigger: CONFIRM_SEND_MESSAGE
+  - from: READY_TO_SEND
+    to: RECORDING
+    trigger: RE_RECORD
+  - from: DISPATCHING_STREAM
+    to: IDLE
+    trigger: STREAM_COMPLETED_OR_ERROR
+

@@ -60,6 +60,10 @@ entities:
   - voice_id: string (FK -> Voice.id, nullable)
   - created_at: timestamp
   - updated_at: timestamp
+  - audio_attachment_id: UUID (FK -> Attachment.id, nullable)
+  - audio_duration_ms: integer (duration of spoken voice recording, default 0)
+  - stt_language: enum(vi, en, ja, auto, default auto)
+  - stt_confidence: float (0.0..1.0, STT recognition confidence score)
 - name: AgentModel
   aggregate_root: true
   attributes:
@@ -260,6 +264,23 @@ entities:
   - 'user_id: string (FK -> User.id or ''system'')'
   - 'created_at: timestamp'
   - 'updated_at: timestamp'
+- name: VoiceInputSession
+  aggregate_root: false
+  attributes:
+  - session_id: string (client ephemeral ID)
+  - audio_mime_type: string (e.g. audio/webm, audio/wav)
+  - duration_seconds: float (0.0..120.0)
+  - language_hint: enum(vi, en, ja, auto)
+  - sample_rate_hz: integer (16000..48000)
+  - audio_bytes_size: integer (max 10485760)
+- name: STTTranscriptResult
+  aggregate_root: false
+  attributes:
+  - transcript_text: string (converted text from voice)
+  - detected_language: enum(vi, en, ja)
+  - confidence: float (0.0..1.0)
+  - latency_ms: float
+  - engine_used: enum(whisper_api, faster_whisper, gemini_multimodal, web_speech_api)
 relationships:
 - from: Voice
   to: Message

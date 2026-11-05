@@ -597,6 +597,42 @@ requirements:
   actors:
   - Registered User
   - Guest
+- id: FR-079
+  name: Multilingual Voice Input Audio Capture (vi, en, ja)
+  type: functional
+  capability: CAP-CHAT-AI
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
+- id: FR-080
+  name: Speech-to-Text (STT) Multilingual Transcription Pipeline
+  type: functional
+  capability: CAP-CHAT-AI
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - System Backend
+- id: FR-081
+  name: Synchronized Audio Playback & Real-time Transcript Message Bubble in Chat
+  type: functional
+  capability: CAP-CHAT-AI
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - Guest
+- id: FR-082
+  name: Direct Multimodal and Transcribed Audio Prompt Dispatching to LLM Core
+  type: functional
+  capability: CAP-CHAT-AI
+  priority: MUST
+  status: BASELINED
+  actors:
+  - Registered User
+  - System Backend
 business_rules:
 - id: BR-001
   name: Authentication Required for Stored Conversation
@@ -743,6 +779,18 @@ business_rules:
 - id: BR-046
   name: Reference Material URL Protocol Validation (HTTPS only)
   status: BASELINED
+- id: BR-047
+  name: Multilingual Spoken Language Scope (vi, en, ja, auto-detect)
+  status: BASELINED
+- id: BR-048
+  name: Audio Message Quota & Duration Constraints
+  status: BASELINED
+- id: BR-049
+  name: STT Provider Failover & Local Web Speech API Fallback
+  status: BASELINED
+- id: BR-050
+  name: User Audio Verification & Playback Invariant
+  status: BASELINED
 security_requirements:
 - id: SEC-001
   name: API Key Hardening & Backend Isolation
@@ -832,4 +880,10 @@ security_requirements:
   notes: 'RETIRED: Phân tách khỏi phạm vi ứng dụng web học tiếng Nhật tập trung'
 - id: SEC-016
   name: Exam Submission & Resource Injection Sanitization
+  status: BASELINED
+- id: SEC-021
+  name: Audio Upload MIME Validation & Malicious Code Prevention
+  status: BASELINED
+- id: SEC-022
+  name: Audio Recording Privacy & Transient Storage Expiration
   status: BASELINED

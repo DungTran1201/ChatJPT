@@ -64,6 +64,14 @@ architecture:
     - Reference materials repository curation (Google Drive folders, Grammar guide,
       Dictionaries)
     - Preset exam immutability enforcement and link sanitization
+  - id: COMP-007
+    name: stt-transcription-service
+    type: speech-recognition-service
+    responsibilities:
+    - Multilingual speech-to-text pipeline (Vietnamese, English, Japanese)
+    - Whisper API / Faster-Whisper / Gemini multimodal audio integration
+    - Audio normalization, MIME magic byte validation, and temporary chunking
+    - Streaming transcription, language auto-detection, and confidence scoring
   boundaries:
   - name: client-boundary
     scope: Browser to Reverse Proxy / API Gateway

@@ -179,10 +179,21 @@ const handleStopGeneration = async () => {
 };
 
 // ── Send ──────────────────────────────────────────────────────────
-const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]) => {
+const handleSendMessage = async (
+  customPrompt?: string,
+  attachmentIds?: string[],
+  audioInfo?: {
+    audio_url: string;
+    audio_duration_ms: number;
+    stt_language: string;
+    stt_transcript: string;
+    audio_attachment_id?: string;
+  }
+) => {
   const textToSend = customPrompt !== undefined ? customPrompt : inputPrompt;
   const hasAttachments = Boolean(attachmentIds && attachmentIds.length > 0);
-  if ((!textToSend.trim() && !hasAttachments) || isStreaming) return;
+  const hasAudio = Boolean(audioInfo);
+  if ((!textToSend.trim() && !hasAttachments && !hasAudio) || isStreaming) return;
 
   let targetConvId = activeConvId;
 
@@ -210,6 +221,11 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
     content: textToSend.trim(),
     created_at: new Date().toISOString(),
     attachments: loadedAttachments.length > 0 ? loadedAttachments : undefined,
+    audio_url: audioInfo?.audio_url,
+    audio_duration_ms: audioInfo?.audio_duration_ms,
+    stt_language: audioInfo?.stt_language,
+    stt_transcript: audioInfo?.stt_transcript,
+    audio_attachment_id: audioInfo?.audio_attachment_id,
   };
 
   const assistantPlaceholderId = `assistant-${Date.now()}`;
@@ -245,6 +261,10 @@ const handleSendMessage = async (customPrompt?: string, attachmentIds?: string[]
         sensei_id: selectedSenseiId,
         language: language,
         attachments: attachmentIds && attachmentIds.length > 0 ? attachmentIds : undefined,
+        audio_attachment_id: audioInfo?.audio_attachment_id,
+        audio_duration_ms: audioInfo?.audio_duration_ms,
+        stt_language: audioInfo?.stt_language,
+        stt_transcript: audioInfo?.stt_transcript,
       }),
       signal: controller.signal,
     });

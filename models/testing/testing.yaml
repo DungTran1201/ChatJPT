@@ -346,3 +346,67 @@ test_model:
     priority: P0
     trace_req: FR-076
     trace_uc: UC-046
+  - id: TC-060
+    title: Vietnamese Spoken Voice Recording and STT Accurate Transcription
+    type: E2E
+    priority: P0
+    trace_req: FR-079
+    trace_uc: UC-021
+    trace_ac: AC-060
+  - id: TC-061
+    title: Japanese Kaiwa Spoken Audio Capture and Kanji/Kana Recognition
+    type: E2E
+    priority: P0
+    trace_req: FR-080
+    trace_uc: UC-021
+    trace_ac: AC-061
+  - id: TC-062
+    title: English Spoken Voice Transcription and Vocabulary Extraction
+    type: E2E
+    priority: P0
+    trace_req: FR-080
+    trace_uc: UC-021
+    trace_ac: AC-062
+  - id: TC-063
+    title: User Message Bubble Synchronized Audio Waveform Player and Transcript Display
+    type: UI/UX
+    priority: P0
+    trace_req: FR-081
+    trace_uc: UC-022
+    trace_ac: AC-063
+  - id: TC-064
+    title: Browser Microphone Permission Denied Graceful Warning and Remediation
+    type: UI/UX
+    priority: P1
+    trace_req: FR-079
+    trace_uc: UC-021
+    trace_ac: AC-064
+  - id: TC-065
+    title: Enforce 120s Maximum Voice Recording Auto-Stop Boundary (BR-048)
+    type: Functional
+    priority: P0
+    trace_req: FR-079
+    trace_uc: UC-021
+    trace_ac: AC-065
+  - id: TC-066
+    title: Enforce 10MB Maximum Audio Payload Rejection (HTTP 413, BR-048)
+    type: Security
+    priority: P0
+    trace_req: SEC-021
+    trace_uc: UC-021
+    trace_ac: AC-066
+  - id: TC-067
+    title: Network Failure Resilience and Local Audio Buffer Retention for Retry
+    type: Resilience
+    priority: P1
+    trace_req: FR-080
+    trace_uc: UC-021
+    trace_ac: AC-067
+  - id: TC-068
+    title: Audio File Magic Bytes Header Validation and Disguised Executable Defense
+      (SEC-021)
+    type: Security
+    priority: P0
+    trace_req: SEC-021
+    trace_uc: UC-021
+    trace_ac: AC-068

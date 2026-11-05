@@ -1,0 +1,38 @@
+work_item:
+  id: FEAT-006-multilingual-voice-input-stt
+  type: feature
+  risk: R2
+  status: VERIFIED
+  ready_for_stop: true
+  selected_artifacts:
+    - requirements
+    - use-case
+    - process-model
+    - bpmn
+    - swimlane
+    - api-contract
+    - sequence
+    - domain-model
+    - state-model
+    - security-spec
+    - threat-model
+    - ia
+    - user-flow
+    - test-plan
+  affected_artifacts:
+    - models/requirements/requirements.yaml
+    - models/api/api.yaml
+    - models/domain/domain.yaml
+    - models/interaction/interactions.yaml
+    - models/state/voice-input-state.yaml
+    - models/security/security-threat-model.yaml
+    - docs/02-requirements/SRS.md
+    - docs/06-architecture/sad.md
+    - docs/08-api/api-specification.md
+    - docs/features/voice-chat-stt/*
+    - diagrams/sequence/voice-input-stt-sequence.md
+    - diagrams/bpmn/voice-chat-bpmn.md
+    - diagrams/state/voice-recording-state.md
+    - diagrams/component/voice-stt-component.md
+    - diagrams/swimlane/voice-chat-swimlane.md
+

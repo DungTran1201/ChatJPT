@@ -15,6 +15,26 @@ export interface Message {
   source?: 'WEB' | 'DISCORD';
   status?: 'pending' | 'streaming' | 'completed' | 'error';
   attachments?: AttachmentItem[];
+  audio_url?: string;
+  audio_duration_ms?: number;
+  stt_language?: string;
+  stt_transcript?: string;
+  audio_attachment_id?: string;
+}
+
+export interface STTTranscriptResponse {
+  status: string;
+  data: {
+    attachment_id: string;
+    filename: string;
+    audio_url: string;
+    duration_ms: number;
+    transcript: string;
+    detected_language: string;
+    confidence: number;
+    engine_used?: string;
+    latency_ms?: number;
+  };
 }
 
 

@@ -8,6 +8,7 @@ import { isPredominantlyJapanese } from '@/utils/japaneseParser';
 
 import { AttachmentItem } from '@/services/attachmentService';
 import { MessageAttachments } from '@/components/ui/AttachmentUploader';
+import AudioPlayerBar from '@/components/chat/AudioPlayerBar';
 
 export interface Message {
   id: string;
@@ -21,6 +22,11 @@ export interface Message {
   attachments?: AttachmentItem[];
   sensei_id?: string | null;
   voice_id?: string | null;
+  audio_url?: string;
+  audio_duration_ms?: number;
+  stt_language?: string;
+  stt_transcript?: string;
+  audio_attachment_id?: string;
 }
 
 interface ChatWorkspaceProps {
@@ -718,6 +724,15 @@ export default function ChatWorkspace({
                 >
                   {isUser ? (
                     <>
+                      {msg.audio_url && (
+                        <div style={{ marginBottom: '8px' }}>
+                          <AudioPlayerBar
+                            audioUrl={msg.audio_url}
+                            durationMs={msg.audio_duration_ms}
+                            sttLanguage={msg.stt_language}
+                          />
+                        </div>
+                      )}
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div style={{ marginBottom: '8px' }}>
                           <MessageAttachments attachments={msg.attachments} />

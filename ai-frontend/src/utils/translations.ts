@@ -42,6 +42,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'chat.search_placeholder': 'Tìm kiếm đoạn chat...',
     'chat.send': 'Gửi tin nhắn',
     'chat.welcome_sub': 'Hôm nay bạn muốn luyện tập tiếng Nhật gì cùng Ai-Chan Sensei?',
+    'voice.input_title': 'Nhập liệu bằng giọng nói (STT: vi, en, ja)',
+    'voice.staged_label': 'Giọng nói',
+    'voice.discard': 'Gỡ bỏ ghi âm',
+    'voice.transcribing': 'Đang nhận diện giọng nói sang văn bản (STT)...',
+    'voice.mic_denied': 'Quyền truy cập Micro bị từ chối. Vui lòng cho phép micro trong cài đặt trình duyệt.',
 
     // COMMON
     'common.actions': 'Hành động',
@@ -808,6 +813,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'chat.search_placeholder': 'チャットを検索...',
     'chat.send': '送信',
     'chat.welcome_sub': '今日はAi-Chan先生と一緒にどんな日本語を勉強しますか？',
+    'voice.input_title': '音声入力 (STT: ベトナム語, 英語, 日本語)',
+    'voice.staged_label': '音声メッセージ',
+    'voice.discard': '音声を削除',
+    'voice.transcribing': '音声認識を実行中 (STT)...',
+    'voice.mic_denied': 'マイクのアクセスが拒否されました。ブラウザの設定でマイクを許可してください。',
 
     // COMMON
     'common.actions': '操作',

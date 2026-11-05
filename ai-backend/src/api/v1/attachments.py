@@ -211,9 +211,9 @@ async def upload_attachment(
     sql = """
         INSERT INTO attachments (
             id, user_id, conversation_id, prompt_id,
-            filename, file_size, mime_type, category, storage_path, checksum_sha256,
+            filename, file_size, mime_type, category, storage_path, stored_path, checksum_sha256,
             status, extracted_text, image_width, image_height
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     execute_commit(
         sql,
@@ -226,6 +226,7 @@ async def upload_attachment(
             file_meta["file_size"],
             file_meta["mime_type"],
             file_meta["category"],
+            file_meta["storage_path"],
             file_meta["storage_path"],
             file_meta["checksum_sha256"],
             file_meta["status"],

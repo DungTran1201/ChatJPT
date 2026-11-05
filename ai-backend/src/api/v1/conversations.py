@@ -75,7 +75,9 @@ async def get_conversation_messages(
 
     messages = query_all(
         """
-        SELECT id, conversation_id, role, content, model_used, tokens_prompt, tokens_completion, source, status, created_at, updated_at, sensei_id, voice_id
+        SELECT id, conversation_id, role, content, model_used, tokens_prompt, tokens_completion,
+               source, status, created_at, updated_at, sensei_id, voice_id,
+               audio_attachment_id, audio_duration_ms, stt_language, stt_confidence
         FROM messages
         WHERE conversation_id = ?
         ORDER BY created_at ASC, id ASC
@@ -102,6 +104,9 @@ async def get_conversation_messages(
 
     for msg in messages:
         msg["attachments"] = att_by_msg.get(msg["id"], [])
+        if msg.get("audio_attachment_id"):
+            msg["audio_url"] = f"/api/v1/attachments/{msg['audio_attachment_id']}/view"
+            msg["stt_transcript"] = msg.get("content", "")
 
     return {
         "conversation": conv,

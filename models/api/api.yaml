@@ -475,7 +475,31 @@ apis:
   - id: OP-065
     method: GET
     path: /exams/rag/search
-    summary: Query pedagogical RAG knowledge base for grammar, rules, and vocabulary references
+    summary: Query pedagogical RAG knowledge base for grammar, rules, and vocabulary
+      references
     use_case: UC-047
     source_refs:
     - FR-077
+  - id: OP-066
+    method: POST
+    path: /chat/stt
+    summary: Transcribe spoken audio (Vietnamese, English, Japanese) to text using
+      Whisper STT pipeline
+    use_case: UC-021
+    source_refs:
+    - FR-079
+    - FR-080
+    - BR-047
+    - SEC-021
+  - id: OP-067
+    method: POST
+    path: /conversations/{conv_id}/messages/audio-stream
+    summary: Upload voice audio, execute STT transcription, store user audio message,
+      and stream LLM response via SSE
+    use_case: UC-021
+    source_refs:
+    - FR-081
+    - FR-082
+    - BR-048
+    - BR-050
+    - SEC-022

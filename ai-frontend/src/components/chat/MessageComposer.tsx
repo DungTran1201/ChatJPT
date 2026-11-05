@@ -10,12 +10,24 @@ import {
   StagedFile
 } from '@/components/ui/AttachmentUploader';
 import { AttachmentService } from '@/services/attachmentService';
+import VoiceRecorder, { VoiceLanguage } from '@/components/chat/VoiceRecorder';
+import { STTService } from '@/services/sttService';
 import { useApp } from '@/context/AppContext';
 
 interface MessageComposerProps {
   inputPrompt: string;
   onInputChange: (val: string) => void;
-  onSend: (customPrompt?: string, attachmentIds?: string[]) => void;
+  onSend: (
+    customPrompt?: string,
+    attachmentIds?: string[],
+    audioInfo?: {
+      audio_url: string;
+      audio_duration_ms: number;
+      stt_language: string;
+      stt_transcript: string;
+      audio_attachment_id?: string;
+    }
+  ) => void;
   onStop?: () => void;
   isStreaming?: boolean;
   activeModels?: AgentModel[];
@@ -66,6 +78,15 @@ export default function MessageComposer({
   const [showDualSelector, setShowDualSelector] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [isTranscribingVoice, setIsTranscribingVoice] = useState(false);
+  const [stagedVoiceAudio, setStagedVoiceAudio] = useState<{
+    attachment_id: string;
+    audio_url: string;
+    duration_ms: number;
+    stt_language: string;
+    transcript: string;
+  } | null>(null);
 
   // Sensei Guidance state
   const [senseis, setSenseis] = useState<SystemPromptSummary[]>([]);
@@ -233,6 +254,59 @@ export default function MessageComposer({
     }
   };
 
+  const handleVoiceRecorded = async (
+    blob: Blob,
+    durationMs: number,
+    language: VoiceLanguage,
+    sendImmediately: boolean
+  ) => {
+    try {
+      setIsTranscribingVoice(true);
+      const sttData = await STTService.transcribeAudio(
+        blob,
+        language,
+        durationMs,
+        `voice-${Date.now()}.webm`
+      );
+
+      const transcript = (sttData.transcript || '').trim();
+      const voiceInfo = {
+        attachment_id: sttData.attachment_id,
+        audio_url: sttData.audio_url,
+        duration_ms: sttData.duration_ms || durationMs,
+        stt_language: sttData.detected_language || language,
+        transcript: transcript,
+      };
+      const audioPayload = {
+        audio_url: voiceInfo.audio_url,
+        audio_duration_ms: voiceInfo.duration_ms,
+        stt_language: voiceInfo.stt_language,
+        stt_transcript: voiceInfo.transcript,
+        audio_attachment_id: voiceInfo.attachment_id,
+      };
+
+      if (sendImmediately && transcript) {
+        setIsRecordingVoice(false);
+        setIsTranscribingVoice(false);
+        onSend(transcript, [sttData.attachment_id], audioPayload);
+      } else {
+        // Place transcribed text into textarea and keep staged voice audio
+        onInputChange(transcript ? (inputPrompt ? `${inputPrompt} ${transcript}` : transcript) : inputPrompt);
+        setStagedVoiceAudio(voiceInfo);
+        setIsRecordingVoice(false);
+        setIsTranscribingVoice(false);
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+        }
+      }
+    } catch (err: any) {
+      console.error('Voice transcription failed:', err);
+      alert(err.message || 'Không thể chuyển đổi giọng nói thành văn bản.');
+      setIsTranscribingVoice(false);
+      setIsRecordingVoice(false);
+    }
+  };
+
   const handleSendMessageWithAttachments = () => {
     const isUploadingAny = stagedFiles.some(f => f.status === 'UPLOADING');
     if (isUploadingAny) {
@@ -240,8 +314,21 @@ export default function MessageComposer({
       return;
     }
     const readyIds = stagedFiles.filter(f => f.status === 'READY' && f.id).map(f => f.id!);
-    onSend(undefined, readyIds.length > 0 ? readyIds : undefined);
+    const audioPayload = stagedVoiceAudio ? {
+      audio_url: stagedVoiceAudio.audio_url,
+      audio_duration_ms: stagedVoiceAudio.duration_ms,
+      stt_language: stagedVoiceAudio.stt_language,
+      stt_transcript: stagedVoiceAudio.transcript,
+      audio_attachment_id: stagedVoiceAudio.attachment_id,
+    } : undefined;
+
+    if (stagedVoiceAudio && !readyIds.includes(stagedVoiceAudio.attachment_id)) {
+      readyIds.push(stagedVoiceAudio.attachment_id);
+    }
+
+    onSend(undefined, readyIds.length > 0 ? readyIds : undefined, audioPayload);
     setStagedFiles([]);
+    setStagedVoiceAudio(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -254,7 +341,7 @@ export default function MessageComposer({
     }
   };
 
-  const hasInput = inputPrompt.trim().length > 0 || stagedFiles.some(f => f.status === 'READY');
+  const hasInput = inputPrompt.trim().length > 0 || stagedFiles.some(f => f.status === 'READY') || !!stagedVoiceAudio;
 
   return (
     <div
@@ -301,6 +388,72 @@ export default function MessageComposer({
           onRetry={handleRetryStagedFile}
         />
 
+        {/* Staged Voice Audio Chip */}
+        {stagedVoiceAudio && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-md, 8px)',
+              background: 'rgba(16, 185, 129, 0.12)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              fontSize: '0.78rem',
+              color: 'var(--accent, #10b981)',
+              width: 'fit-content',
+            }}
+          >
+            <span>🎙️ Giọng nói ({Math.round(stagedVoiceAudio.duration_ms / 1000)}s - {stagedVoiceAudio.stt_language.toUpperCase()})</span>
+            <button
+              type="button"
+              onClick={() => setStagedVoiceAudio(null)}
+              title="Gỡ bỏ ghi âm"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+                padding: '0 2px',
+                fontSize: '0.85rem',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Active Voice Recorder */}
+        {isRecordingVoice && (
+          <div style={{ margin: '4px 0 6px 0' }}>
+            <VoiceRecorder
+              onRecorded={handleVoiceRecorded}
+              onCancel={() => setIsRecordingVoice(false)}
+              isTranscribing={isTranscribingVoice}
+            />
+          </div>
+        )}
+
+        {/* Transcribing voice status */}
+        {isTranscribingVoice && !isRecordingVoice && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-md, 8px)',
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.25)',
+              color: 'var(--accent, #3b82f6)',
+              fontSize: '0.8rem',
+            }}
+          >
+            <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--accent, #3b82f6)', animation: 'pulse 1s infinite' }} />
+            <span>Đang nhận diện giọng nói sang văn bản (STT)...</span>
+          </div>
+        )}
+
         {/* Textarea */}
         <textarea
           ref={textareaRef}
@@ -338,9 +491,36 @@ export default function MessageComposer({
             borderTop: '1px solid var(--border-subtle)',
           }}
         >
-          {/* Left: attachments */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <AttachmentButton onFilesSelected={handleUploadFiles} disabled={isStreaming} />
+          {/* Left: attachments and voice recording */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <AttachmentButton onFilesSelected={handleUploadFiles} disabled={isStreaming || isRecordingVoice} />
+            <button
+              type="button"
+              onClick={() => setIsRecordingVoice(v => !v)}
+              disabled={isStreaming || isTranscribingVoice}
+              title="Nhập liệu bằng giọng nói (Voice Input STT: vi, en, ja)"
+              aria-label="Voice input"
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: isRecordingVoice ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                border: isRecordingVoice ? '1px solid #ef4444' : '1px solid var(--border-subtle)',
+                color: isRecordingVoice ? '#ef4444' : 'var(--text-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: isStreaming ? 'not-allowed' : 'pointer',
+                transition: 'all var(--transition-fast)',
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
           </div>
 
           {/* Right: Dual Sensei & Model Selector + Send */}

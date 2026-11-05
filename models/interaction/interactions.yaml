@@ -180,3 +180,26 @@ interactions:
   source_refs:
   - FR-077
   - UC-047
+- id: SEQ-018
+  scenario: Multilingual Voice Recording, Speech-to-Text Transcription, Audio Bubble
+    Rendering and Streaming AI Execution
+  participants:
+  - 'ACT-02: Learner'
+  - Next.js MessageComposer & AudioRecorder
+  - FastAPI STTRouter (/api/v1/chat/stt)
+  - Whisper / Gemini Multimodal STT Engine
+  - SQLite Database (attachments, messages)
+  - FastAPI ChatStream Engine
+  - LangGraph / LLM Provider
+  source_refs:
+  - FR-079
+  - FR-080
+  - FR-081
+  - FR-082
+  - BR-047
+  - BR-048
+  - BR-049
+  - BR-050
+  - SEC-021
+  - SEC-022
+  - UC-021

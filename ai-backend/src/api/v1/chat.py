@@ -4,7 +4,7 @@ import asyncio
 import os
 import time
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, HTTPException, status, Depends, Request
+from fastapi import APIRouter, HTTPException, status, Depends, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional, AsyncGenerator, List, Dict, Any
@@ -20,6 +20,10 @@ class MessageStreamRequest(BaseModel):
     sensei_id: Optional[str] = Field(default=None, description="ID của Sensei đồng hành (N5..N1)")
     language: Optional[str] = Field(default=None, description="Ngôn ngữ giao diện người dùng (vi, en, ja)")
     attachments: Optional[List[str]] = Field(default=None, description="Danh sách attachment_id đính kèm cho lượt chat này")
+    audio_attachment_id: Optional[str] = Field(default=None, description="ID tệp ghi âm giọng nói đính kèm (nếu gửi voice message)")
+    audio_duration_ms: Optional[int] = Field(default=0, description="Thời lượng tệp ghi âm (ms)")
+    stt_language: Optional[str] = Field(default=None, description="Mã ngôn ngữ ghi âm đã nhận diện (vi, en, ja, auto)")
+    stt_transcript: Optional[str] = Field(default=None, description="Bản dịch văn bản từ giọng nói qua STT")
 
 async def generate_mock_ai_stream(prompt: str, history: list) -> AsyncGenerator[str, None]:
     """Fallback high-quality AI streaming generator when external cloud keys are absent."""
@@ -137,13 +141,28 @@ async def stream_message_endpoint(
 
     # 3. Ghi nhận tin nhắn người dùng vào CSDL (bảng messages)
     user_msg_id = str(uuid.uuid4())
+    audio_att_id = req.audio_attachment_id
+    audio_dur = req.audio_duration_ms or 0
+    if not audio_att_id and req.attachments:
+        for aid in req.attachments:
+            att_row = query_one("SELECT id, mime_type, category FROM attachments WHERE id = ?", (aid,))
+            if att_row and (att_row.get("category") == "audio" or (att_row.get("mime_type") or "").startswith("audio/")):
+                audio_att_id = aid
+                break
+
     execute_commit(
         """
-        INSERT INTO messages (id, conversation_id, role, content, model_used)
-        VALUES (?, ?, 'user', ?, ?)
+        INSERT INTO messages (id, conversation_id, role, content, model_used, audio_attachment_id, audio_duration_ms, stt_language)
+        VALUES (?, ?, 'user', ?, ?, ?, ?, ?)
         """,
-        (user_msg_id, conversation_id, prompt_text, "client")
+        (user_msg_id, conversation_id, prompt_text, "client", audio_att_id, audio_dur, req.stt_language or req.language or "auto")
     )
+
+    if audio_att_id:
+        execute_commit(
+            "UPDATE attachments SET message_id = ?, conversation_id = ?, status = 'ATTACHED', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            (user_msg_id, conversation_id, audio_att_id)
+        )
 
     # 3.5. Xử lý và xác thực danh sách attachment_ids (Anti-IDOR, BR-002, Attachment Lifecycle)
     attachment_records: List[Dict[str, Any]] = []
@@ -511,3 +530,89 @@ async def stream_message_endpoint(
             "X-Accel-Buffering": "no"
         }
     )
+
+
+# ==============================================================================
+# SPEECH-TO-TEXT (STT) & VOICE MESSAGE INGESTION (FEAT-006, OP-066, FR-079..FR-082)
+# ==============================================================================
+
+@chat_router.post("/chat/stt", summary="Chuyển đổi âm thanh giọng nói thành văn bản (STT) đa ngữ")
+async def speech_to_text_endpoint(
+    file: UploadFile = File(..., description="Tệp âm thanh WebM, WAV, OGG, MP4"),
+    language: Optional[str] = Form("auto", description="Ngôn ngữ gợi ý: vi, en, ja, auto"),
+    duration_ms: Optional[int] = Form(0, description="Thời lượng thu âm (ms)"),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Tiếp nhận tệp âm thanh ghi âm từ microphone, kiểm tra an ninh (SEC-021),
+    lưu trữ tệp vào attachments và chuyển đổi thành văn bản qua Whisper/Gemini STT.
+    """
+    user_id = current_user["id"]
+    content_bytes = await file.read()
+    
+    # 1. Giới hạn dung lượng tệp 10MB (BR-048, SEC-021)
+    if len(content_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail={"error_code": "FILE_TOO_LARGE", "message": "Tệp âm thanh vượt quá giới hạn 10MB cho phép."}
+        )
+    if len(content_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error_code": "EMPTY_FILE", "message": "Tệp âm thanh rỗng (0 bytes)."}
+        )
+
+    # 2. Lưu trữ tệp âm thanh vào thư mục an toàn
+    from src.core.attachment_storage import save_attachment_file
+    from src.services.stt_service import STTService
+
+    try:
+        file_meta = save_attachment_file(user_id, file.filename or "voice.webm", content_bytes)
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error_code": "INVALID_AUDIO_FORMAT", "message": str(ve)}
+        )
+
+    att_id = file_meta["id"]
+    execute_commit(
+        """
+        INSERT INTO attachments (
+            id, user_id, filename, file_size, mime_type, category, storage_path, stored_path, checksum_sha256, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'READY')
+        """,
+        (
+            att_id, user_id, file_meta["filename"], file_meta["file_size"],
+            file_meta["mime_type"], "audio", file_meta["storage_path"],
+            file_meta["storage_path"], file_meta["checksum_sha256"]
+        )
+    )
+
+    # 3. Gọi dịch vụ chuyển đổi STT đa ngữ (FR-080, BR-047)
+    stt_res = await STTService.transcribe_audio(
+        audio_bytes=content_bytes,
+        filename=file_meta["filename"],
+        language_hint=language,
+        user_id=user_id
+    )
+
+    # Cập nhật extracted_text vào attachments
+    execute_commit(
+        "UPDATE attachments SET extracted_text = ? WHERE id = ?",
+        (stt_res.transcript, att_id)
+    )
+
+    return {
+        "status": "success",
+        "data": {
+            "attachment_id": att_id,
+            "filename": file_meta["filename"],
+            "audio_url": f"/api/v1/attachments/{att_id}/view",
+            "duration_ms": duration_ms or 0,
+            "transcript": stt_res.transcript,
+            "detected_language": stt_res.detected_language,
+            "confidence": stt_res.confidence,
+            "engine_used": stt_res.engine_used,
+            "latency_ms": stt_res.latency_ms
+        }
+    }

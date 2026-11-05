@@ -720,3 +720,29 @@ stateDiagram-v2
 | 13 | Có thể dùng SRS để xây dựng Test Plan / Test Case không? | **ĐẠT** | Có sẵn bộ tiêu chí nghiệm thu `AC-001` -> `AC-005` và các luồng ngoại lệ cụ thể. |
 | 14 | Có requirement nào mâu thuẫn không? | **ĐẠT** | Đã kiểm tra tính nhất quán giữa Scope, Business Rules và Functional Requirements. |
 | 15 | Có vi phạm quy định KHÔNG CODING không? | **ĐẠT** | Tuyệt đối không tạo/chỉnh sửa file mã nguồn nào; chỉ phát sinh tài liệu SRS tại `docs/SRS.md`. |
+
+
+---
+
+## 16. Phụ Lục Bổ Sung: Đặc Tả Nhập Liệu Giọng Nói Đa Ngữ (vi, en, ja) & Chuyển Đổi STT (FEAT-006)
+
+### 16.1 Yêu Cầu Chức Năng Bổ Sung
+- FR-079: Thu âm giọng nói đa ngữ qua Microphone trên trình duyệt web, hỗ trợ 3 ngôn ngữ giao tiếp: Tiếng Việt (vi), Tiếng Anh (en) và Tiếng Nhật (ja) với thanh sóng âm trực quan (UX-015).
+- FR-080: Đường ống chuyển đổi âm thanh giọng nói thành văn bản (STT Pipeline) qua mô hình Whisper/Gemini với khả năng nhận diện ngôn ngữ tự động và trả về phụ đề chuẩn xác.
+- FR-081: Hiển thị đồng bộ thanh phát âm thanh (Audio Player) cho phép nghe lại phát âm và văn bản chuyển đổi trên bong bóng chat của người dùng (UX-016).
+- FR-082: Điều phối trực tiếp văn bản sau chuyển đổi vào lõi LLM để sinh câu trả lời sư phạm kèm phân tích ngữ pháp liên dòng qua Server-Sent Events.
+
+### 16.2 Quy Tắc Nghiệp Vụ & Ràng Buộc
+- BR-047: Giới hạn phạm vi ngôn ngữ nhận dạng trong 3 ngôn ngữ: vi, en, ja (hoặc tự động phát hiện giữa 3 ngôn ngữ này).
+- BR-048: Giới hạn thời lượng thu âm tối đa 120 giây và dung lượng tệp âm thanh tối đa 10MB cho mỗi lượt nói.
+- BR-049: Cơ chế chịu lỗi chuyển đổi STT: Tự động chuyển vùng dự phòng hoặc sử dụng bản nháp cục bộ khi dịch vụ STT máy chủ gặp sự cố mạng.
+- BR-050: Bất biến hiển thị âm thanh người dùng: Luôn lưu và hiển thị trình phát âm thanh để người học có thể nghe lại và tự đối chiếu phát âm của bản thân.
+
+### 16.3 Yêu Cầu Phi Chức Năng & Bảo Mật
+- NFR-021: Độ trễ xử lý STT máy chủ phải nhỏ hơn 1.5 giây đối với đoạn thu âm dưới 15 giây.
+- NFR-022: Tối ưu hóa nén âm thanh WebM/Opus đạt dung lượng dưới 400KB cho 30 giây thu âm.
+- NFR-023: Quyền riêng tư âm thanh: Dữ liệu giọng nói được bảo vệ, cách ly theo phiên tài khoản người dùng và truyền tải qua TLS 1.3.
+- SEC-021: Xác thực Magic Bytes định dạng âm thanh (chặn tệp thực thi giả mạo đuôi audio).
+- SEC-022: Phân quyền truy cập tệp ghi âm, chống lỗ hổng tham chiếu trực tiếp đối tượng không an toàn (IDOR).
+- UX-015: Giao diện thu âm trực quan kèm thanh sóng âm động (Waveform Visualizer) trong MessageComposer.
+- UX-016: Giao diện phát lại âm thanh dạng thanh nhỏ gọn (Audio Player Bar) tích hợp trong bong bóng tin nhắn.

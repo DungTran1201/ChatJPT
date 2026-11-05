@@ -140,3 +140,16 @@ flowchart TD
 5. **AI Agent Framework (LangChain & LangGraph - ADR-005)**: Chuẩn hóa điều phối Agent qua đồ thị trạng thái StateGraph có khả năng xử lý failover mượt mà, tải các adapter nhà cung cấp động dựa trên key cấu hình trong `.env`, hỗ trợ truyền luồng token thời gian thực qua SSE.
 6. **Multi-Provider Agent Model Manager (ADR-006)**: Quản lý danh mục mô hình tập trung từ các nhà cung cấp bên ngoài (Google, Anthropic, OpenAI, Groq, Ollama), cung cấp cơ chế kiểm tra kết nối trực tiếp (Ping/Health Check), kích hoạt và hủy kích hoạt linh hoạt qua chính sách Soft State (không xóa cứng theo `BR-012`), và bảo toàn bất biến duy trì ít nhất một mô hình mặc định hoạt động (`BR-013`).
 
+
+
+---
+
+## 5. Kiến Trúc Mở Rộng: Module Nhập Liệu Giọng Nói & STT (FEAT-006, ADR-008)
+
+### 5.1 Quyết Định Kiến Trúc ADR-008: Hybrid STT Pipeline
+- **Bối cảnh**: Người học tiếng Nhật cần luyện tập phản xạ giao tiếp Kaiwa bằng giọng nói (tiếng Việt, tiếng Anh, tiếng Nhật) thay vì chỉ gõ phím.
+- **Quyết định**: Áp dụng kiến trúc lai (Hybrid Dual-Mode STT Pipeline):
+  1. *Client-Side Capture*: Sử dụng Web Audio API kết hợp MediaRecorder API nén chuẩn Opus/WebM (24-32kbps Mono 16kHz) trực tiếp trong trình duyệt để giảm tải băng thông mạng (NFR-022).
+  2. *Server-Side STT Engine (COMP-007)*: Máy chủ FastAPI tiếp nhận tệp âm thanh qua endpoint POST /api/v1/chat/stt (OP-066), xác thực Magic Bytes (SEC-021), lưu trữ tệp vào bảng ttachments và điều phối sang OpenAI Whisper hoặc Google Gemini Multimodal Audio để nhận diện đa ngữ chính xác cao (FR-080, BR-047).
+  3. *Dual-Display Message Bubble*: Tin nhắn của người dùng trong khung chat hiển thị song song cả trình phát âm thanh (Audio Player) và đoạn văn bản chuyển đổi (Transcript) để người học tự kiểm tra phát âm của bản thân (FR-081, BR-050, UX-016).
+  4. *Direct LLM Ingestion*: Đoạn văn bản sau STT được đưa trực tiếp vào đồ thị LangGraph Agent để Sensei phân tích ngữ pháp liên dòng và phản hồi thời gian thực qua luồng Server-Sent Events (FR-082, OP-067).
