@@ -6,24 +6,13 @@ import time
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, status, Depends, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 from typing import Optional, AsyncGenerator, List, Dict, Any
 from src.core.security import get_current_user, app_rate_limiter
 from src.core.telemetry import quota_manager, metric_logger
 from src.db import query_one, query_all, execute_commit
+from src.schemas.v1.chat import MessageStreamRequest
 
 chat_router = APIRouter(tags=["Chat Streaming"])
-
-class MessageStreamRequest(BaseModel):
-    content: str = Field(default="", max_length=4000, description="Nội dung prompt câu hỏi (tối đa 4000 ký tự)")
-    model: Optional[str] = "gemini-3.8-flash"
-    sensei_id: Optional[str] = Field(default=None, description="ID của Sensei đồng hành (N5..N1)")
-    language: Optional[str] = Field(default=None, description="Ngôn ngữ giao diện người dùng (vi, en, ja)")
-    attachments: Optional[List[str]] = Field(default=None, description="Danh sách attachment_id đính kèm cho lượt chat này")
-    audio_attachment_id: Optional[str] = Field(default=None, description="ID tệp ghi âm giọng nói đính kèm (nếu gửi voice message)")
-    audio_duration_ms: Optional[int] = Field(default=0, description="Thời lượng tệp ghi âm (ms)")
-    stt_language: Optional[str] = Field(default=None, description="Mã ngôn ngữ ghi âm đã nhận diện (vi, en, ja, auto)")
-    stt_transcript: Optional[str] = Field(default=None, description="Bản dịch văn bản từ giọng nói qua STT")
 
 async def generate_mock_ai_stream(prompt: str, history: list) -> AsyncGenerator[str, None]:
     """Fallback high-quality AI streaming generator when external cloud keys are absent."""

@@ -1,39 +1,20 @@
 import uuid
-import re
-from typing import Optional
-from fastapi import APIRouter, Response, Request, HTTPException, status, Depends
-from fastapi.responses import RedirectResponse, HTMLResponse
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Response, HTTPException, status, Depends
 from src.core.security import (
     hash_password,
     verify_password,
     create_access_token,
     get_current_user,
-    generate_oauth_state,
-    verify_oauth_state,
-    parse_oauth_state
 )
 from src.db import query_one, execute_commit
+from src.models.v1.user import EMAIL_REGEX, UserModel
+from src.schemas.v1.auth import (
+    RegisterRequest,
+    LoginRequest,
+    UserProfileResponse,
+)
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-class RegisterRequest(BaseModel):
-    email: str = Field(description="Email đăng ký")
-    password: str = Field(min_length=6, description="Mật khẩu tối thiểu 6 ký tự")
-    full_name: Optional[str] = ""
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-class UserProfileResponse(BaseModel):
-    id: str
-    email: str
-    full_name: Optional[str] = ""
-    status: str
-    created_at: str
 
 @auth_router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(req: RegisterRequest):
@@ -126,40 +107,7 @@ async def login(req: LoginRequest, response: Response):
 
     return {
         "message": "Đăng nhập thành công!",
-        "user": {
-            "id": user["id"],
-            "email": user["email"],
-            "full_name": user["full_name"],
-            "username": user["username"],
-            "avatar_url": user["avatar_url"],
-            "bio": user["bio"],
-            "phone_number": user["phone_number"],
-            "age": user.get("age"),
-            "occupation": user.get("occupation") or "",
-            "interests": user.get("interests") or "",
-            "japanese_level": user.get("japanese_level") or "CHUA_HOC",
-            "learning_goal": user.get("learning_goal") or "",
-            "discord_id": user.get("discord_id"),
-            "discord_username": user.get("discord_username"),
-            "custom_bg_url": user.get("custom_bg_url") or "",
-            "bg_opacity": user.get("bg_opacity") if user.get("bg_opacity") is not None else 90,
-            "bg_blur": user.get("bg_blur") if user.get("bg_blur") is not None else 12,
-            "bg_dim": user.get("bg_dim") if user.get("bg_dim") is not None else 0,
-            "accent_color": user.get("accent_color") or "emerald",
-            "ui_font_size": user.get("ui_font_size") or "medium",
-            "theme_preference": user["theme_preference"] or "DARK",
-            "language_preference": user["language_preference"] or "vi",
-            "response_show_translation": bool(user.get("response_show_translation", 1)),
-            "response_show_furigana": bool(user.get("response_show_furigana", 1)),
-            "response_highlight_grammar": bool(user.get("response_highlight_grammar", 1)),
-            "response_show_romaji": bool(user.get("response_show_romaji", 1)),
-            "response_grammar_breakdown": bool(user.get("response_grammar_breakdown", 1)),
-            "response_audio_speech": bool(user.get("response_audio_speech", 1)),
-            "response_bilingual_mode": user.get("response_bilingual_mode") or "interlinear",
-            "status": user["status"],
-            "created_at": user["created_at"],
-            "last_login_at": user["last_login_at"]
-        },
+        "user": UserModel.from_user_row(user).to_login_dict(),
         "token": token
     }
 

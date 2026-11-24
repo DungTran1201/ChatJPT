@@ -1,4 +1,3 @@
-import os
 import re
 import uuid
 import json
@@ -7,10 +6,30 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from fastapi.responses import FileResponse, RedirectResponse
-from pydantic import BaseModel, Field, validator
 
 from src.core.security import get_optional_current_user
 from src.db import query_one, query_all, execute_commit
+from src.models.v1.exam import (
+    VALID_EXAM_LEVELS as VALID_LEVELS,
+    VALID_MATERIAL_CATEGORIES,
+    ExamEntity,
+    ExamQuestionEntity,
+    ReferenceMaterialEntity,
+)
+from src.schemas.v1.exams import (
+    ExamQuestionSummary,
+    ExamSummaryResponse,
+    ExamDetailResponse,
+    ExamListResponse,
+    ExamCreateRequest,
+    ExamUpdateRequest,
+    ExamSubmissionRequest,
+    QuestionResultItem,
+    ExamSubmissionResult,
+    ReferenceMaterialItem,
+    ReferenceMaterialListResponse,
+    ReferenceMaterialCreateRequest,
+)
 from src.services.rag_exam_service import RagExamService
 
 logger = logging.getLogger("exams_api")
@@ -21,172 +40,6 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent.parent.parent
 PROJECT_ROOT = BACKEND_DIR.parent
 DATA_DIR = BACKEND_DIR / "data"
 MATERIALS_DIR = DATA_DIR / "reference_materials"
-
-VALID_LEVELS = {"N5", "N4", "N3", "N2", "N1", "KAIWA", "GENERAL"}
-VALID_MATERIAL_CATEGORIES = {
-    "JLPT_N5", "JLPT_N4", "JLPT_N3", "JLPT_N2", "JLPT_N1",
-    "KAIWA", "GRAMMAR_GUIDE", "VOCABULARY_DICT"
-}
-
-# ==============================================================================
-# PYDANTIC SCHEMAS
-# ==============================================================================
-
-class ExamQuestionSummary(BaseModel):
-    id: str
-    section: str
-    question_number: int
-    question_text: str
-    furigana_text: Optional[str] = None
-    option_1: str
-    option_2: str
-    option_3: str
-    option_4: str
-    correct_option: Optional[int] = None
-    explanation: Optional[str] = None
-
-class ExamSummaryResponse(BaseModel):
-    id: str
-    title: str
-    description: Optional[str] = None
-    level: str
-    category: str
-    year: Optional[int] = None
-    duration_minutes: int
-    total_questions: int
-    passing_score: int
-    max_score: int
-    drive_folder_url: Optional[str] = None
-    status: str
-    is_system_preset: bool
-    user_id: Optional[str] = "system"
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-class ExamDetailResponse(ExamSummaryResponse):
-    questions: List[ExamQuestionSummary] = []
-
-class ExamListResponse(BaseModel):
-    total: int
-    items: List[ExamSummaryResponse]
-
-class ExamCreateRequest(BaseModel):
-    title: str = Field(..., min_length=3, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=1000)
-    level: str = Field(..., description="N5, N4, N3, N2, N1, KAIWA, or GENERAL")
-    category: Optional[str] = Field(default="JLPT_FULL", max_length=50)
-    year: Optional[int] = Field(default=2024, ge=2000, le=2100)
-    duration_minutes: Optional[int] = Field(default=60, ge=5, le=300)
-    passing_score: Optional[int] = Field(default=90, ge=1, le=500)
-    max_score: Optional[int] = Field(default=180, ge=1, le=500)
-    drive_folder_url: Optional[str] = Field(default=None, max_length=1000)
-    status: Optional[str] = Field(default="ACTIVE")
-
-    @validator("level")
-    def validate_level(cls, v):
-        up = v.upper()
-        if up not in VALID_LEVELS:
-            raise ValueError(f"Cấp độ không hợp lệ: {v}. Phải là một trong {list(VALID_LEVELS)}")
-        return up
-
-    @validator("drive_folder_url")
-    def validate_drive_url(cls, v):
-        if v and not v.startswith("https://") and not v.startswith("/"):
-            raise ValueError("Đường dẫn liên kết phải sử dụng giao thức HTTPS bảo mật hoặc đường dẫn nội bộ")
-        return v
-
-class ExamUpdateRequest(BaseModel):
-    title: Optional[str] = Field(default=None, min_length=3, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=1000)
-    level: Optional[str] = None
-    category: Optional[str] = None
-    year: Optional[int] = None
-    duration_minutes: Optional[int] = None
-    passing_score: Optional[int] = None
-    max_score: Optional[int] = None
-    drive_folder_url: Optional[str] = None
-    status: Optional[str] = None
-
-    @validator("level")
-    def validate_level(cls, v):
-        if v is not None:
-            up = v.upper()
-            if up not in VALID_LEVELS:
-                raise ValueError(f"Cấp độ không hợp lệ: {v}. Phải là một trong {list(VALID_LEVELS)}")
-            return up
-        return v
-
-class ExamSubmissionRequest(BaseModel):
-    answers: Dict[str, int] = Field(..., description="Map of question_id to selected option (1..4)")
-
-class QuestionResultItem(BaseModel):
-    question_id: str
-    user_answer: Optional[int]
-    correct_answer: int
-    is_correct: bool
-    explanation: Optional[str]
-
-class ExamSubmissionResult(BaseModel):
-    exam_id: str
-    total_questions: int
-    answered_count: int
-    correct_count: int
-    score: int
-    max_score: int
-    passing_score: int
-    passed: bool
-    feedback_message: str
-    results: List[QuestionResultItem]
-
-class ReferenceMaterialItem(BaseModel):
-    id: str
-    title: str
-    description: Optional[str] = None
-    category: str
-    level: str
-    source_type: str
-    external_url: str
-    author: Optional[str] = None
-    file_type: str = "pdf"
-    tags: Optional[str] = None
-    is_pinned: bool = False
-    is_system_preset: bool = True
-    is_local_available: bool = True
-    size_display: Optional[str] = None
-    view_url: Optional[str] = None
-    download_url: Optional[str] = None
-    user_id: Optional[str] = "system"
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-class ReferenceMaterialListResponse(BaseModel):
-    total: int
-    items: List[ReferenceMaterialItem]
-
-class ReferenceMaterialCreateRequest(BaseModel):
-    title: str = Field(..., min_length=2, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=1000)
-    category: str = Field(...)
-    level: Optional[str] = Field(default="ALL")
-    source_type: Optional[str] = Field(default="LOCAL_FILE")
-    external_url: str = Field(..., max_length=1000)
-    author: Optional[str] = Field(default=None, max_length=100)
-    file_type: Optional[str] = Field(default="pdf")
-    tags: Optional[str] = Field(default=None, max_length=255)
-    is_pinned: Optional[bool] = False
-
-    @validator("category")
-    def validate_category(cls, v):
-        up = v.upper()
-        if up not in VALID_MATERIAL_CATEGORIES:
-            raise ValueError(f"Chuyên mục tài liệu không hợp lệ: {v}")
-        return up
-
-    @validator("external_url")
-    def validate_url(cls, v):
-        if not v.startswith("https://") and not v.startswith("/"):
-            raise ValueError("Đường dẫn liên kết phải sử dụng giao thức HTTPS bảo mật hoặc đường dẫn nội bộ")
-        return v
 
 # ==============================================================================
 # HELPER: RESOLVE LOCAL MATERIAL FILE
@@ -252,36 +105,16 @@ async def list_reference_materials(
     sql += " ORDER BY is_pinned DESC, created_at ASC"
     rows = query_all(sql, tuple(params))
 
-    items = []
-    for r in rows:
-        mat_id = r["id"]
-        source_type = r.get("source_type") or "LOCAL_FILE"
-        view_url = f"/api/v1/exams/materials/view/{mat_id}" if source_type == "LOCAL_FILE" else r["external_url"]
-        download_url = f"/api/v1/exams/materials/download/{mat_id}" if source_type == "LOCAL_FILE" else r["external_url"]
-
-        items.append(
-            ReferenceMaterialItem(
-                id=mat_id,
-                title=r["title"],
-                description=r.get("description"),
-                category=r["category"],
-                level=r["level"] or "ALL",
-                source_type=source_type,
-                external_url=r["external_url"],
-                author=r.get("author") or "Kho học liệu tiếng Nhật ChatJPT",
-                file_type=r.get("file_type") or "pdf",
-                tags=r.get("tags"),
-                is_pinned=bool(r.get("is_pinned", 0)),
-                is_system_preset=bool(r.get("is_system_preset", 1)),
-                is_local_available=True,
-                size_display=r.get("description", "").split('(')[-1].split(')')[0] if '(' in r.get("description", "") else "Tài liệu",
-                view_url=view_url,
-                download_url=download_url,
-                user_id=r.get("user_id", "system"),
-                created_at=str(r.get("created_at") or ""),
-                updated_at=str(r.get("updated_at") or "")
+    items = [
+        ReferenceMaterialItem.from_entity(
+            ReferenceMaterialEntity.from_material_row(
+                r,
+                default_author="Kho học liệu tiếng Nhật ChatJPT",
+                compute_size_display=True,
             )
         )
+        for r in rows
+    ]
 
     return ReferenceMaterialListResponse(total=len(items), items=items)
 
@@ -366,25 +199,12 @@ async def create_reference_material(
     ))
 
     created = query_one("SELECT * FROM reference_materials WHERE id = ?", (mat_id,))
-    return ReferenceMaterialItem(
-        id=created["id"],
-        title=created["title"],
-        description=created.get("description"),
-        category=created["category"],
-        level=created["level"] or "ALL",
-        source_type=created["source_type"] or "LOCAL_FILE",
-        external_url=created["external_url"],
-        author=created.get("author"),
-        file_type=created.get("file_type") or "pdf",
-        tags=created.get("tags"),
-        is_pinned=bool(created.get("is_pinned", 0)),
-        is_system_preset=False,
-        is_local_available=True,
-        view_url=f"/api/v1/exams/materials/view/{mat_id}",
-        download_url=f"/api/v1/exams/materials/download/{mat_id}",
-        user_id=user_id,
-        created_at=str(created.get("created_at") or ""),
-        updated_at=str(created.get("updated_at") or "")
+    return ReferenceMaterialItem.from_entity(
+        ReferenceMaterialEntity.from_material_row(
+            created,
+            force_system_preset=False,
+            user_id_override=user_id,
+        )
     )
 
 @exams_router.delete("/materials/{material_id}")
@@ -446,23 +266,8 @@ async def list_exams(
         q_count_row = query_one("SELECT COUNT(*) as count FROM exam_questions WHERE exam_id = ?", (r["id"],))
         actual_q_count = q_count_row["count"] if q_count_row else r["total_questions"]
         items.append(
-            ExamSummaryResponse(
-                id=r["id"],
-                title=r["title"],
-                description=r.get("description"),
-                level=r["level"],
-                category=r.get("category") or "JLPT_FULL",
-                year=r.get("year"),
-                duration_minutes=r["duration_minutes"] or 60,
-                total_questions=actual_q_count,
-                passing_score=r["passing_score"] or 90,
-                max_score=r["max_score"] or 180,
-                drive_folder_url=r.get("drive_folder_url"),
-                status=r.get("status") or "ACTIVE",
-                is_system_preset=bool(r.get("is_system_preset", 1)),
-                user_id=r.get("user_id", "system"),
-                created_at=str(r.get("created_at") or ""),
-                updated_at=str(r.get("updated_at") or "")
+            ExamSummaryResponse.from_entity(
+                ExamEntity.from_exam_row(r, total_questions_override=actual_q_count, default_is_preset=1)
             )
         )
 
@@ -486,42 +291,16 @@ async def get_exam_detail(
         (exam_id,)
     )
 
-    questions = [
-        ExamQuestionSummary(
-            id=q["id"],
-            section=q["section"],
-            question_number=q["question_number"],
-            question_text=q["question_text"],
-            furigana_text=q.get("furigana_text"),
-            option_1=q["option_1"],
-            option_2=q["option_2"],
-            option_3=q["option_3"],
-            option_4=q["option_4"],
-            correct_option=q["correct_option"] if include_answers else None,
-            explanation=q.get("explanation") if include_answers else None
-        )
+    question_entities = [
+        ExamQuestionEntity.from_question_row(q, include_answers=include_answers)
         for q in questions_raw
     ]
-
-    return ExamDetailResponse(
-        id=exam["id"],
-        title=exam["title"],
-        description=exam.get("description"),
-        level=exam["level"],
-        category=exam.get("category") or "JLPT_FULL",
-        year=exam.get("year"),
-        duration_minutes=exam["duration_minutes"] or 60,
-        total_questions=len(questions),
-        passing_score=exam["passing_score"] or 90,
-        max_score=exam["max_score"] or 180,
-        drive_folder_url=exam.get("drive_folder_url"),
-        status=exam.get("status") or "ACTIVE",
-        is_system_preset=bool(exam.get("is_system_preset", 1)),
-        user_id=exam.get("user_id", "system"),
-        created_at=str(exam.get("created_at") or ""),
-        updated_at=str(exam.get("updated_at") or ""),
-        questions=questions
+    exam_entity = ExamEntity.from_exam_row(
+        exam,
+        total_questions_override=len(question_entities),
+        default_is_preset=1,
     )
+    return ExamDetailResponse.from_entities(exam_entity, question_entities)
 
 @exams_router.post("", response_model=ExamSummaryResponse, status_code=status.HTTP_201_CREATED)
 async def create_exam(
@@ -550,23 +329,13 @@ async def create_exam(
     ))
 
     created = query_one("SELECT * FROM exams WHERE id = ?", (exam_id,))
-    return ExamSummaryResponse(
-        id=created["id"],
-        title=created["title"],
-        description=created.get("description"),
-        level=created["level"],
-        category=created.get("category") or "JLPT_FULL",
-        year=created.get("year"),
-        duration_minutes=created["duration_minutes"] or 60,
-        total_questions=0,
-        passing_score=created["passing_score"] or 90,
-        max_score=created["max_score"] or 180,
-        drive_folder_url=created.get("drive_folder_url"),
-        status=created.get("status") or "ACTIVE",
-        is_system_preset=False,
-        user_id=user_id,
-        created_at=str(created.get("created_at") or ""),
-        updated_at=str(created.get("updated_at") or "")
+    return ExamSummaryResponse.from_entity(
+        ExamEntity.from_exam_row(
+            created,
+            total_questions_override=0,
+            default_is_preset=0,
+            user_id_override=user_id,
+        )
     )
 
 @exams_router.put("/{exam_id}", response_model=ExamSummaryResponse)
@@ -584,7 +353,7 @@ async def update_exam(
 
     updates = []
     params = []
-    for field, val in payload.dict(exclude_unset=True).items():
+    for field, val in payload.model_dump(exclude_unset=True).items():
         if val is not None:
             updates.append(f"{field} = ?")
             params.append(val)
@@ -595,24 +364,7 @@ async def update_exam(
         execute_commit(sql, tuple(params))
 
     updated = query_one("SELECT * FROM exams WHERE id = ?", (exam_id,))
-    return ExamSummaryResponse(
-        id=updated["id"],
-        title=updated["title"],
-        description=updated.get("description"),
-        level=updated["level"],
-        category=updated.get("category") or "JLPT_FULL",
-        year=updated.get("year"),
-        duration_minutes=updated["duration_minutes"] or 60,
-        total_questions=updated.get("total_questions", 0),
-        passing_score=updated["passing_score"] or 90,
-        max_score=updated["max_score"] or 180,
-        drive_folder_url=updated.get("drive_folder_url"),
-        status=updated.get("status") or "ACTIVE",
-        is_system_preset=bool(updated.get("is_system_preset", 0)),
-        user_id=updated.get("user_id", "system"),
-        created_at=str(updated.get("created_at") or ""),
-        updated_at=str(updated.get("updated_at") or "")
-    )
+    return ExamSummaryResponse.from_entity(ExamEntity.from_exam_row(updated, default_is_preset=0))
 
 @exams_router.delete("/{exam_id}")
 async def delete_exam(

@@ -6,95 +6,36 @@ Security: Anti-IDOR, Path Traversal Protection, Rate Limiting, MIME Sniffing, Ex
 """
 
 import io
-import uuid
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 
 from src.core.config import settings
-from src.core.security import app_rate_limiter
-from src.core.security import get_optional_current_user
-
+from src.core.security import app_rate_limiter, get_optional_current_user
 from src.core.attachment_storage import (
     save_attachment_file,
     read_attachment_bytes,
     delete_attachment_file,
-    get_attachment_absolute_path
 )
 from src.db import query_one, query_all, execute_commit
+from src.models.v1.attachment import (
+    ALLOWED_ATTACHMENT_CATEGORIES,
+    SUPPORTED_ATTACHMENT_MIME_TYPES,
+    AttachmentEntity,
+)
+from src.schemas.v1.attachments import (
+    AttachmentResponse,
+    AttachmentListResponse,
+    ModelCapability,
+    CapabilityResponse,
+)
 
 attachments_router = APIRouter(prefix="/attachments", tags=["File Attachments & Assets"])
-
-# ==============================================================================
-# PYDANTIC RESPONSE SCHEMAS
-# ==============================================================================
-
-class AttachmentResponse(BaseModel):
-    id: str
-    filename: str
-    file_size: int
-    mime_type: str
-    category: str
-    status: str
-    checksum_sha256: Optional[str] = None
-    extracted_text: Optional[str] = None
-    created_at: str
-    download_url: str
-    view_url: str
-    extracted_text_preview: Optional[str] = None
-    image_width: Optional[int] = None
-    image_height: Optional[int] = None
-    conversation_id: Optional[str] = None
-    message_id: Optional[str] = None
-    prompt_id: Optional[str] = None
-
-class AttachmentListResponse(BaseModel):
-    items: List[AttachmentResponse]
-    total: int
-
-class ModelCapability(BaseModel):
-    model_id: str
-    provider: str
-    supports_images: bool
-    supports_pdf_native: bool
-    supports_text_documents: bool
-    max_file_size_mb: int
-
-class CapabilityResponse(BaseModel):
-    default_provider: str
-    max_file_size_mb: int
-    max_files_per_request: int
-    allowed_categories: List[str]
-    supported_mime_types: List[str]
-    models: List[ModelCapability]
 
 
 def format_attachment_response(row: Dict[str, Any]) -> AttachmentResponse:
     """Formats database row into standard AttachmentResponse model."""
-    att_id = row["id"]
-    extracted = row.get("extracted_text") or ""
-    preview = extracted[:200] + "..." if len(extracted) > 200 else (extracted or None)
-
-    return AttachmentResponse(
-        id=att_id,
-        filename=row["filename"],
-        file_size=row["file_size"],
-        mime_type=row["mime_type"],
-        category=row["category"],
-        status=row["status"],
-        checksum_sha256=row.get("checksum_sha256"),
-        extracted_text=row.get("extracted_text"),
-        created_at=str(row["created_at"]),
-        download_url=f"/api/v1/attachments/{att_id}/download",
-        view_url=f"/api/v1/attachments/{att_id}/view",
-        extracted_text_preview=preview,
-        image_width=row.get("image_width"),
-        image_height=row.get("image_height"),
-        conversation_id=row.get("conversation_id"),
-        message_id=row.get("message_id"),
-        prompt_id=row.get("prompt_id"),
-    )
+    return AttachmentResponse.from_entity(AttachmentEntity.from_attachment_row(row))
 
 
 # ==============================================================================
@@ -112,13 +53,8 @@ async def get_attachment_capabilities(
         "default_provider": settings.DEFAULT_LLM_PROVIDER or "gemini",
         "max_file_size_mb": settings.MAX_FILE_SIZE_MB,
         "max_files_per_request": settings.MAX_FILES_PER_REQUEST,
-        "allowed_categories": ["image", "document", "code", "archive", "audio", "video", "other"],
-        "supported_mime_types": [
-            "image/png", "image/jpeg", "image/webp", "image/gif",
-            "application/pdf",
-            "text/plain", "text/markdown", "text/csv", "application/json",
-            "text/x-python", "text/javascript", "text/typescript", "text/html", "text/css"
-        ],
+        "allowed_categories": ALLOWED_ATTACHMENT_CATEGORIES,
+        "supported_mime_types": SUPPORTED_ATTACHMENT_MIME_TYPES,
         "models": [
             {
                 "model_id": "gemini-3.8-flash",

@@ -1,17 +1,14 @@
 import uuid
 from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from src.core.security import get_current_user
 from src.db import query_one, query_all, execute_commit
+from src.models.v1.conversation import DEFAULT_CONVERSATION_TITLE, MessageModel
+from src.schemas.v1.conversations import (
+    CreateConversationRequest,
+    UpdateConversationRequest,
+)
 
 conv_router = APIRouter(prefix="/conversations", tags=["Conversations"])
-
-class CreateConversationRequest(BaseModel):
-    title: Optional[str] = "Cuộc trò chuyện mới"
-
-class UpdateConversationRequest(BaseModel):
-    title: str = Field(min_length=1, max_length=255)
 
 @conv_router.get("/")
 @conv_router.get("", include_in_schema=False)
@@ -38,7 +35,7 @@ async def create_conversation(
 ):
     conv_id = str(uuid.uuid4())
     user_id = current_user["id"]
-    title_clean = req.title.strip() if req.title else "Cuộc trò chuyện mới"
+    title_clean = req.title.strip() if req.title else DEFAULT_CONVERSATION_TITLE
 
     execute_commit(
         """
@@ -96,17 +93,7 @@ async def get_conversation_messages(
         (conversation_id,)
     )
 
-    att_by_msg = {}
-    for att in raw_attachments:
-        mid = att.get("message_id")
-        if mid:
-            att_by_msg.setdefault(mid, []).append(att)
-
-    for msg in messages:
-        msg["attachments"] = att_by_msg.get(msg["id"], [])
-        if msg.get("audio_attachment_id"):
-            msg["audio_url"] = f"/api/v1/attachments/{msg['audio_attachment_id']}/view"
-            msg["stt_transcript"] = msg.get("content", "")
+    MessageModel.enrich_messages_with_attachments(messages, raw_attachments)
 
     return {
         "conversation": conv,

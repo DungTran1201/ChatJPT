@@ -1,7 +1,6 @@
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
 
+from src.schemas.v1.health import HealthResponse
 from src.api.v1.auth import auth_router
 from src.api.v1.conversations import conv_router
 from src.api.v1.chat import chat_router
@@ -15,13 +14,6 @@ from src.api.v1.api_keys import api_keys_router
 from src.api.v1.embedded_model import embedded_router
 from src.api.v1.voices import voices_router
 from src.api.v1.exams import exams_router
-
-class HealthResponse(BaseModel):
-    model_config = {"extra": "allow"}
-    status: str = Field(default="healthy")
-    service: Optional[str] = Field(default="ai-backend")
-    version: Optional[str] = Field(default="1.0.0")
-    details: Optional[Dict[str, Any]] = None
 
 api_router = APIRouter()
 

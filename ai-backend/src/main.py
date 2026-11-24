@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.core.config import settings
 from src.core.telemetry_middleware import TelemetryMiddleware
-from src.api.v1.router import api_router, HealthResponse
+from src.api.v1.router import api_router
+from src.schemas.v1.health import HealthResponse
 
 app = FastAPI(
     title="ChatJPT Japanese Learning Backend API",

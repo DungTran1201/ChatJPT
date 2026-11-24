@@ -1,20 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+from fastapi import APIRouter, HTTPException
+from typing import Optional
 
+from src.models.v1.embedded_model import DEFAULT_EMBEDDED_MODEL_ID
+from src.schemas.v1.embedded_model import DownloadRequest, LearnRequest
 from src.services.hardware_service import HardwareInspectionService
 from src.services.embedded_model_service import EmbeddedModelService
 from src.services.semantic_cache_service import SemanticCacheService
 
 embedded_router = APIRouter(prefix="", tags=["Embedded Model & Semantic Cache"])
-
-class DownloadRequest(BaseModel):
-    model_id: Optional[str] = "qwen2.5-0.5b-embedded"
-
-class LearnRequest(BaseModel):
-    prompt: str = Field(..., min_length=1)
-    response: str = Field(..., min_length=1)
-    category: Optional[str] = "learned_chat"
 
 # OP-042: Inspect host hardware specs and eligibility
 @embedded_router.get("/models/embedded/hardware-check")
@@ -31,7 +24,7 @@ async def get_hardware_check():
 @embedded_router.post("/models/embedded/download")
 async def download_embedded_model(payload: Optional[DownloadRequest] = None):
     """Enforces hardware gate check and downloads embedded model weights directly into project."""
-    model_id = payload.model_id if payload and payload.model_id else "qwen2.5-0.5b-embedded"
+    model_id = payload.model_id if payload and payload.model_id else DEFAULT_EMBEDDED_MODEL_ID
     try:
         res = EmbeddedModelService.start_download(model_id=model_id)
         return res
@@ -42,16 +35,16 @@ async def download_embedded_model(payload: Optional[DownloadRequest] = None):
 
 # OP-044: Embedded model status & progress
 @embedded_router.get("/models/embedded/status")
-async def get_embedded_model_status(model_id: Optional[str] = "qwen2.5-0.5b-embedded"):
+async def get_embedded_model_status(model_id: Optional[str] = DEFAULT_EMBEDDED_MODEL_ID):
     """Returns runtime status, download progress, and file presence of embedded model."""
-    target_id = model_id or "qwen2.5-0.5b-embedded"
+    target_id = model_id or DEFAULT_EMBEDDED_MODEL_ID
     return EmbeddedModelService.get_model_record(target_id)
 
 # OP-045: Delete embedded model
 @embedded_router.delete("/models/embedded")
-async def delete_embedded_model(model_id: Optional[str] = "qwen2.5-0.5b-embedded"):
+async def delete_embedded_model(model_id: Optional[str] = DEFAULT_EMBEDDED_MODEL_ID):
     """Removes embedded model weights to reclaim disk space."""
-    target_id = model_id or "qwen2.5-0.5b-embedded"
+    target_id = model_id or DEFAULT_EMBEDDED_MODEL_ID
     return EmbeddedModelService.delete_model(target_id)
 
 # OP-046: Semantic cache stats

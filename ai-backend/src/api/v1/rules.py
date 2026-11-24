@@ -5,23 +5,20 @@ Tags: ["Rules Management"]
 """
 
 import logging
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Request, UploadFile, File
+from typing import Optional, Dict, Any
+from fastapi import APIRouter, status, Depends, Query, UploadFile, File
 
 from src.core.security import get_optional_current_user
-from src.services.rule_service import (
-    RuleService,
+from src.schemas.v1.rules import (
     RuleCreateRequest,
     RuleUpdateRequest,
     RuleStatusUpdateRequest,
     RuleResponse,
     PaginatedRuleResponse,
-    ProjectRuleBindingRequest
 )
-from src.services.text_import_service import (
-    TextImportService,
-    TextFileImportRequest
-)
+from src.schemas.v1.text_import import TextFileImportRequest
+from src.services.rule_service import RuleService
+from src.services.text_import_service import TextImportService
 
 logger = logging.getLogger("api.rules")
 

@@ -6,6 +6,8 @@ from typing import Optional
 from src.core.security import get_current_user, decode_access_token
 from src.core.telemetry import metric_logger, quota_manager, sse_manager
 from src.db import query_one
+from src.models.v1.resource import UserQuotaEntity
+from src.schemas.v1.resources import ResourceHistoryData
 
 resources_router = APIRouter(prefix="/resources", tags=["Resource Management & Telemetry"])
 
@@ -65,18 +67,11 @@ async def get_user_quota_info(
     """
     user_id = current_user["id"]
     quota = quota_manager.get_or_create_quota(user_id)
-    percent_used = round((quota["daily_tokens_used"] / max(quota["daily_token_limit"], 1)) * 100, 1)
+    quota_entity = UserQuotaEntity.from_quota_row(user_id, quota)
 
     return {
         "status": "success",
-        "data": {
-            "user_id": user_id,
-            "daily_token_limit": quota["daily_token_limit"],
-            "daily_tokens_used": quota["daily_tokens_used"],
-            "percent_used": percent_used,
-            "warning_80": percent_used >= 80.0,
-            "reset_at": quota["reset_at"]
-        }
+        "data": quota_entity.to_status_dict()
     }
 
 @resources_router.get("/history")
@@ -90,14 +85,10 @@ async def get_resources_history(
     """
     user_id = current_user["id"]
     history = metric_logger.get_metrics_history(user_id=user_id, limit=limit, offset=offset)
+    data = ResourceHistoryData(items=history, count=len(history), limit=limit, offset=offset)
     return {
         "status": "success",
-        "data": {
-            "items": history,
-            "count": len(history),
-            "limit": limit,
-            "offset": offset
-        }
+        "data": data.model_dump()
     }
 
 @resources_router.get("/stream")

@@ -1,7 +1,4 @@
-import re
-from typing import Optional
 from fastapi import APIRouter, Response, HTTPException, status, Depends
-from pydantic import BaseModel, Field
 from src.core.security import (
     hash_password,
     verify_password,
@@ -9,51 +6,24 @@ from src.core.security import (
     get_current_user
 )
 from src.db import query_one, execute_commit
+from src.models.v1.user import (
+    EMAIL_REGEX,
+    USERNAME_REGEX,
+    HEX_COLOR_REGEX,
+    ACCENT_COLOR_PRESETS,
+    UserModel,
+    UserPreferencesModel,
+    UserStatsModel,
+)
+from src.schemas.v1.users import (
+    UpdateProfileRequest,
+    UpdateAvatarRequest,
+    ChangeEmailRequest,
+    ChangePasswordRequest,
+    UpdatePreferencesRequest,
+)
 
 users_router = APIRouter(prefix="/users", tags=["User Management"])
-
-EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-USERNAME_REGEX = re.compile(r"^[a-zA-Z0-9_.]{3,30}$")
-
-# Request Models
-class UpdateProfileRequest(BaseModel):
-    full_name: Optional[str] = Field(None, max_length=255)
-    username: Optional[str] = Field(None, description="Tên đăng nhập (3-30 ký tự chữ, số, _, .)")
-    bio: Optional[str] = Field(None, max_length=500)
-    phone_number: Optional[str] = Field(None, max_length=20)
-    age: Optional[int] = Field(None, ge=1, le=120, description="Tuổi người dùng (1 - 120)")
-    occupation: Optional[str] = Field(None, max_length=100, description="Nghề nghiệp / Lĩnh vực công tác")
-    interests: Optional[str] = Field(None, max_length=255, description="Sở thích cá nhân / chủ đề quan tâm")
-    japanese_level: Optional[str] = Field(None, max_length=20, description="Trình độ tiếng Nhật (CHUA_HOC, N5, N4, N3, N2, N1)")
-    learning_goal: Optional[str] = Field(None, max_length=255, description="Mục tiêu học tập tiếng Nhật")
-
-class UpdateAvatarRequest(BaseModel):
-    avatar_url: str = Field(..., max_length=500, description="URL ảnh đại diện hoặc chuỗi data URI")
-
-class ChangeEmailRequest(BaseModel):
-    new_email: str = Field(..., description="Email mới")
-    current_password: str = Field(..., min_length=1, description="Mật khẩu hiện tại để xác thực lại")
-
-class ChangePasswordRequest(BaseModel):
-    current_password: str = Field(..., min_length=1, description="Mật khẩu hiện tại")
-    new_password: str = Field(..., min_length=8, description="Mật khẩu mới tối thiểu 8 ký tự")
-
-class UpdatePreferencesRequest(BaseModel):
-    theme_preference: Optional[str] = Field(None, description="DARK, LIGHT, hoặc SYSTEM")
-    language_preference: Optional[str] = Field(None, description="vi, en hoặc ja")
-    custom_bg_url: Optional[str] = Field(None, max_length=1000, description="URL hoặc chuỗi data URI hình nền tùy chỉnh")
-    bg_opacity: Optional[int] = Field(None, ge=20, le=100, description="Độ mờ đục của các lớp layer phủ lên nền (20 - 100%)")
-    bg_blur: Optional[int] = Field(None, ge=0, le=40, description="Độ mờ kính backdrop-filter blur (0 - 40px)")
-    bg_dim: Optional[int] = Field(None, ge=0, le=100, description="Độ tối của hình nền (0 - 100%)")
-    accent_color: Optional[str] = Field(None, max_length=30, description="Màu chủ đạo (emerald, sakura, violet, amber, sky hoặc mã màu HEX #xxxxxx)")
-    ui_font_size: Optional[str] = Field(None, description="Cỡ chữ hiển thị (small, medium, large)")
-    response_show_translation: Optional[bool] = Field(None, description="Công tắc dịch sang ngôn ngữ hiển thị")
-    response_show_furigana: Optional[bool] = Field(None, description="Công tắc hiển thị Hiragana trên đầu chữ Kanji (Furigana / Ruby)")
-    response_highlight_grammar: Optional[bool] = Field(None, description="Công tắc tô màu vùng ngữ pháp & trợ từ")
-    response_show_romaji: Optional[bool] = Field(None, description="Công tắc hiển thị Romaji bên dưới từng từ")
-    response_grammar_breakdown: Optional[bool] = Field(None, description="Công tắc phân tích ngữ pháp & từ vựng trọng tâm")
-    response_audio_speech: Optional[bool] = Field(None, description="Công tắc hỗ trợ phát âm câu tiếng Nhật (Text-to-Speech)")
-    response_bilingual_mode: Optional[str] = Field(None, description="Chế độ hiển thị song ngữ: interlinear, parallel, japanese_only")
 
 
 
@@ -82,43 +52,10 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
     total_convs = conv_stat["total"] if conv_stat else 0
     total_msgs = msg_stat["total"] if msg_stat else 0
 
+    stats = UserStatsModel(total_conversations=total_convs, total_messages=total_msgs)
     return {
-        "user": {
-            "id": current_user["id"],
-            "email": current_user["email"],
-            "full_name": current_user.get("full_name") or "",
-            "username": current_user.get("username") or "",
-            "avatar_url": current_user.get("avatar_url") or "",
-            "bio": current_user.get("bio") or "",
-            "phone_number": current_user.get("phone_number") or "",
-            "age": current_user.get("age"),
-            "occupation": current_user.get("occupation") or "",
-            "interests": current_user.get("interests") or "",
-            "japanese_level": current_user.get("japanese_level") or "CHUA_HOC",
-            "learning_goal": current_user.get("learning_goal") or "",
-            "custom_bg_url": current_user.get("custom_bg_url") or "",
-            "bg_opacity": current_user.get("bg_opacity") if current_user.get("bg_opacity") is not None else 90,
-            "bg_blur": current_user.get("bg_blur") if current_user.get("bg_blur") is not None else 12,
-            "bg_dim": current_user.get("bg_dim") if current_user.get("bg_dim") is not None else 0,
-            "accent_color": current_user.get("accent_color") or "emerald",
-            "ui_font_size": current_user.get("ui_font_size") or "medium",
-            "theme_preference": current_user.get("theme_preference") or "DARK",
-            "language_preference": current_user.get("language_preference") or "vi",
-            "response_show_translation": bool(current_user.get("response_show_translation", 1)),
-            "response_show_furigana": bool(current_user.get("response_show_furigana", 1)),
-            "response_highlight_grammar": bool(current_user.get("response_highlight_grammar", 1)),
-            "response_show_romaji": bool(current_user.get("response_show_romaji", 1)),
-            "response_grammar_breakdown": bool(current_user.get("response_grammar_breakdown", 1)),
-            "response_audio_speech": bool(current_user.get("response_audio_speech", 1)),
-            "response_bilingual_mode": current_user.get("response_bilingual_mode") or "interlinear",
-            "status": current_user.get("status") or "ACTIVE",
-            "created_at": current_user.get("created_at"),
-            "last_login_at": current_user.get("last_login_at")
-        },
-        "stats": {
-            "total_conversations": total_convs,
-            "total_messages": total_msgs
-        }
+        "user": UserModel.from_user_row(current_user, blank_missing_text=True).to_profile_dict(),
+        "stats": stats.model_dump()
     }
 
 
@@ -413,10 +350,10 @@ async def update_preferences(
 
     if req.accent_color is not None:
         accent = req.accent_color.strip()
-        if accent.lower() in ["emerald", "sakura", "violet", "amber", "sky"]:
+        if accent.lower() in ACCENT_COLOR_PRESETS:
             updates.append("accent_color = ?")
             params.append(accent.lower())
-        elif re.match(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", accent):
+        elif HEX_COLOR_REGEX.match(accent):
             updates.append("accent_color = ?")
             params.append(accent)
         else:
@@ -487,23 +424,10 @@ async def update_preferences(
         (user_id,)
     )
 
+    prefs = UserPreferencesModel.from_user_row(updated)
     return {
         "message": "Cập nhật tùy chọn giao diện thành công!",
-        "theme_preference": updated["theme_preference"],
-        "language_preference": updated["language_preference"],
-        "custom_bg_url": updated.get("custom_bg_url") or "",
-        "bg_opacity": updated.get("bg_opacity") if updated.get("bg_opacity") is not None else 90,
-        "bg_blur": updated.get("bg_blur") if updated.get("bg_blur") is not None else 12,
-        "bg_dim": updated.get("bg_dim") if updated.get("bg_dim") is not None else 0,
-        "accent_color": updated.get("accent_color") or "emerald",
-        "ui_font_size": updated.get("ui_font_size") or "medium",
-        "response_show_translation": bool(updated.get("response_show_translation", 1)),
-        "response_show_furigana": bool(updated.get("response_show_furigana", 1)),
-        "response_highlight_grammar": bool(updated.get("response_highlight_grammar", 1)),
-        "response_show_romaji": bool(updated.get("response_show_romaji", 1)),
-        "response_grammar_breakdown": bool(updated.get("response_grammar_breakdown", 1)),
-        "response_audio_speech": bool(updated.get("response_audio_speech", 1)),
-        "response_bilingual_mode": updated.get("response_bilingual_mode") or "interlinear",
+        **prefs.model_dump(),
     }
 
 

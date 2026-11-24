@@ -11,19 +11,12 @@ import io
 import time
 import logging
 from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
 
 from src.core.config import settings
+from src.schemas.v1.chat import STTResult
 from src.services.credential_service import CredentialService
 
 logger = logging.getLogger("chatjpt.stt")
-
-class STTResult(BaseModel):
-    transcript: str = Field(description="Đoạn văn bản chuyển đổi từ giọng nói")
-    detected_language: str = Field(default="ja", description="Ngôn ngữ phát hiện (vi, en, ja)")
-    confidence: float = Field(default=0.95, description="Độ tin cậy của kết quả nhận diện (0.0..1.0)")
-    engine_used: str = Field(default="whisper", description="Tên công nghệ STT đã xử lý")
-    latency_ms: float = Field(default=0.0, description="Độ trễ xử lý (ms)")
 
 class STTService:
     """Service điều phối nhận dạng giọng nói đa ngữ chuẩn xác cao."""

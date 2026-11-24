@@ -3,11 +3,16 @@ import time
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, status, Depends, Query
-from pydantic import BaseModel, Field
 
 from src.core.config import settings
 from src.core.security import get_current_user
 from src.db import query_one, query_all, execute_commit
+from src.models.v1.ai_model import AIModelEntity, VALID_LLM_PROVIDERS
+from src.schemas.v1.models import (
+    SetDefaultModelRequest,
+    CreateModelRequest,
+    UpdateModelRequest,
+)
 
 models_router = APIRouter(prefix="/models", tags=["Model Management"])
 
@@ -37,38 +42,12 @@ def check_provider_api_key(provider: str, user_id: Optional[str] = None) -> bool
 
 def format_model_record(row: Dict[str, Any], user_id: Optional[str] = None) -> Dict[str, Any]:
     """Chuẩn hóa dữ liệu mô hình trả về theo đặc tả API Contract (OP-010, OP-011)."""
-    return {
-        "id": row["id"],
-        "name": row["name"],
-        "provider": row["provider"],
-        "status": row["status"],
-        "is_default": bool(row["is_default"]),
-        "context_window": row["context_window"],
-        "max_tokens": row["max_tokens"],
-        "supports_streaming": bool(row["supports_streaming"]),
-        "has_api_key": True if row["id"] == "offline-semantic-cache" else check_provider_api_key(row["provider"], user_id=user_id),
-        "latency_ms": row["latency_ms"],
-        "last_checked_at": row["last_checked_at"],
-        "created_at": row.get("created_at"),
-        "updated_at": row.get("updated_at")
-    }
-
-class SetDefaultModelRequest(BaseModel):
-    model_id: str = Field(..., description="Định danh mô hình muốn đặt làm mặc định")
-
-class CreateModelRequest(BaseModel):
-    id: str = Field(..., min_length=1, max_length=100, description="Mã định danh duy nhất (bất biến) của mô hình")
-    name: str = Field(..., min_length=1, max_length=255, description="Tên hiển thị của mô hình")
-    provider: str = Field(..., description="Nhà cung cấp: google, anthropic, openai, groq, ollama")
-    context_window: int = Field(default=128000, ge=1000, description="Ngữ cảnh tối đa (tokens >= 1000)")
-    max_tokens: int = Field(default=4096, ge=256, description="Phản hồi tối đa (tokens >= 256)")
-    supports_streaming: bool = Field(default=True, description="Hỗ trợ SSE streaming")
-
-class UpdateModelRequest(BaseModel):
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255, description="Tên hiển thị mới")
-    context_window: Optional[int] = Field(default=None, ge=1000, description="Ngữ cảnh tối đa (tokens >= 1000)")
-    max_tokens: Optional[int] = Field(default=None, ge=256, description="Phản hồi tối đa (tokens >= 256)")
-    supports_streaming: Optional[bool] = Field(default=None, description="Hỗ trợ SSE streaming")
+    has_key = (
+        True
+        if row["id"] == "offline-semantic-cache"
+        else check_provider_api_key(row["provider"], user_id=user_id)
+    )
+    return AIModelEntity.from_model_row(row, has_api_key=has_key).to_api_dict()
 
 
 # ------------------------------------------------------------------------------
@@ -117,11 +96,10 @@ async def create_model(
         )
 
     provider_clean = req.provider.lower().strip()
-    valid_providers = ("google", "anthropic", "openai", "groq", "ollama")
-    if provider_clean not in valid_providers:
+    if provider_clean not in VALID_LLM_PROVIDERS:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Nhà cung cấp không hợp lệ '{req.provider}'. Phải là một trong: {', '.join(valid_providers)}."
+            detail=f"Nhà cung cấp không hợp lệ '{req.provider}'. Phải là một trong: {', '.join(VALID_LLM_PROVIDERS)}."
         )
 
     # BR-022: Kiểm tra tính duy nhất của ID mô hình

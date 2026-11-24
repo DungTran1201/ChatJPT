@@ -1,10 +1,18 @@
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Response
-from pydantic import BaseModel, Field
 
 from src.core.security import get_optional_current_user
 from src.db import query_one
+from src.models.v1.voice import DEFAULT_VOICE_SPEAKER_ID
+from src.schemas.v1.voices import (
+    VoiceSummaryResponse,
+    VoiceListResponse,
+    VoiceEngineStatusResponse,
+    VoiceCreateRequest,
+    VoiceUpdateRequest,
+    SynthesisRequest,
+)
 from src.services.voicevox_service import voicevox_service
 
 logger = logging.getLogger("voices_api")
@@ -12,83 +20,7 @@ logger = logging.getLogger("voices_api")
 voices_router = APIRouter(prefix="/voices", tags=["Voice Management & VoiceVox TTS"])
 
 # ==============================================================================
-# 1. PYDANTIC SCHEMAS
-# ==============================================================================
-
-class VoiceSummaryResponse(BaseModel):
-    id: str
-    name: str
-    character_name: str
-    speaker_id: int
-    style_name: Optional[str] = "Normal"
-    gender: str = "female"
-    description: Optional[str] = None
-    speed_scale: float = 1.0
-    pitch_scale: float = 0.0
-    intonation_scale: float = 1.0
-    volume_scale: float = 1.0
-    sample_text: Optional[str] = None
-    avatar_url: Optional[str] = None
-    status: str = "ACTIVE"
-    is_system_preset: bool = False
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-class VoiceListResponse(BaseModel):
-    total: int
-    items: List[VoiceSummaryResponse]
-
-class VoiceEngineStatusResponse(BaseModel):
-    engine_available: bool
-    engine_url: str
-    version: Optional[str] = None
-    latency_ms: Optional[float] = None
-    cached_audio_count: int = 0
-    error: Optional[str] = None
-    engine_mode: Optional[str] = "embedded_core"
-    loaded_models_count: Optional[int] = 0
-    supported_speakers_count: Optional[int] = 0
-
-class VoiceCreateRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100)
-    character_name: str = Field(..., min_length=1, max_length=100)
-    speaker_id: int = Field(..., ge=0)
-    style_name: Optional[str] = Field(default="Normal", max_length=50)
-    gender: Optional[str] = Field(default="female")
-    description: Optional[str] = Field(default=None, max_length=500)
-    speed_scale: Optional[float] = Field(default=1.0, ge=0.5, le=2.0)
-    pitch_scale: Optional[float] = Field(default=0.0, ge=-0.15, le=0.15)
-    intonation_scale: Optional[float] = Field(default=1.0, ge=0.0, le=2.0)
-    volume_scale: Optional[float] = Field(default=1.0, ge=0.0, le=2.0)
-    sample_text: Optional[str] = Field(default="こんにちは！日本語の勉強を一緒に頑張りましょう。", max_length=255)
-    avatar_url: Optional[str] = Field(default=None, max_length=500)
-    status: Optional[str] = Field(default="ACTIVE")
-
-class VoiceUpdateRequest(BaseModel):
-    name: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    character_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    speaker_id: Optional[int] = Field(default=None, ge=0)
-    style_name: Optional[str] = Field(default=None, max_length=50)
-    gender: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None, max_length=500)
-    speed_scale: Optional[float] = Field(default=None, ge=0.5, le=2.0)
-    pitch_scale: Optional[float] = Field(default=None, ge=-0.15, le=0.15)
-    intonation_scale: Optional[float] = Field(default=None, ge=0.0, le=2.0)
-    volume_scale: Optional[float] = Field(default=None, ge=0.0, le=2.0)
-    sample_text: Optional[str] = Field(default=None, max_length=255)
-    avatar_url: Optional[str] = Field(default=None, max_length=500)
-    status: Optional[str] = Field(default=None)
-
-class SynthesisRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=500, description="Japanese text to synthesize")
-    speaker_id: Optional[int] = Field(default=None, ge=0)
-    speed_scale: Optional[float] = Field(default=None, ge=0.5, le=2.0)
-    pitch_scale: Optional[float] = Field(default=None, ge=-0.15, le=0.15)
-    intonation_scale: Optional[float] = Field(default=None, ge=0.0, le=2.0)
-    volume_scale: Optional[float] = Field(default=None, ge=0.0, le=2.0)
-
-# ==============================================================================
-# 2. CONTROLLER ENDPOINTS
+# 1. CONTROLLER ENDPOINTS
 # ==============================================================================
 
 @voices_router.get("/status", response_model=VoiceEngineStatusResponse)
@@ -174,7 +106,7 @@ async def delete_voice(
 @voices_router.post("/synthesize")
 async def synthesize_adhoc(req: SynthesisRequest):
     """Directly synthesizes Japanese text to PCM WAV audio stream (OP-053, FR-071, FR-073)."""
-    speaker_id = req.speaker_id if req.speaker_id is not None else 8
+    speaker_id = req.speaker_id if req.speaker_id is not None else DEFAULT_VOICE_SPEAKER_ID
     speed = req.speed_scale if req.speed_scale is not None else 1.0
     pitch = req.pitch_scale if req.pitch_scale is not None else 0.0
     intonation = req.intonation_scale if req.intonation_scale is not None else 1.0
@@ -202,7 +134,7 @@ async def synthesize_by_voice_id(id: str, req: SynthesisRequest):
 
     if not voice:
         # Fallback to default speaker 8 (Kasukabe Tsumugi) if voice not found
-        speaker_id = 8
+        speaker_id = DEFAULT_VOICE_SPEAKER_ID
         speed = 1.0
         pitch = 0.0
         intonation = 1.0

@@ -11,15 +11,12 @@ import uuid
 import yaml
 import logging
 from typing import Optional, List, Dict, Any, Tuple
-from pydantic import BaseModel, Field
 from fastapi import HTTPException, status
 
 from src.db import query_one, execute_commit
-from src.services.rule_service import (
-    RuleService,
-    RuleCreateRequest,
-    RuleResponse
-)
+from src.schemas.v1.rules import RuleCreateRequest, RuleResponse
+from src.schemas.v1.text_import import TextFileImportRequest
+from src.services.rule_service import RuleService
 
 logger = logging.getLogger("text_import_service")
 
@@ -47,20 +44,6 @@ def split_frontmatter_and_body(content: str) -> Tuple[Optional[str], str]:
         if len(parts) >= 3:
             return parts[1].strip(), parts[2].strip()
     return None, content
-
-
-class TextFileImportRequest(BaseModel):
-    filename: str = Field(..., min_length=1, max_length=255, description="Tên tệp gốc kèm phần mở rộng")
-    content: str = Field(..., min_length=1, description="Toàn bộ nội dung văn bản thuần túy của tệp")
-    target: Optional[str] = Field(default=None, description="Mục tiêu nhập: 'rule' hoặc 'prompt'")
-    override_name: Optional[str] = Field(default=None, max_length=100, description="Tên hiển thị tùy chỉnh ghi đè")
-    name: Optional[str] = Field(default=None, max_length=100, description="Tên hiển thị tùy chỉnh")
-    override_description: Optional[str] = Field(default=None, max_length=500, description="Mô tả tóm tắt tùy chỉnh ghi đè")
-    description: Optional[str] = Field(default=None, max_length=500, description="Mô tả tóm tắt")
-    activation_mode: Optional[str] = Field(default=None, description="Chế độ kích hoạt cho Rule")
-    glob_patterns: Optional[List[str]] = Field(default_factory=list, description="Danh sách glob patterns")
-    tags: Optional[List[str]] = Field(default_factory=list, description="Danh sách tags cho Rule")
-    priority: Optional[int] = Field(default=None, ge=0, le=100, description="Mức độ ưu tiên cho Rule")
 
 
 class TextImportService:

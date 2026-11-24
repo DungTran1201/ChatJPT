@@ -1,195 +1,28 @@
 import uuid
 import logging
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Request, UploadFile, File
-from pydantic import BaseModel, Field, field_validator
+from typing import Optional, List, Any
+from fastapi import APIRouter, HTTPException, status, Depends, Query, UploadFile, File
 
 from src.db import query_one, query_all, execute_commit
 from src.core.security import get_optional_current_user
-from src.services.text_import_service import (
-    TextImportService,
-    TextFileImportRequest
+from src.models.v1.prompt import SystemPromptEntity
+from src.schemas.v1.prompts import (
+    SystemPromptCreateRequest,
+    SystemPromptUpdateRequest,
+    SystemPromptSummaryResponse,
+    SystemPromptListResponse,
+    SystemPromptDetailResponse,
 )
+from src.schemas.v1.text_import import TextFileImportRequest
+from src.services.text_import_service import TextImportService
 
 logger = logging.getLogger("system_prompts")
 
 prompts_router = APIRouter(prefix="/system-prompts", tags=["Sensei Guidance & System Prompts"])
 
-# ==============================================================================
-# 1. PYDANTIC V2 SCHEMAS (SENSEI PERSONA SPECIFICATIONS)
-# ==============================================================================
-
-class SystemPromptCreateRequest(BaseModel):
-    name: str = Field(
-        ...,
-        min_length=1,
-        max_length=100,
-        description="Tên của Sensei (1-100 ký tự, e.g. Sakura-sensei 桜先生)"
-    )
-    description: Optional[str] = Field(
-        default=None,
-        max_length=500,
-        description="Mô tả tóm tắt phong cách hoặc chuyên môn của Sensei (tối đa 500 ký tự)"
-    )
-    content: str = Field(
-        ...,
-        min_length=1,
-        max_length=10000,
-        description="Chỉ thị Persona cốt lõi cho AI (System Prompt instructions, 1-10.000 ký tự)"
-    )
-    age: Optional[int] = Field(
-        default=25,
-        ge=18,
-        le=100,
-        description="Tuổi của Sensei (18-100)"
-    )
-    gender: Optional[str] = Field(
-        default="female",
-        description="Giới tính / Xưng hô của Sensei (female, male, other)"
-    )
-    japanese_level: Optional[str] = Field(
-        default="N5",
-        description="Trình độ tiếng Nhật chuyên trách (N5, N4, N3, N2, N1, ALL)"
-    )
-    personality: Optional[str] = Field(
-        default=None,
-        max_length=255,
-        description="Nét tính cách sư phạm đặc trưng (e.g. Dịu dàng, Kiên nhẫn, Hóm hỉnh)"
-    )
-    teaching_style: Optional[str] = Field(
-        default=None,
-        description="Phương pháp sư phạm & quy chuẩn Furigana/Song ngữ"
-    )
-    catchphrase: Optional[str] = Field(
-        default=None,
-        max_length=255,
-        description="Câu nói cửa miệng / Lời chào thương hiệu của Sensei"
-    )
-    hobbies: Optional[str] = Field(
-        default=None,
-        max_length=255,
-        description="Sở thích & chủ đề đàm thoại yêu thích của Sensei"
-    )
-    avatar_url: Optional[str] = Field(
-        default=None,
-        max_length=500,
-        description="Ảnh đại diện Sensei (Avatar URL)"
-    )
-    voice_id: Optional[str] = Field(
-        default=None,
-        max_length=50,
-        description="Mã giọng nói VoiceVox gán cho Sensei (FK -> voices.id)"
-    )
-    is_default: Optional[bool] = Field(
-        default=False,
-        description="Đặt làm Sensei mặc định đồng hành"
-    )
-
-    @field_validator("name")
-    @classmethod
-    def validate_name_not_blank(cls, v: str) -> str:
-        trimmed = v.strip()
-        if not trimmed:
-            raise ValueError("Tên Sensei không được để trống hoặc chỉ chứa khoảng trắng.")
-        return trimmed
-
-    @field_validator("content")
-    @classmethod
-    def validate_content_not_blank(cls, v: str) -> str:
-        trimmed = v.strip()
-        if not trimmed:
-            raise ValueError("Nội dung chỉ dẫn Persona không được để trống hoặc chỉ chứa khoảng trắng.")
-        return v
-
-    @field_validator("description", "personality", "teaching_style", "catchphrase", "hobbies", "avatar_url")
-    @classmethod
-    def sanitize_optional_text(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return None
-        trimmed = v.strip()
-        return trimmed if trimmed else None
-
-
-class SystemPromptUpdateRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100)
-    description: Optional[str] = Field(default=None, max_length=500)
-    content: str = Field(..., min_length=1, max_length=10000)
-    age: Optional[int] = Field(default=25, ge=18, le=100)
-    gender: Optional[str] = Field(default="female")
-    japanese_level: Optional[str] = Field(default="N5")
-    personality: Optional[str] = Field(default=None, max_length=255)
-    teaching_style: Optional[str] = Field(default=None)
-    catchphrase: Optional[str] = Field(default=None, max_length=255)
-    hobbies: Optional[str] = Field(default=None, max_length=255)
-    avatar_url: Optional[str] = Field(default=None, max_length=500)
-    voice_id: Optional[str] = Field(default=None, max_length=50)
-    is_default: Optional[bool] = Field(default=False)
-
-    @field_validator("name")
-    @classmethod
-    def validate_name_not_blank(cls, v: str) -> str:
-        trimmed = v.strip()
-        if not trimmed:
-            raise ValueError("Tên Sensei không được để trống hoặc chỉ chứa khoảng trắng.")
-        return trimmed
-
-    @field_validator("content")
-    @classmethod
-    def validate_content_not_blank(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("Nội dung chỉ dẫn Persona không được để trống hoặc chỉ chứa khoảng trắng.")
-        return v
-
-
-class SystemPromptSummaryResponse(BaseModel):
-    id: str
-    name: str
-    description: Optional[str] = None
-    content_length: int
-    age: Optional[int] = 25
-    gender: Optional[str] = "female"
-    japanese_level: Optional[str] = "N5"
-    personality: Optional[str] = None
-    teaching_style: Optional[str] = None
-    catchphrase: Optional[str] = None
-    hobbies: Optional[str] = None
-    avatar_url: Optional[str] = None
-    voice_id: Optional[str] = None
-    is_default: bool = False
-    is_system_preset: bool = False
-    created_at: str
-    updated_at: str
-
-
-class SystemPromptListResponse(BaseModel):
-    items: List[SystemPromptSummaryResponse]
-    total: int
-
-
-class SystemPromptDetailResponse(BaseModel):
-    id: str
-    user_id: str
-    name: str
-    description: Optional[str] = None
-    content: str
-    age: Optional[int] = 25
-    gender: Optional[str] = "female"
-    japanese_level: Optional[str] = "N5"
-    personality: Optional[str] = None
-    teaching_style: Optional[str] = None
-    catchphrase: Optional[str] = None
-    hobbies: Optional[str] = None
-    avatar_url: Optional[str] = None
-    voice_id: Optional[str] = None
-    is_default: bool = False
-    is_system_preset: bool = False
-    attachments: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
-    created_at: str
-    updated_at: str
-
 
 # ==============================================================================
-# 2. CONTROLLER ENDPOINTS
+# 1. CONTROLLER ENDPOINTS
 # ==============================================================================
 
 @prompts_router.get("", response_model=SystemPromptListResponse)
@@ -237,25 +70,7 @@ async def list_system_prompts(
     rows = query_all(sql, tuple(params))
 
     items = [
-        SystemPromptSummaryResponse(
-            id=r["id"],
-            name=r["name"],
-            description=r.get("description"),
-            content_length=r.get("content_length", 0),
-            age=r.get("age", 25),
-            gender=r.get("gender", "female"),
-            japanese_level=r.get("japanese_level", "N5"),
-            personality=r.get("personality"),
-            teaching_style=r.get("teaching_style"),
-            catchphrase=r.get("catchphrase"),
-            hobbies=r.get("hobbies"),
-            avatar_url=r.get("avatar_url") or f"https://api.dicebear.com/7.x/bottts/svg?seed={r['id']}",
-            voice_id=r.get("voice_id"),
-            is_default=bool(r.get("is_default", 0)),
-            is_system_preset=bool(r.get("is_system_preset", 0)),
-            created_at=str(r.get("created_at")),
-            updated_at=str(r.get("updated_at"))
-        )
+        SystemPromptSummaryResponse.from_entity(SystemPromptEntity.from_prompt_row(r))
         for r in rows
     ]
 
@@ -286,7 +101,7 @@ async def create_system_prompt(
         )
 
     prompt_id = f"sp_{uuid.uuid4().hex}"
-    avatar = payload.avatar_url or f"https://api.dicebear.com/7.x/bottts/svg?seed={prompt_id}"
+    avatar = payload.avatar_url or SystemPromptEntity.default_avatar_url(prompt_id)
 
     # Nếu đặt is_default, bỏ default của các Sensei khác của user
     if payload.is_default:
@@ -320,25 +135,8 @@ async def create_system_prompt(
 
     logger.info("Tạo Sensei thành công: id=%s, user_id=%s, name='%s'", prompt_id, user_id, name)
 
-    return SystemPromptDetailResponse(
-        id=row["id"],
-        user_id=row["user_id"],
-        name=row["name"],
-        description=row.get("description"),
-        content=row["content"],
-        age=row.get("age", 25),
-        gender=row.get("gender", "female"),
-        japanese_level=row.get("japanese_level", "N5"),
-        personality=row.get("personality"),
-        teaching_style=row.get("teaching_style"),
-        catchphrase=row.get("catchphrase"),
-        hobbies=row.get("hobbies"),
-        avatar_url=row.get("avatar_url") or avatar,
-        voice_id=row.get("voice_id"),
-        is_default=bool(row.get("is_default", 0)),
-        is_system_preset=bool(row.get("is_system_preset", 0)),
-        created_at=str(row.get("created_at")),
-        updated_at=str(row.get("updated_at"))
+    return SystemPromptDetailResponse.from_entity(
+        SystemPromptEntity.from_prompt_row(row, fallback_avatar=avatar)
     )
 
 
@@ -368,26 +166,12 @@ async def get_system_prompt_detail(
         (id,)
     )
 
-    return SystemPromptDetailResponse(
-        id=row["id"],
-        user_id=row["user_id"],
-        name=row["name"],
-        description=row.get("description"),
-        content=row["content"],
-        age=row.get("age", 25),
-        gender=row.get("gender", "female"),
-        japanese_level=row.get("japanese_level", "N5"),
-        personality=row.get("personality"),
-        teaching_style=row.get("teaching_style"),
-        catchphrase=row.get("catchphrase"),
-        hobbies=row.get("hobbies"),
-        avatar_url=row.get("avatar_url") or f"https://api.dicebear.com/7.x/bottts/svg?seed={row['id']}",
-        voice_id=row.get("voice_id"),
-        is_default=bool(row.get("is_default", 0)),
-        is_system_preset=bool(row.get("is_system_preset", 0)),
-        attachments=atts,
-        created_at=str(row.get("created_at")),
-        updated_at=str(row.get("updated_at"))
+    return SystemPromptDetailResponse.from_entity(
+        SystemPromptEntity.from_prompt_row(
+            row,
+            fallback_avatar=SystemPromptEntity.default_avatar_url(row["id"]),
+            attachments=atts,
+        )
     )
 
 
@@ -471,26 +255,7 @@ async def update_system_prompt(
 
     row = query_one("SELECT * FROM system_prompts WHERE id = ?", (target_id,))
 
-    return SystemPromptDetailResponse(
-        id=row["id"],
-        user_id=row["user_id"],
-        name=row["name"],
-        description=row.get("description"),
-        content=row["content"],
-        age=row.get("age", 25),
-        gender=row.get("gender", "female"),
-        japanese_level=row.get("japanese_level", "N5"),
-        personality=row.get("personality"),
-        teaching_style=row.get("teaching_style"),
-        catchphrase=row.get("catchphrase"),
-        hobbies=row.get("hobbies"),
-        avatar_url=row.get("avatar_url"),
-        voice_id=row.get("voice_id"),
-        is_default=bool(row.get("is_default", 0)),
-        is_system_preset=bool(row.get("is_system_preset", 0)),
-        created_at=str(row.get("created_at")),
-        updated_at=str(row.get("updated_at"))
-    )
+    return SystemPromptDetailResponse.from_entity(SystemPromptEntity.from_prompt_row(row))
 
 
 @prompts_router.delete("/{id}")
@@ -579,25 +344,8 @@ async def clone_system_prompt(
 
     row = query_one("SELECT * FROM system_prompts WHERE id = ?", (new_id,))
 
-    return SystemPromptDetailResponse(
-        id=row["id"],
-        user_id=row["user_id"],
-        name=row["name"],
-        description=row.get("description"),
-        content=row["content"],
-        age=row.get("age", 25),
-        gender=row.get("gender", "female"),
-        japanese_level=row.get("japanese_level", "N5"),
-        personality=row.get("personality"),
-        teaching_style=row.get("teaching_style"),
-        catchphrase=row.get("catchphrase"),
-        hobbies=row.get("hobbies"),
-        avatar_url=row.get("avatar_url"),
-        voice_id=row.get("voice_id"),
-        is_default=bool(row.get("is_default", 0)),
-        is_system_preset=False,
-        created_at=str(row.get("created_at")),
-        updated_at=str(row.get("updated_at"))
+    return SystemPromptDetailResponse.from_entity(
+        SystemPromptEntity.from_prompt_row(row, force_system_preset=False)
     )
 
 
