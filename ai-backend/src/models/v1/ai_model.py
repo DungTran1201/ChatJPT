@@ -38,15 +38,16 @@ class AIModelEntity(DomainModel):
         *,
         has_api_key: bool,
     ) -> "AIModelEntity":
+        raw_stream = row.get("supports_streaming")
         return cls(
             id=row["id"],
             name=row["name"],
             provider=row["provider"],
-            status=row["status"],
-            is_default=bool(row["is_default"]),
-            context_window=row["context_window"],
-            max_tokens=row["max_tokens"],
-            supports_streaming=bool(row["supports_streaming"]),
+            status=row.get("status") or ModelStatus.INACTIVE.value,
+            is_default=bool(row.get("is_default", 0)),
+            context_window=row.get("context_window") if row.get("context_window") is not None else 128000,
+            max_tokens=row.get("max_tokens") if row.get("max_tokens") is not None else 4096,
+            supports_streaming=True if raw_stream is None else bool(raw_stream),
             has_api_key=has_api_key,
             latency_ms=row.get("latency_ms"),
             last_checked_at=str(row["last_checked_at"]) if row.get("last_checked_at") is not None else None,

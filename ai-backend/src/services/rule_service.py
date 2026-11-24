@@ -1,32 +1,32 @@
-"""
-Service and schema layer for Rules Management
-Handles business rules, validations, persistence, and authorization for Rules Library & Editor.
-"""
+"""Rules Management application service (SRP, DIP, atomic OCC, Anti-IDOR clone fix)."""
 
 import json
 import uuid
-import logging
 from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
-from fastapi import HTTPException, status
+from typing import Any, Dict, List, Optional
 
-from src.db import query_one, query_all, execute_commit
+from src.core.exceptions import (
+    ConflictError,
+    ForbiddenError,
+    NotFoundError,
+    ValidationDomainError,
+)
+from src.repositories.rule_repo import RuleRepository
 from src.schemas.v1.rules import (
-    RuleCreateRequest,
-    RuleUpdateRequest,
-    RuleStatusUpdateRequest,
-    RuleResponse,
     PaginatedRuleResponse,
     ProjectRuleBindingRequest,
+    RuleCreateRequest,
+    RuleResponse,
+    RuleStatusUpdateRequest,
+    RuleUpdateRequest,
 )
 
-logger = logging.getLogger("rules_service")
-
-# ==============================================================================
-# 1. BUSINESS SERVICE IMPLEMENTATION
-# ==============================================================================
 
 class RuleService:
+    """Business logic for Rules Library CRUD, Anti-IDOR, System-rule protection, and OCC."""
+
+    def __init__(self, rule_repo: Optional[RuleRepository] = None):
+        self._rules = rule_repo or RuleRepository()
 
     @staticmethod
     def _parse_json_field(field_val: Any) -> List[str]:
@@ -48,13 +48,9 @@ class RuleService:
         scope = row.get("scope") or "user"
         user_id = row.get("user_id")
         is_editable = (scope != "system") and (user_id == current_user_id)
-        
-        # Projects removed from scope
-        associated_count = 0
-
         return RuleResponse(
             id=row["id"],
-            user_id=row.get("user_id"),
+            user_id=user_id,
             name=row["name"],
             description=row.get("description"),
             content=row["content"],
@@ -66,15 +62,31 @@ class RuleService:
             status=row.get("status", "active"),
             version=row.get("version", 1),
             is_editable=is_editable,
-            associated_projects_count=associated_count,
+            associated_projects_count=0,
             created_at=str(row.get("created_at") or ""),
             updated_at=str(row.get("updated_at") or ""),
-            deleted_at=str(row.get("deleted_at")) if row.get("deleted_at") else None
+            deleted_at=str(row.get("deleted_at")) if row.get("deleted_at") else None,
         )
 
-    @classmethod
-    def list_rules(
-        cls,
+    def _require_visible_rule(self, user_id: str, rule_id: str) -> Dict[str, Any]:
+        row = self._rules.get_active_by_id(rule_id)
+        if not row or (row.get("scope") != "system" and row.get("user_id") != user_id):
+            raise NotFoundError(f"Quy tắc với ID '{rule_id}' không tồn tại hoặc đã bị xóa.")
+        return row
+
+    def _require_editable_rule(self, user_id: str, rule_id: str, *, action_label: str) -> Dict[str, Any]:
+        row = self._rules.get_active_by_id(rule_id)
+        if not row:
+            raise NotFoundError(f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa.")
+        if row.get("scope") == "system":
+            raise ForbiddenError(action_label)
+        if row.get("user_id") != user_id:
+            raise NotFoundError(f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa.")
+        return row
+
+    def list_rules_instance(
+        self,
+        *,
         user_id: str,
         search: Optional[str] = None,
         scope: Optional[str] = "all",
@@ -83,359 +95,206 @@ class RuleService:
         page: int = 1,
         limit: int = 20,
         sort_by: str = "updated_at",
-        sort_order: str = "desc"
+        sort_order: str = "desc",
     ) -> PaginatedRuleResponse:
-        """
-        Lấy danh sách các rules thuộc quyền người dùng và system rules (RUL-FR-001, RUL-BR-003).
-        """
-        page = max(1, page)
-        limit = min(max(1, limit), 100)
-        offset = (page - 1) * limit
-
-        conditions = ["deleted_at IS NULL"]
-        params: List[Any] = []
-
-        # Scope filter (Anti-IDOR)
-        if scope == "user":
-            conditions.append("user_id = ? AND scope = 'user'")
-            params.append(user_id)
-        elif scope == "system":
-            conditions.append("scope = 'system'")
-        else:
-            # All available to user: own rules or system rules
-            conditions.append("(user_id = ? OR scope = 'system')")
-            params.append(user_id)
-
-        # Status filter
-        if status_filter and status_filter != "all":
-            conditions.append("status = ?")
-            params.append(status_filter)
-
-        # Activation mode filter
-        if activation_mode and activation_mode != "all":
-            conditions.append("activation_mode = ?")
-            params.append(activation_mode)
-
-        # Search filter (name, description, tags)
-        if search and search.strip():
-            q = f"%{search.strip()}%"
-            conditions.append("(name LIKE ? OR description LIKE ? OR tags LIKE ?)")
-            params.extend([q, q, q])
-
-        where_clause = " AND ".join(conditions)
-
-        # Sort order
-        allowed_sort_fields = {
-            "updated_at": "updated_at",
-            "created_at": "created_at",
-            "name": "name",
-            "priority": "priority"
-        }
-        order_col = allowed_sort_fields.get(sort_by, "updated_at")
-        order_dir = "ASC" if str(sort_order).lower() == "asc" else "DESC"
-
-        # Count total
-        count_sql = f"SELECT COUNT(*) as total FROM rules WHERE {where_clause}"
-        total_row = query_one(count_sql, tuple(params))
-        total_items = total_row["total"] if total_row else 0
-
-        # Query items
-        query_sql = f"""
-            SELECT * FROM rules 
-            WHERE {where_clause}
-            ORDER BY {order_col} {order_dir}
-            LIMIT ? OFFSET ?
-        """
-        items_params = params + [limit, offset]
-        rows = query_all(query_sql, tuple(items_params))
-
-        items = [cls._map_row_to_response(r, user_id) for r in rows]
-        total_pages = (total_items + limit - 1) // limit if total_items > 0 else 1
-
+        safe_page = max(1, page)
+        safe_limit = min(max(1, limit), 100)
+        rows, total = self._rules.list_paginated(
+            user_id=user_id,
+            search=search,
+            scope=scope,
+            activation_mode=activation_mode,
+            status_filter=status_filter,
+            page=safe_page,
+            limit=safe_limit,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+        items = [self._map_row_to_response(r, user_id) for r in rows]
+        total_pages = (total + safe_limit - 1) // safe_limit if total > 0 else 1
         return PaginatedRuleResponse(
             items=items,
-            total=total_items,
-            page=page,
-            limit=limit,
-            total_pages=total_pages
+            total=total,
+            page=safe_page,
+            limit=safe_limit,
+            total_pages=total_pages,
         )
 
-    @classmethod
-    def get_rule(cls, user_id: str, rule_id: str) -> RuleResponse:
-        """
-        Lấy chi tiết một Rule. Áp dụng Anti-IDOR: chỉ trả về nếu rule thuộc về user hoặc là system rule.
-        """
-        row = query_one(
-            "SELECT * FROM rules WHERE id = ? AND deleted_at IS NULL",
-            (rule_id,)
-        )
-        if not row:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc với ID '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
+    def get_rule_instance(self, user_id: str, rule_id: str) -> RuleResponse:
+        row = self._require_visible_rule(user_id, rule_id)
+        return self._map_row_to_response(row, user_id)
 
-        # Anti-IDOR check
-        if row.get("scope") != "system" and row.get("user_id") != user_id:
-            # Ẩn sự tồn tại của UUID người khác
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc với ID '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
-
-        return cls._map_row_to_response(row, user_id)
-
-    @classmethod
-    def create_rule(cls, user_id: str, req: RuleCreateRequest) -> RuleResponse:
-        """
-        Tạo mới một quy tắc trong thư viện cá nhân (RUL-FR-006, RUL-BR-001).
-        """
-        # Validate glob_patterns requirement if activation_mode == 'glob'
+    def create_rule_instance(self, user_id: str, req: RuleCreateRequest) -> RuleResponse:
         if req.activation_mode == "glob" and not req.glob_patterns:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Khi chế độ kích hoạt là 'glob', danh sách glob_patterns bắt buộc phải có ít nhất 1 pattern."
+            raise ValidationDomainError(
+                "Khi chế độ kích hoạt là 'glob', danh sách glob_patterns bắt buộc phải có ít nhất 1 pattern."
             )
-
-        # Check duplicate name for this user (RUL-BR-001)
-        existing = query_one(
-            "SELECT id FROM rules WHERE user_id = ? AND name = ? COLLATE NOCASE AND deleted_at IS NULL",
-            (user_id, req.name)
-        )
-        if existing:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Tên quy tắc '{req.name}' đã tồn tại trong tài khoản của bạn. Vui lòng chọn tên khác."
-            )
+        if self._rules.exists_name_for_user(user_id, req.name):
+            raise ConflictError(f"Tên quy tắc '{req.name}' đã tồn tại trong tài khoản của bạn. Vui lòng chọn tên khác.")
 
         new_id = f"rul_{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc).isoformat()
-        globs_json = json.dumps(req.glob_patterns, ensure_ascii=False)
-        tags_json = json.dumps(req.tags, ensure_ascii=False)
+        self._rules.create(
+            {
+                "id": new_id,
+                "user_id": user_id,
+                "name": req.name,
+                "description": req.description,
+                "content": req.content,
+                "activation_mode": req.activation_mode,
+                "glob_patterns": json.dumps(req.glob_patterns, ensure_ascii=False),
+                "tags": json.dumps(req.tags, ensure_ascii=False),
+                "priority": req.priority,
+                "created_at": now,
+                "updated_at": now,
+            }
+        )
+        return self.get_rule_instance(user_id, new_id)
 
-        execute_commit(
-            """
-            INSERT INTO rules (
-                id, user_id, name, description, content,
-                scope, activation_mode, glob_patterns, tags,
-                priority, status, version, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, 'user', ?, ?, ?, ?, 'active', 1, ?, ?)
-            """,
-            (
-                new_id, user_id, req.name, req.description, req.content,
-                req.activation_mode, globs_json, tags_json,
-                req.priority, now, now
-            )
+    def update_rule_instance(self, user_id: str, rule_id: str, req: RuleUpdateRequest) -> RuleResponse:
+        existing = self._require_editable_rule(
+            user_id,
+            rule_id,
+            action_label="Không thể chỉnh sửa Quy tắc Hệ thống (System Rule). Vui lòng nhân bản (Clone) để tạo bản sao riêng.",
         )
 
-        return cls.get_rule(user_id, new_id)
-
-    @classmethod
-    def update_rule(cls, user_id: str, rule_id: str, req: RuleUpdateRequest) -> RuleResponse:
-        """
-        Cập nhật Rule. Kiểm tra quyền sở hữu, ngăn chặn sửa System Rule, và kiểm tra Optimistic Lock (RUL-FR-007, RUL-BR-002, RUL-BR-011).
-        """
-        existing = query_one(
-            "SELECT * FROM rules WHERE id = ? AND deleted_at IS NULL",
-            (rule_id,)
-        )
-        if not existing:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
-
-        # Chặn sửa System Rule (RUL-BR-002)
-        if existing.get("scope") == "system":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Không thể chỉnh sửa Quy tắc Hệ thống (System Rule). Vui lòng nhân bản (Clone) để tạo bản sao riêng."
-            )
-
-        # Anti-IDOR check
-        if existing.get("user_id") != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
-
-        # Optimistic concurrency check (RUL-BR-011)
         current_version = existing.get("version", 1)
         if current_version != req.version:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Quy tắc đã bị sửa đổi bởi một phiên khác (Phiên bản máy chủ: {current_version}, bạn gửi: {req.version}). Vui lòng tải lại dữ liệu mới nhất."
+            raise ConflictError(
+                f"Quy tắc đã bị sửa đổi bởi một phiên khác (Phiên bản máy chủ: {current_version}, bạn gửi: {req.version}). Vui lòng tải lại dữ liệu mới nhất."
             )
 
-        # Check duplicate name if name changed
-        if req.name.lower() != existing["name"].lower():
-            dup = query_one(
-                "SELECT id FROM rules WHERE user_id = ? AND name = ? COLLATE NOCASE AND id != ? AND deleted_at IS NULL",
-                (user_id, req.name, rule_id)
-            )
-            if dup:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Tên quy tắc '{req.name}' đã tồn tại trong tài khoản của bạn."
-                )
+        if req.name.lower() != existing["name"].lower() and self._rules.exists_name_for_user(
+            user_id, req.name, exclude_id=rule_id
+        ):
+            raise ConflictError(f"Tên quy tắc '{req.name}' đã tồn tại trong tài khoản của bạn.")
 
         if req.activation_mode == "glob" and not req.glob_patterns:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Khi chế độ kích hoạt là 'glob', danh sách glob_patterns bắt buộc phải có ít nhất 1 pattern."
+            raise ValidationDomainError(
+                "Khi chế độ kích hoạt là 'glob', danh sách glob_patterns bắt buộc phải có ít nhất 1 pattern."
             )
 
         now = datetime.now(timezone.utc).isoformat()
-        globs_json = json.dumps(req.glob_patterns, ensure_ascii=False)
-        tags_json = json.dumps(req.tags, ensure_ascii=False)
-        new_version = current_version + 1
         new_status = req.status or existing.get("status", "active")
+        if new_status not in ("active", "inactive", "archived"):
+            raise ValidationDomainError("Trạng thái quy tắc không hợp lệ.")
 
-        execute_commit(
-            """
-            UPDATE rules SET
-                name = ?,
-                description = ?,
-                content = ?,
-                activation_mode = ?,
-                glob_patterns = ?,
-                tags = ?,
-                priority = ?,
-                status = ?,
-                version = ?,
-                updated_at = ?
-            WHERE id = ?
-            """,
-            (
-                req.name, req.description, req.content,
-                req.activation_mode, globs_json, tags_json,
-                req.priority, new_status, new_version, now,
-                rule_id
-            )
+        updated_rows = self._rules.update_with_occ(
+            rule_id=rule_id,
+            user_id=user_id,
+            expected_version=req.version,
+            fields={
+                "name": req.name,
+                "description": req.description,
+                "content": req.content,
+                "activation_mode": req.activation_mode,
+                "glob_patterns": json.dumps(req.glob_patterns, ensure_ascii=False),
+                "tags": json.dumps(req.tags, ensure_ascii=False),
+                "priority": req.priority,
+                "status": new_status,
+                "updated_at": now,
+            },
         )
+        if updated_rows == 0:
+            raise ConflictError("Quy tắc đã bị sửa đổi đồng thời bởi phiên khác. Vui lòng tải lại.")
 
-        return cls.get_rule(user_id, rule_id)
+        return self.get_rule_instance(user_id, rule_id)
 
-    @classmethod
-    def update_status(cls, user_id: str, rule_id: str, new_status: str) -> RuleResponse:
-        """
-        Bật/tắt nhanh trạng thái active/inactive của Rule (RUL-FR-003).
-        """
-        existing = query_one(
-            "SELECT * FROM rules WHERE id = ? AND deleted_at IS NULL",
-            (rule_id,)
+    def update_status_instance(self, user_id: str, rule_id: str, new_status: str) -> RuleResponse:
+        self._require_editable_rule(
+            user_id,
+            rule_id,
+            action_label="Không thể thay đổi trạng thái của Quy tắc Hệ thống.",
         )
-        if not existing:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
-
-        if existing.get("scope") == "system":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Không thể thay đổi trạng thái của Quy tắc Hệ thống."
-            )
-
-        if existing.get("user_id") != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
-
         now = datetime.now(timezone.utc).isoformat()
-        execute_commit(
-            "UPDATE rules SET status = ?, updated_at = ? WHERE id = ?",
-            (new_status, now, rule_id)
-        )
-        return cls.get_rule(user_id, rule_id)
+        self._rules.update_status(rule_id, user_id, new_status, now)
+        return self.get_rule_instance(user_id, rule_id)
 
-    @classmethod
-    def clone_rule(cls, user_id: str, rule_id: str) -> RuleResponse:
-        """
-        Nhân bản một Rule (kể cả System Rule) thành Rule mới của người dùng (RUL-FR-004, RUL-BR-012).
-        """
-        source = query_one(
-            "SELECT * FROM rules WHERE id = ? AND deleted_at IS NULL",
-            (rule_id,)
-        )
-        if not source:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc nguồn '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
+    def clone_rule_instance(self, user_id: str, rule_id: str) -> RuleResponse:
+        # Enforces Anti-IDOR: user can only clone system rules or their own rules
+        source = self._require_visible_rule(user_id, rule_id)
 
-        # Generate unique copy name
         base_name = source["name"].strip()
         copy_name = f"{base_name} (Copy)"
-        idx = 2
-        while True:
-            exists = query_one(
-                "SELECT id FROM rules WHERE user_id = ? AND name = ? COLLATE NOCASE AND deleted_at IS NULL",
-                (user_id, copy_name)
-            )
-            if not exists:
+        for idx in range(2, 102):
+            if not self._rules.exists_name_for_user(user_id, copy_name):
                 break
             copy_name = f"{base_name} (Copy {idx})"
-            idx += 1
 
         new_id = f"rul_{uuid.uuid4().hex[:12]}"
         now = datetime.now(timezone.utc).isoformat()
-
-        execute_commit(
-            """
-            INSERT INTO rules (
-                id, user_id, name, description, content,
-                scope, activation_mode, glob_patterns, tags,
-                priority, status, version, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, 'user', ?, ?, ?, ?, 'active', 1, ?, ?)
-            """,
-            (
-                new_id, user_id, copy_name, source.get("description"), source["content"],
-                source.get("activation_mode", "always_on"),
-                source.get("glob_patterns", "[]"),
-                source.get("tags", "[]"),
-                source.get("priority", 50),
-                now, now
-            )
+        self._rules.create(
+            {
+                "id": new_id,
+                "user_id": user_id,
+                "name": copy_name[:100],
+                "description": source.get("description"),
+                "content": source["content"],
+                "activation_mode": source.get("activation_mode", "always_on"),
+                "glob_patterns": source.get("glob_patterns", "[]"),
+                "tags": source.get("tags", "[]"),
+                "priority": source.get("priority", 50),
+                "created_at": now,
+                "updated_at": now,
+            }
         )
+        return self.get_rule_instance(user_id, new_id)
 
-        return cls.get_rule(user_id, new_id)
-
-    @classmethod
-    def delete_rule(cls, user_id: str, rule_id: str, force: bool = False) -> Dict[str, Any]:
-        existing = query_one(
-            "SELECT * FROM rules WHERE id = ? AND deleted_at IS NULL",
-            (rule_id,)
+    def delete_rule_instance(self, user_id: str, rule_id: str, force: bool = False) -> Dict[str, Any]:
+        self._require_editable_rule(
+            user_id,
+            rule_id,
+            action_label="Không thể xóa Quy tắc Hệ thống.",
         )
-        if not existing:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
-
-        if existing.get("scope") == "system":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Không thể xóa Quy tắc Hệ thống."
-            )
-
-        if existing.get("user_id") != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Quy tắc '{rule_id}' không tồn tại hoặc đã bị xóa."
-            )
-
         now = datetime.now(timezone.utc).isoformat()
-        execute_commit(
-            "UPDATE rules SET deleted_at = ?, status = 'archived' WHERE id = ?",
-            (now, rule_id)
-        )
-
+        self._rules.soft_delete(rule_id, user_id, now)
         return {
             "message": "Đã xóa mềm quy tắc thành công.",
             "id": rule_id,
             "deleted_at": now,
-            "detached_projects_count": 0
+            "detached_projects_count": 0,
         }
 
+    # ------------------------------------------------------------------
+    # Backward-compatible classmethod facade
+    # ------------------------------------------------------------------
+    @classmethod
+    def list_rules(cls, user_id: str, **kwargs: Any) -> PaginatedRuleResponse:
+        return _default_rule_service.list_rules_instance(user_id=user_id, **kwargs)
+
+    @classmethod
+    def get_rule(cls, user_id: str, rule_id: str) -> RuleResponse:
+        return _default_rule_service.get_rule_instance(user_id, rule_id)
+
+    @classmethod
+    def create_rule(cls, user_id: str, req: RuleCreateRequest) -> RuleResponse:
+        return _default_rule_service.create_rule_instance(user_id, req)
+
+    @classmethod
+    def update_rule(cls, user_id: str, rule_id: str, req: RuleUpdateRequest) -> RuleResponse:
+        return _default_rule_service.update_rule_instance(user_id, rule_id, req)
+
+    @classmethod
+    def update_status(cls, user_id: str, rule_id: str, new_status: str) -> RuleResponse:
+        return _default_rule_service.update_status_instance(user_id, rule_id, new_status)
+
+    @classmethod
+    def clone_rule(cls, user_id: str, rule_id: str) -> RuleResponse:
+        return _default_rule_service.clone_rule_instance(user_id, rule_id)
+
+    @classmethod
+    def delete_rule(cls, user_id: str, rule_id: str, force: bool = False) -> Dict[str, Any]:
+        return _default_rule_service.delete_rule_instance(user_id, rule_id, force=force)
+
+
+_default_rule_service = RuleService()
+
+__all__ = [
+    "RuleCreateRequest",
+    "RuleUpdateRequest",
+    "RuleStatusUpdateRequest",
+    "RuleResponse",
+    "PaginatedRuleResponse",
+    "ProjectRuleBindingRequest",
+    "RuleService",
+]

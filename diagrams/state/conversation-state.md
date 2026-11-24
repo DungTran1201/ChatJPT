@@ -1,5 +1,5 @@
 # Sơ Đồ Máy Trạng Thái: Vòng Đời Cuộc Trò Chuyện (Conversation Lifecycle State Machine)
-## Dự Án: Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)
+## Dự Án: Website Hỗ Trợ Học Tiếng Nhật & AI Virtual Sensei (ChatJPT)
 
 ---
 
@@ -7,8 +7,8 @@
 | :--- | :--- |
 | **Mã Sơ Đồ** | `DIAG-STATE-001` |
 | **Mã Trạng Thái** | `STATE-001` |
-| **Nguồn Sự Thật Thượng Nguồn** | [docs/09-behavior/state-machines.md](file:///c:/Users/PC/Project/ai-chan/docs/09-behavior/state-machines.md), [docs/07-domain/domain-rules.md](file:///c:/Users/PC/Project/ai-chan/docs/07-domain/domain-rules.md) |
-| **Mục Đích** | Mô tả các trạng thái hữu hạn và các biến cố kích hoạt chuyển đổi trạng thái của thực thể Hội thoại (Conversation) |
+| **Nguồn Sự Thật Thượng Nguồn** | [docs/09-behavior/state-machines.md](../../docs/09-behavior/state-machines.md), [docs/07-domain/domain-rules.md](../../docs/07-domain/domain-rules.md) |
+| **Mục Đích** | Mô tả các trạng thái hữu hạn và các biến cố chuyển đổi trạng thái của thực thể Hội thoại (Conversation) |
 
 ---
 
@@ -16,22 +16,23 @@
 
 ```mermaid
 stateDiagram-v2
-    [*] --> NEW: POST /api/v1/conversations (Tạo thread mới với title mặc định)
-    
+    [*] --> NEW: POST /api/v1/conversations (Tiêu đề mặc định "Cuộc trò chuyện mới")
+
     NEW --> ACTIVE: Gửi tin nhắn đầu tiên (Tự động đổi tên theo BR-004)
-    
+
     state ACTIVE {
+        [*] --> IDLE
         IDLE: Sẵn sàng nhận câu hỏi mới
-        PROCESSING: Đang stream phản hồi từ AI qua SSE
-        
-        IDLE --> PROCESSING: Người dùng submit tin nhắn
-        PROCESSING --> IDLE: AI hoàn tất stream hoặc gặp lỗi
+        PROCESSING: Đang stream phản hồi từ Sensei qua SSE
+
+        IDLE --> PROCESSING: POST /conversations/:id/messages/stream
+        PROCESSING --> IDLE: Nhận event done hoặc error
     }
 
     NEW --> DELETED: DELETE /api/v1/conversations/:id (Xóa khi chưa có tin nhắn)
-    ACTIVE --> DELETED: DELETE /api/v1/conversations/:id (Xóa kèm CASCADE tin nhắn)
-    
-    DELETED --> [*]: Bản ghi bị xóa vĩnh viễn khỏi CSDL
+    ACTIVE --> DELETED: DELETE /api/v1/conversations/:id (Xóa CASCADE tin nhắn & dọn tệp đính kèm trên đĩa)
+
+    DELETED --> [*]: Bản ghi & tệp vật lý được dọn sạch
 ```
 
 ---
@@ -40,8 +41,8 @@ stateDiagram-v2
 
 | Trạng Thái Đầu | Biến Cố Kích Hoạt (Trigger) | Điều Kiện Ràng Buộc | Trạng Thái Đích | Hành Động Kèm Theo |
 | :--- | :--- | :--- | :--- | :--- |
-| `[*]` | Người dùng nhấn "+ Cuộc trò chuyện mới" | Đã xác thực JWT Cookie | `NEW` | Tạo bản ghi với tiêu đề "Cuộc trò chuyện mới". |
-| `NEW` | Tin nhắn đầu tiên được gửi thành công | Nội dung tin nhắn hợp lệ | `ACTIVE` | Trích xuất 30-40 ký tự đầu làm tiêu đề tự động (`BR-004`). |
-| `IDLE` | Người dùng gửi câu hỏi mới | Không đang trong luồng stream | `PROCESSING` | Mở kết nối SSE và khóa nút Gửi. |
-| `PROCESSING` | Sự kiện `event: done` hoặc người dùng ấn `Stop` | Stream kết thúc | `IDLE` | Lưu câu trả lời vào DB và mở khóa ô soạn thảo. |
-| `ANY` | Gọi `DELETE /api/v1/conversations/:id` | Đúng `user_id` sở hữu (`BR-002`) | `DELETED` | Xóa sạch hội thoại và các tin nhắn con trong DB. |
+| `[*]` | Tạo hội thoại mới | Đã xác thực JWT | `NEW` | Lưu bản ghi `conversations` với tiêu đề `"Cuộc trò chuyện mới"`. |
+| `NEW` | Gửi tin nhắn đầu tiên | Đủ quota (`BR-020`), đúng chủ sở hữu (`BR-002`) | `ACTIVE / PROCESSING` | Trích xuất 30 ký tự đầu làm tiêu đề tự động (`BR-004`). |
+| `IDLE` | Người dùng gửi câu hỏi mới | Không đang trong luồng stream | `PROCESSING` | Mở kết nối SSE qua `ChatService.stream_events`. |
+| `PROCESSING` | Nhận `event: done` hoặc `event: error` | Stream kết thúc | `IDLE` | Lưu phản hồi assistant, học Semantic Cache, ghi nhận Telemetry & trừ Quota. |
+| `NEW` / `ACTIVE` | `DELETE /api/v1/conversations/:id` | Đúng `user_id` sở hữu (`BR-002`) | `DELETED` | Xóa nguyên tử hội thoại, tin nhắn CASCADE và xóa các tệp vật lý đính kèm trên đĩa. |

@@ -1,181 +1,144 @@
-"""
-FastAPI Endpoints for Rules Management System
-Prefix: /rules and /projects/{project_id}/rules
-Tags: ["Rules Management"]
-"""
+"""Thin HTTP router for Rules Management (/api/v1/rules)."""
 
-import logging
-from typing import Optional, Dict, Any
-from fastapi import APIRouter, status, Depends, Query, UploadFile, File
+from typing import Any, Dict, Optional
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 
 from src.core.security import get_optional_current_user
+from src.dependencies import get_rule_service, get_text_import_service
 from src.schemas.v1.rules import (
-    RuleCreateRequest,
-    RuleUpdateRequest,
-    RuleStatusUpdateRequest,
-    RuleResponse,
     PaginatedRuleResponse,
+    RuleCreateRequest,
+    RuleResponse,
+    RuleStatusUpdateRequest,
+    RuleUpdateRequest,
 )
 from src.schemas.v1.text_import import TextFileImportRequest
 from src.services.rule_service import RuleService
-from src.services.text_import_service import TextImportService
-
-logger = logging.getLogger("api.rules")
+from src.services.text_import_service import MAX_FILE_SIZE_BYTES, TextImportService
 
 rules_router = APIRouter(prefix="/rules", tags=["Rules Management"])
 
 
-
-# ==============================================================================
-# 1. RULES LIBRARY / CRUD ENDPOINTS
-# ==============================================================================
-
 @rules_router.get("", response_model=PaginatedRuleResponse, summary="List rules with search, filters, and pagination")
 async def list_rules_endpoint(
-    search: Optional[str] = Query(None, description="Search by name, description or tag"),
-    scope: Optional[str] = Query("all", description="Filter by scope: 'all', 'user', 'system'"),
-    activation_mode: Optional[str] = Query(None, description="Filter by activation mode: always_on, model_decision, glob, manual"),
-    status: Optional[str] = Query("active", description="Filter by status: 'active', 'inactive', 'archived', 'all'"),
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(20, ge=1, le=100, description="Items per page"),
-    sort_by: str = Query("updated_at", description="Field to sort by: updated_at, created_at, name, priority"),
-    sort_order: str = Query("desc", description="Sort order: asc or desc"),
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    search: Optional[str] = Query(None),
+    scope: Optional[str] = Query("all"),
+    activation_mode: Optional[str] = Query(None),
+    status_filter: Optional[str] = Query("active", alias="status"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    sort_by: str = Query("updated_at"),
+    sort_order: str = Query("desc"),
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
-    """
-    Lấy danh sách các quy tắc (Rules Library) với đầy đủ bộ lọc, tìm kiếm và phân trang.
-    Tự động áp dụng Anti-IDOR: chỉ trả về các quy tắc thuộc quyền người dùng và system rules.
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.list_rules(
-        user_id=user_id,
+    return rule_service.list_rules_instance(
+        user_id=current_user.get("id", "guest_user"),
         search=search,
         scope=scope,
         activation_mode=activation_mode,
-        status_filter=status,
+        status_filter=status_filter,
         page=page,
         limit=limit,
         sort_by=sort_by,
-        sort_order=sort_order
+        sort_order=sort_order,
     )
 
 
 @rules_router.post("", response_model=RuleResponse, status_code=status.HTTP_201_CREATED, summary="Create a new rule")
 async def create_rule_endpoint(
     req: RuleCreateRequest,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
-    """
-    Tạo mới một quy tắc trong thư viện cá nhân của người dùng (RUL-FR-006).
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.create_rule(user_id=user_id, req=req)
+    return rule_service.create_rule_instance(user_id=current_user.get("id", "guest_user"), req=req)
 
 
 @rules_router.post("/import-file", response_model=RuleResponse, status_code=status.HTTP_201_CREATED, summary="Import rule from a text file")
 async def import_rule_file_endpoint(
     file: UploadFile = File(...),
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    import_service: TextImportService = Depends(get_text_import_service),
 ):
-    """
-    Nhập quy tắc mới từ tệp văn bản (.md, .txt, .json, .yaml...) tải lên từ máy tính.
-    """
     user_id = current_user.get("id", "guest_user")
     filename = file.filename or "untitled.txt"
-    content_bytes = await file.read()
-    text = TextImportService.validate_and_decode_bytes(filename, content_bytes)
-    return TextImportService.import_rule(user_id=user_id, filename=filename, content=text)
+    content_bytes = await file.read(MAX_FILE_SIZE_BYTES + 1)
+    text = import_service.validate_and_decode_bytes(filename, content_bytes)
+    return import_service.import_rule_instance(user_id=user_id, filename=filename, content=text)
 
 
 @rules_router.post("/import-text", response_model=RuleResponse, status_code=status.HTTP_201_CREATED, summary="Import rule from verified text payload")
 async def import_rule_text_endpoint(
     req: TextFileImportRequest,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    import_service: TextImportService = Depends(get_text_import_service),
 ):
-    """
-    Nhập quy tắc từ nội dung văn bản sau khi người dùng đã xem trước (preview) và chỉnh sửa thông tin.
-    """
     user_id = current_user.get("id", "guest_user")
-    text = TextImportService.validate_and_decode_bytes(req.filename, req.content.encode("utf-8"))
-    return TextImportService.import_rule(
+    text = import_service.validate_and_decode_bytes(req.filename, req.content.encode("utf-8"))
+    return import_service.import_rule_instance(
         user_id=user_id,
         filename=req.filename,
         content=text,
-        override_name=req.name,
-        override_desc=req.description,
+        override_name=req.override_name or req.name,
+        override_desc=req.override_description or req.description,
         activation_mode=req.activation_mode,
         glob_patterns=req.glob_patterns,
         tags=req.tags,
-        priority=req.priority
+        priority=req.priority,
     )
 
 
 @rules_router.get("/{rule_id}", response_model=RuleResponse, summary="Get rule details by ID")
 async def get_rule_endpoint(
     rule_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
-    """
-    Lấy chi tiết một Rule theo ID.
-    Áp dụng Anti-IDOR: Trả về HTTP 404 nếu ID không tồn tại hoặc thuộc người dùng khác.
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.get_rule(user_id=user_id, rule_id=rule_id)
+    return rule_service.get_rule_instance(user_id=current_user.get("id", "guest_user"), rule_id=rule_id)
 
 
 @rules_router.put("/{rule_id}", response_model=RuleResponse, summary="Update an existing rule")
 async def update_rule_endpoint(
     rule_id: str,
     req: RuleUpdateRequest,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
-    """
-    Cập nhật nội dung và metadata của Rule (RUL-FR-007).
-    - Ngăn chặn sửa System Rule (HTTP 403 Forbidden).
-    - Kiểm soát xung đột ghi đè Optimistic Concurrency Control qua trường version (HTTP 409 Conflict).
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.update_rule(user_id=user_id, rule_id=rule_id, req=req)
+    return rule_service.update_rule_instance(user_id=current_user.get("id", "guest_user"), rule_id=rule_id, req=req)
 
 
 @rules_router.patch("/{rule_id}/status", response_model=RuleResponse, summary="Quick toggle rule active status")
 async def update_rule_status_endpoint(
     rule_id: str,
     req: RuleStatusUpdateRequest,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
-    """
-    Bật hoặc tắt nhanh trạng thái hoạt động (active / inactive) của Rule (RUL-FR-003).
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.update_status(user_id=user_id, rule_id=rule_id, new_status=req.status)
+    return rule_service.update_status_instance(
+        user_id=current_user.get("id", "guest_user"),
+        rule_id=rule_id,
+        new_status=req.status,
+    )
 
 
 @rules_router.post("/{rule_id}/clone", response_model=RuleResponse, status_code=status.HTTP_201_CREATED, summary="Clone a rule to user library")
 async def clone_rule_endpoint(
     rule_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
-    """
-    Nhân bản một Rule (kể cả System Rule) thành Rule mới trong thư viện cá nhân (RUL-FR-004).
-    Tự động thêm hậu tố (Copy) vào tên quy tắc.
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.clone_rule(user_id=user_id, rule_id=rule_id)
+    return rule_service.clone_rule_instance(user_id=current_user.get("id", "guest_user"), rule_id=rule_id)
 
 
 @rules_router.delete("/{rule_id}", summary="Soft delete a rule with reference guard")
 async def delete_rule_endpoint(
     rule_id: str,
-    force: bool = Query(False, description="Nếu true, tự động gỡ liên kết khỏi các dự án và xóa mềm"),
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    force: bool = Query(False),
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
-    """
-    Xóa mềm một Rule (RUL-FR-005).
-    - Nếu force=false và Rule đang được liên kết trong dự án: Trả về HTTP 400 kèm danh sách dự án bị ảnh hưởng.
-    - Nếu force=true: Tự động gỡ liên kết và xóa mềm an toàn.
-    """
-    user_id = current_user.get("id", "guest_user")
-    return RuleService.delete_rule(user_id=user_id, rule_id=rule_id, force=force)
-
-
+    return rule_service.delete_rule_instance(
+        user_id=current_user.get("id", "guest_user"),
+        rule_id=rule_id,
+        force=force,
+    )

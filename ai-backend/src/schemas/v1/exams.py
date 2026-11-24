@@ -53,7 +53,7 @@ class ExamSummaryResponse(BaseModel):
 
 
 class ExamDetailResponse(ExamSummaryResponse):
-    questions: List[ExamQuestionSummary] = []
+    questions: List[ExamQuestionSummary] = Field(default_factory=list)
 
     @classmethod
     def from_entities(

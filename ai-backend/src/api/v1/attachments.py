@@ -1,236 +1,68 @@
-"""
-Unified File Attachments & Assets API Router
-Path: ai-backend/src/api/v1/attachments.py
-Implements: SRS Unified File Uploads (Chat, Project Chat, Skills Library, System Prompt Library)
-Security: Anti-IDOR, Path Traversal Protection, Rate Limiting, MIME Sniffing, Executable Blocking
-"""
+"""Thin HTTP router for File Attachments & Assets (/api/v1/attachments)."""
 
 import io
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Request, UploadFile, File, Form
+from typing import Any, Dict, Optional
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from src.core.config import settings
 from src.core.security import app_rate_limiter, get_optional_current_user
-from src.core.attachment_storage import (
-    save_attachment_file,
-    read_attachment_bytes,
-    delete_attachment_file,
-)
-from src.db import query_one, query_all, execute_commit
-from src.models.v1.attachment import (
-    ALLOWED_ATTACHMENT_CATEGORIES,
-    SUPPORTED_ATTACHMENT_MIME_TYPES,
-    AttachmentEntity,
-)
+from src.dependencies import get_attachment_service
 from src.schemas.v1.attachments import (
-    AttachmentResponse,
     AttachmentListResponse,
-    ModelCapability,
+    AttachmentResponse,
     CapabilityResponse,
 )
+from src.services.attachment_service import AttachmentService, build_content_disposition
 
 attachments_router = APIRouter(prefix="/attachments", tags=["File Attachments & Assets"])
 
 
-def format_attachment_response(row: Dict[str, Any]) -> AttachmentResponse:
-    """Formats database row into standard AttachmentResponse model."""
-    return AttachmentResponse.from_entity(AttachmentEntity.from_attachment_row(row))
+async def _read_upload_with_limit(file: UploadFile, max_bytes: int) -> bytes:
+    chunks = []
+    total = 0
+    while chunk := await file.read(1024 * 1024):
+        total += len(chunk)
+        if total > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={
+                    "error_code": "FILE_TOO_LARGE",
+                    "message": f"Dung lượng tệp vượt quá giới hạn tối đa cho phép ({settings.MAX_FILE_SIZE_MB} MB).",
+                },
+            )
+        chunks.append(chunk)
+    return b"".join(chunks)
 
 
-# ==============================================================================
-# API ENDPOINTS
-# ==============================================================================
-
-@attachments_router.get("/capabilities", summary="Truy vấn khả năng xử lý tệp & mô hình hỗ trợ")
+@attachments_router.get("/capabilities", response_model=CapabilityResponse, summary="Truy vấn khả năng xử lý tệp & mô hình hỗ trợ")
 async def get_attachment_capabilities(
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    att_service: AttachmentService = Depends(get_attachment_service),
 ):
-    """
-    Truy vấn giới hạn dung lượng tải lên và danh mục mô hình/modality hỗ trợ (SRS Capability-Aware).
-    """
-    return {
-        "default_provider": settings.DEFAULT_LLM_PROVIDER or "gemini",
-        "max_file_size_mb": settings.MAX_FILE_SIZE_MB,
-        "max_files_per_request": settings.MAX_FILES_PER_REQUEST,
-        "allowed_categories": ALLOWED_ATTACHMENT_CATEGORIES,
-        "supported_mime_types": SUPPORTED_ATTACHMENT_MIME_TYPES,
-        "models": [
-            {
-                "model_id": "gemini-3.8-flash",
-                "provider": "google",
-                "supports_images": True,
-                "supports_pdf_native": True,
-                "supports_text_documents": True,
-                "max_file_size_mb": settings.MAX_FILE_SIZE_MB
-            },
-            {
-                "model_id": "gemini-3.5-flash-lite",
-                "provider": "google",
-                "supports_images": True,
-                "supports_pdf_native": True,
-                "supports_text_documents": True,
-                "max_file_size_mb": settings.MAX_FILE_SIZE_MB
-            },
-            {
-                "model_id": "gpt-4o-mini",
-                "provider": "openai",
-                "supports_images": True,
-                "supports_pdf_native": False,
-                "supports_text_documents": True,
-                "max_file_size_mb": settings.MAX_FILE_SIZE_MB
-            }
-        ]
-    }
+    return att_service.get_capabilities()
 
 
 @attachments_router.post("/upload", response_model=AttachmentResponse, status_code=status.HTTP_201_CREATED, summary="Tải lên tệp đính kèm hoặc tài nguyên thư viện")
 async def upload_attachment(
     request: Request,
     file: UploadFile = File(...),
-    context_type: Optional[str] = Form(None, description="'chat', 'project_chat', 'skill', 'system_prompt'"),
-    context_id: Optional[str] = Form(None, description="ID của conversation, project, skill, hoặc prompt"),
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    context_type: Optional[str] = Form(None),
+    context_id: Optional[str] = Form(None),
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    att_service: AttachmentService = Depends(get_attachment_service),
 ):
     client_ip = request.client.host if request.client else "127.0.0.1"
     app_rate_limiter.check(client_ip)
-    user_id = current_user["id"]
 
-    # Read binary content with size safeguard
-    try:
-        content_bytes = await file.read()
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Không thể đọc luồng tệp tải lên: {str(e)}"
-        )
-
-    # Validate Context Ownership if context_id provided
-    conversation_id = None
-    prompt_id = None
-
-    if context_type == "chat" and context_id:
-        conv = query_one("SELECT id FROM conversations WHERE id = ? AND (user_id = ? OR user_id = 'guest_user')", (context_id, user_id))
-        if not conv:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cuộc trò chuyện không tồn tại hoặc bạn không có quyền.")
-        conversation_id = context_id
-
-    elif context_type in ("system_prompt", "prompt") and context_id:
-        sp = query_one("SELECT id FROM system_prompts WHERE id = ? AND (user_id = ? OR user_id = 'guest_user')", (context_id, user_id))
-        if not sp:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="System Prompt không tồn tại hoặc bạn không có quyền.")
-        prompt_id = context_id
-
-    # Save to safe storage & classify
-    try:
-        file_meta = save_attachment_file(user_id, file.filename or "file", content_bytes)
-    except ValueError as val_err:
-        err_str = str(val_err)
-        err_code = "FILE_PROCESSING_FAILED"
-        if "thực thi" in err_str or "script" in err_str or "Binary Executable" in err_str:
-            err_code = "EXECUTABLE_FILE_BLOCKED"
-        elif "rỗng" in err_str:
-            err_code = "EMPTY_FILE"
-        elif "vượt quá" in err_str:
-            err_code = "FILE_TOO_LARGE"
-        elif "MIME" in err_str or "định dạng" in err_str:
-            err_code = "UNSUPPORTED_MEDIA_TYPE"
-
-
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={"error_code": err_code, "message": err_str}
-        )
-
-
-    # Persist in SQLite
-    sql = """
-        INSERT INTO attachments (
-            id, user_id, conversation_id, prompt_id,
-            filename, file_size, mime_type, category, storage_path, stored_path, checksum_sha256,
-            status, extracted_text, image_width, image_height
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
-    execute_commit(
-        sql,
-        (
-            file_meta["id"],
-            user_id,
-            conversation_id,
-            prompt_id,
-            file_meta["filename"],
-            file_meta["file_size"],
-            file_meta["mime_type"],
-            file_meta["category"],
-            file_meta["storage_path"],
-            file_meta["storage_path"],
-            file_meta["checksum_sha256"],
-            file_meta["status"],
-            file_meta["extracted_text"],
-            file_meta["image_width"],
-            file_meta["image_height"],
-        )
-    )
-
-    created_row = query_one("SELECT * FROM attachments WHERE id = ?", (file_meta["id"],))
-    return format_attachment_response(created_row)
-
-
-@attachments_router.get("/capabilities", response_model=CapabilityResponse, summary="Lấy danh mục năng lực xử lý tệp của các mô hình")
-async def get_attachment_capabilities():
-    """Returns file modality capabilities for active LLM models in the system."""
-    models_rows = query_all("SELECT id, name, provider, status FROM models WHERE status = 'ACTIVE'")
-    model_caps: List[ModelCapability] = []
-
-    for m in models_rows:
-        prov = m.get("provider", "google").lower()
-        mid = m["id"]
-        
-        # Gemini native multimodal: supports images and native PDF
-        if prov == "google":
-            model_caps.append(ModelCapability(
-                model_id=mid,
-                provider=prov,
-                supports_images=True,
-                supports_pdf_native=True,
-                supports_text_documents=True,
-                max_file_size_mb=settings.MAX_FILE_SIZE_MB
-            ))
-        elif prov == "openai":
-            # GPT-4o / GPT-4o-mini supports images natively; PDF via text extraction fallback
-            model_caps.append(ModelCapability(
-                model_id=mid,
-                provider=prov,
-                supports_images=True,
-                supports_pdf_native=False,
-                supports_text_documents=True,
-                max_file_size_mb=settings.MAX_FILE_SIZE_MB
-            ))
-        elif prov == "anthropic":
-            model_caps.append(ModelCapability(
-                model_id=mid,
-                provider=prov,
-                supports_images=True,
-                supports_pdf_native=True,
-                supports_text_documents=True,
-                max_file_size_mb=settings.MAX_FILE_SIZE_MB
-            ))
-        else:
-            # Groq / Ollama: text and document extraction only
-            model_caps.append(ModelCapability(
-                model_id=mid,
-                provider=prov,
-                supports_images=False,
-                supports_pdf_native=False,
-                supports_text_documents=True,
-                max_file_size_mb=settings.MAX_FILE_SIZE_MB
-            ))
-
-    return CapabilityResponse(
-        max_file_size_mb=settings.MAX_FILE_SIZE_MB,
-        max_files_per_request=settings.MAX_FILES_PER_REQUEST,
-        allowed_categories=["image", "document", "code", "archive", "audio", "video", "other"],
-        models=model_caps
+    max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
+    content_bytes = await _read_upload_with_limit(file, max_bytes)
+    return att_service.upload(
+        user_id=current_user["id"],
+        filename=file.filename or "file",
+        content_bytes=content_bytes,
+        context_type=context_type,
+        context_id=context_id,
     )
 
 
@@ -240,157 +72,67 @@ async def list_attachments(
     conversation_id: Optional[str] = Query(None),
     prompt_id: Optional[str] = Query(None),
     status_filter: Optional[str] = Query(None, alias="status"),
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    att_service: AttachmentService = Depends(get_attachment_service),
 ):
-    user_id = current_user["id"]
-    conditions = ["(user_id = ? OR user_id = 'guest_user')", "status != 'DELETED'"]
-    params: List[Any] = [user_id]
-
-    if conversation_id:
-        conditions.append("conversation_id = ?")
-        params.append(conversation_id)
-
-    if prompt_id:
-        conditions.append("prompt_id = ?")
-        params.append(prompt_id)
-    if status_filter:
-        conditions.append("status = ?")
-        params.append(status_filter)
-
-    where_clause = " AND ".join(conditions)
-    rows = query_all(
-        f"SELECT * FROM attachments WHERE {where_clause} ORDER BY created_at DESC LIMIT 100",
-        tuple(params)
-    )
-    return AttachmentListResponse(
-        items=[format_attachment_response(r) for r in rows],
-        total=len(rows)
+    return att_service.list_attachments(
+        user_id=current_user["id"],
+        conversation_id=conversation_id,
+        prompt_id=prompt_id,
+        status_filter=status_filter,
     )
 
 
 @attachments_router.get("/{attachment_id}", response_model=AttachmentResponse, summary="Lấy thông tin chi tiết tệp đính kèm")
 async def get_attachment_detail(
     attachment_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    att_service: AttachmentService = Depends(get_attachment_service),
 ):
-    user_id = current_user["id"]
-    # Anti-IDOR check
-    row = query_one(
-        "SELECT * FROM attachments WHERE id = ? AND (user_id = ? OR user_id = 'guest_user') AND status != 'DELETED'",
-        (attachment_id, user_id)
-    )
-    if not row:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tệp không tồn tại hoặc bạn không có quyền truy cập."
-        )
-    return format_attachment_response(row)
+    return att_service.get_detail(attachment_id, current_user["id"])
 
 
 @attachments_router.get("/{attachment_id}/download", summary="Tải xuống tệp nhị phân gốc an toàn")
 async def download_attachment(
     attachment_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    att_service: AttachmentService = Depends(get_attachment_service),
 ):
-    user_id = current_user["id"]
-    # Anti-IDOR check
-    row = query_one(
-        "SELECT * FROM attachments WHERE id = ? AND (user_id = ? OR user_id = 'guest_user') AND status != 'DELETED'",
-        (attachment_id, user_id)
-    )
-    if not row:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tệp không tồn tại hoặc bạn không có quyền truy cập."
-        )
-
-    try:
-        raw_bytes = read_attachment_bytes(row["storage_path"])
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không thể đọc nội dung tệp lưu trữ: {str(exc)}"
-        )
-
-    clean_filename = row["filename"]
+    raw_bytes, mime, filename = att_service.load_binary(attachment_id, current_user["id"], inline=False)
     return StreamingResponse(
         io.BytesIO(raw_bytes),
-        media_type=row["mime_type"],
+        media_type=mime,
         headers={
-            "Content-Disposition": f'attachment; filename="{clean_filename}"',
+            "Content-Disposition": build_content_disposition("attachment", filename),
             "Content-Length": str(len(raw_bytes)),
-            "X-Content-Type-Options": "nosniff"
-        }
+            "X-Content-Type-Options": "nosniff",
+        },
     )
 
 
 @attachments_router.get("/{attachment_id}/view", summary="Xem nội dung tệp trực tiếp trong trình duyệt (Preview inline)")
 async def view_attachment(
     attachment_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    att_service: AttachmentService = Depends(get_attachment_service),
 ):
-    user_id = current_user["id"]
-    # Anti-IDOR check
-    row = query_one(
-        "SELECT * FROM attachments WHERE id = ? AND (user_id = ? OR user_id = 'guest_user') AND status != 'DELETED'",
-        (attachment_id, user_id)
-    )
-    if not row:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tệp không tồn tại hoặc bạn không có quyền truy cập."
-        )
-
-    try:
-        raw_bytes = read_attachment_bytes(row["storage_path"])
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không thể đọc nội dung tệp lưu trữ: {str(exc)}"
-        )
-
-    # Disallow inline execution of HTML / SVG to prevent XSS (Sec-003)
-    mime = row["mime_type"]
-    if mime in ("text/html", "image/svg+xml", "application/xhtml+xml"):
-        mime = "text/plain"
-
+    raw_bytes, mime, filename = att_service.load_binary(attachment_id, current_user["id"], inline=True)
     return StreamingResponse(
         io.BytesIO(raw_bytes),
         media_type=mime,
         headers={
-            "Content-Disposition": f'inline; filename="{row["filename"]}"',
+            "Content-Disposition": build_content_disposition("inline", filename),
             "Content-Length": str(len(raw_bytes)),
             "X-Content-Type-Options": "nosniff",
-            "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline';"
-        }
+            "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline';",
+        },
     )
 
 
 @attachments_router.delete("/{attachment_id}", summary="Xóa tệp đính kèm")
 async def delete_attachment(
     attachment_id: str,
-    current_user: Dict[str, Any] = Depends(get_optional_current_user)
+    current_user: Dict[str, Any] = Depends(get_optional_current_user),
+    att_service: AttachmentService = Depends(get_attachment_service),
 ):
-    user_id = current_user["id"]
-    # Anti-IDOR check
-    row = query_one(
-        "SELECT * FROM attachments WHERE id = ? AND (user_id = ? OR user_id = 'guest_user')",
-        (attachment_id, user_id)
-    )
-    if not row:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tệp không tồn tại hoặc bạn không có quyền xóa."
-        )
-
-    # Delete physical file on disk
-    delete_attachment_file(row["storage_path"])
-
-    # Delete record from database
-    execute_commit("DELETE FROM attachments WHERE id = ?", (attachment_id,))
-
-    return {
-        "id": attachment_id,
-        "deleted": True,
-        "message": "Đã xóa tệp đính kèm thành công."
-    }
+    return att_service.delete(attachment_id, current_user["id"])

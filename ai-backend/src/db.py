@@ -1,52 +1,47 @@
-import sqlite3
-import os
-from pathlib import Path
+"""Backward-compatible database facade delegating to DatabaseManager."""
+
 from contextlib import contextmanager
 from typing import Any, Dict, List, Optional
 
-# Resolve database path relative to project root or backend
-BASE_DIR = Path(__file__).resolve().parent.parent
+from src.core.database import (
+    DatabaseManager,
+    UnitOfWork,
+    db_manager,
+    dict_factory,
+    resolve_default_db_path,
+)
 
-if os.environ.get("AI_CHAN_DB_PATH"):
-    DB_PATH = Path(os.environ["AI_CHAN_DB_PATH"])
-else:
-    DB_PATH = BASE_DIR / "database" / "app.db"
-    if not DB_PATH.exists():
-        ALT_PATH = BASE_DIR / "app.db"
-        if ALT_PATH.exists():
-            DB_PATH = ALT_PATH
+BASE_DIR = resolve_default_db_path().parent.parent
+DB_PATH = resolve_default_db_path()
 
-def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
 
 @contextmanager
 def get_db_connection():
-    conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
-    conn.execute("PRAGMA foreign_keys = ON;")
-    conn.row_factory = dict_factory
-    try:
+    with db_manager.connection() as conn:
         yield conn
-    finally:
-        conn.close()
+
 
 def query_one(sql: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(sql, params)
-        return cursor.fetchone()
+    return db_manager.query_one(sql, params)
+
 
 def query_all(sql: str, params: tuple = ()) -> List[Dict[str, Any]]:
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(sql, params)
-        return cursor.fetchall()
+    return db_manager.query_all(sql, params)
+
 
 def execute_commit(sql: str, params: tuple = ()) -> int:
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(sql, params)
-        conn.commit()
-        return cursor.rowcount
+    return db_manager.execute_commit(sql, params)
+
+
+__all__ = [
+    "BASE_DIR",
+    "DB_PATH",
+    "DatabaseManager",
+    "UnitOfWork",
+    "db_manager",
+    "dict_factory",
+    "get_db_connection",
+    "query_one",
+    "query_all",
+    "execute_commit",
+]

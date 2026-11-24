@@ -57,7 +57,7 @@ class ExamQuestionEntity(DomainModel):
             option_2=row["option_2"],
             option_3=row["option_3"],
             option_4=row["option_4"],
-            correct_option=row["correct_option"] if include_answers else None,
+            correct_option=row.get("correct_option") if include_answers else None,
             explanation=row.get("explanation") if include_answers else None,
         )
 
@@ -91,6 +91,8 @@ class ExamEntity(DomainModel):
         default_is_preset: int = 1,
         user_id_override: Optional[str] = None,
     ) -> "ExamEntity":
+        raw_preset = row.get("is_system_preset")
+        is_preset = bool(default_is_preset if raw_preset is None else raw_preset)
         return cls(
             id=row["id"],
             title=row["title"],
@@ -98,18 +100,18 @@ class ExamEntity(DomainModel):
             level=row["level"],
             category=row.get("category") or "JLPT_FULL",
             year=row.get("year"),
-            duration_minutes=row["duration_minutes"] or 60,
+            duration_minutes=row.get("duration_minutes") or 60,
             total_questions=(
                 total_questions_override
                 if total_questions_override is not None
-                else row.get("total_questions", 0)
+                else (row.get("total_questions") or 0)
             ),
-            passing_score=row["passing_score"] or 90,
-            max_score=row["max_score"] or 180,
+            passing_score=row.get("passing_score") or 90,
+            max_score=row.get("max_score") or 180,
             drive_folder_url=row.get("drive_folder_url"),
             status=row.get("status") or ExamStatus.ACTIVE.value,
-            is_system_preset=bool(row.get("is_system_preset", default_is_preset)),
-            user_id=user_id_override if user_id_override is not None else row.get("user_id", "system"),
+            is_system_preset=is_preset,
+            user_id=user_id_override if user_id_override is not None else (row.get("user_id") or "system"),
             created_at=str(row.get("created_at") or ""),
             updated_at=str(row.get("updated_at") or ""),
         )
@@ -150,22 +152,24 @@ class ReferenceMaterialEntity(DomainModel):
     ) -> "ReferenceMaterialEntity":
         mat_id = row["id"]
         source_type = row.get("source_type") or "LOCAL_FILE"
+        external_url = row.get("external_url") or ""
         if source_type == "LOCAL_FILE" or force_system_preset is False:
             view_url = f"/api/v1/exams/materials/view/{mat_id}"
             download_url = f"/api/v1/exams/materials/download/{mat_id}"
         else:
-            view_url = row["external_url"]
-            download_url = row["external_url"]
+            view_url = external_url
+            download_url = external_url
 
         desc = row.get("description") or ""
         size_display = None
         if compute_size_display:
             size_display = desc.split("(")[-1].split(")")[0] if "(" in desc else "Tài liệu"
 
+        raw_preset = row.get("is_system_preset")
         is_preset = (
             force_system_preset
             if force_system_preset is not None
-            else bool(row.get("is_system_preset", 1))
+            else (True if raw_preset is None else bool(raw_preset))
         )
 
         return cls(
@@ -175,7 +179,7 @@ class ReferenceMaterialEntity(DomainModel):
             category=row["category"],
             level=row.get("level") or "ALL",
             source_type=source_type,
-            external_url=row["external_url"],
+            external_url=external_url,
             author=row.get("author") or default_author,
             file_type=row.get("file_type") or "pdf",
             tags=row.get("tags"),
@@ -185,7 +189,7 @@ class ReferenceMaterialEntity(DomainModel):
             size_display=size_display,
             view_url=view_url,
             download_url=download_url,
-            user_id=user_id_override if user_id_override is not None else row.get("user_id", "system"),
+            user_id=user_id_override if user_id_override is not None else (row.get("user_id") or "system"),
             created_at=str(row.get("created_at") or ""),
             updated_at=str(row.get("updated_at") or ""),
         )

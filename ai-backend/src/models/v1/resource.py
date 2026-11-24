@@ -22,10 +22,12 @@ class UserQuotaEntity(DomainModel):
 
     @classmethod
     def from_quota_row(cls, user_id: str, row: Mapping[str, Any]) -> "UserQuotaEntity":
+        raw_limit = row.get("daily_token_limit")
+        raw_used = row.get("daily_tokens_used")
         return cls(
             user_id=user_id,
-            daily_token_limit=row["daily_token_limit"],
-            daily_tokens_used=row["daily_tokens_used"],
+            daily_token_limit=100000 if raw_limit is None else raw_limit,
+            daily_tokens_used=0 if raw_used is None else raw_used,
             reset_at=str(row["reset_at"]) if row.get("reset_at") is not None else None,
         )
 

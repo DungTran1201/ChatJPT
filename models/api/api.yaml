@@ -4,7 +4,12 @@ metadata:
   domain: Japanese Learning Ecosystem with AI Tutor
   layer: canonical_api_model
   status: BASELINED
-  updated_at: '2026-11-01'
+  updated_at: '2026-11-24'
+  routing_invariants:
+  - embedded_router MUST be mounted before models_router so DELETE /models/embedded
+    is never shadowed by DELETE /models/{model_id}
+  - Literal routes (/import-text, /import-file, /capabilities, /status, /search, /default)
+    are registered before parameterized /{id} routes
 apis:
 - id: API-001
   title: ChatJPT Japanese Learning Platform Core API
@@ -271,10 +276,10 @@ apis:
     - FR-015
     - CAP-USER
   - id: OP-027
-    method: PATCH
-    path: /users/me/profile
+    method: PUT
+    path: /users/me
     summary: Update user profile, name, bio, and Japanese learning personalization
-      attributes
+      attributes (rotates JWT on email change)
     use_case: UC-011
     source_refs:
     - FR-016
@@ -494,8 +499,8 @@ apis:
   - id: OP-067
     method: POST
     path: /conversations/{conv_id}/messages/audio-stream
-    summary: Upload voice audio, execute STT transcription, store user audio message,
-      and stream LLM response via SSE
+    summary: Planned composite voice-to-SSE shortcut (implemented via OP-066 /chat/stt
+      followed by OP-009 /conversations/{conv_id}/messages/stream with audio_attachment_id)
     use_case: UC-021
     source_refs:
     - FR-081
@@ -503,3 +508,21 @@ apis:
     - BR-048
     - BR-050
     - SEC-022
+  - id: OP-068
+    method: GET
+    path: /system-prompts/{prompt_id}/attachments
+    summary: List active file attachments bound to a Sensei system prompt
+    use_case: UC-036
+    source_refs:
+    - FR-PROMPT-001
+    - FR-ATT-001
+  - id: OP-069
+    method: PUT
+    path: /auth/password
+    summary: Rotate authenticated user password, record password_changed_at (SEC-007),
+      and issue refreshed JWT token
+    use_case: UC-003
+    source_refs:
+    - SEC-006
+    - SEC-007
+    - BR-009

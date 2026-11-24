@@ -1,7 +1,7 @@
 version: '1.0'
 architecture:
   id: ARCH-001
-  name: ai-chan-three-tier-architecture
+  name: chatjpt-layered-solid-architecture
   view: current
   source_refs:
   - ai-frontend
@@ -13,32 +13,30 @@ architecture:
     name: ai-frontend
     type: client-application
     responsibilities:
-    - User Interface rendering & interaction
-    - Client-side fast calculation and parsing (Web Workers)
+    - User Interface rendering & interaction (Next.js 16 App Router)
+    - Client-side fast calculation and parsing
     - Local state cache & streaming chunk rendering
     - Interactive Real-Time Resource Dashboard with Live SSE Charts & Quota Gauges
   - id: COMP-002
     name: ai-backend-src
     type: service-backend
     responsibilities:
-    - API Gateway, routing, authentication, authorization
-    - Database schema, ORM session, migrations
-    - Business logic services & lifecycle management
-    - Discord OAuth2 flow, state verification, user provisioning & linking
-    - Telemetry Interception Middleware, TTFT & Latency logging, User Quota enforcement
-    - Server-Sent Events metrics broadcaster & time-series aggregation service
-    - Dynamic Agent Model Catalog mutations, parameter validation, fuzzy search, and
-      multi-filter engine
+    - Thin HTTP/SSE API controllers (src/api/v1/) with zero inline SQL or DTOs
+    - Separated Pydantic v2 DTO contracts (src/schemas/v1/) and domain entities (src/models/v1/)
+    - Composition Root Dependency Injection (src/dependencies.py) & global DomainError handler
+    - Repository Layer & SQLite WAL DatabaseManager / UnitOfWork (src/repositories/, src/core/database.py)
+    - Security boundary: bcrypt, JWT with SEC-007 password_changed_at revocation, explicit ADMIN_EMAILS RBAC, AES-GCM SecretVault, SSRF & Path Traversal guards
+    - Pure ASGI non-buffering TelemetryMiddleware, SQL-aggregated KPIs, atomic UserQuota, bounded SSE broadcaster
+    - ProviderRegistry Strategy/Factory for BYOK credentials and dynamic Agent Model Catalog
   - id: COMP-003
     name: ai-backend-llm
     type: llm-engine
     responsibilities:
-    - Multi-provider LLM integrations (OpenAI, Gemini, Anthropic, Ollama, Groq)
-    - Prompt templates, system personas, safety guardrails
-    - Fallback routing, token cost tracking, and streaming handlers
-    - LangChain and LangGraph stateful agent workflow engine (StateGraph)
-    - Dynamic provider model loader initialized from environment keys (.env)
-    - Multi-provider model inventory, health ping, and latency measurement
+    - Modular LLM orchestration (llm/circuit_breaker.py, llm/message_builder.py, llm/orchestrator.py, llm/agent.py facade)
+    - Per-user scoped 429 Circuit Breaker isolating BYOK rate limits across tenants
+    - 20-message sliding window (INV-04) & multimodal image/document/PDF attachment builder
+    - LangGraph stateful workflow & multi-provider failover chain (Groq, Gemini, OpenAI, Anthropic, Ollama, Embedded, Offline Semantic Cache)
+    - PedagogicalPromptBuilder injecting trilingual Sensei personas and active always_on rules
   - id: COMP-004
     name: ai-infra
     type: infrastructure-operations
@@ -50,28 +48,25 @@ architecture:
     name: voicevox-tts-service
     type: neural-tts-service
     responsibilities:
-    - VoiceVox Engine client integration (/version, /audio_query, /synthesis)
-    - Acoustic parameter tuning (speed, pitch, intonation, volume)
-    - LRU binary WAV caching and synthesis latency optimization
-    - Graceful degradation and acoustic fallback WAV generation for offline engine
-      status
+    - Chain-of-Responsibility TTS synthesis (Embedded VoiceVox Core ONNX -> Local Daemon HTTP :50021 -> Acoustic PCM WAV fallback)
+    - Acoustic parameter tuning and bounds clamping (speed, pitch, intonation, volume - BR-040)
+    - Thread-safe LRU WAV caching excluding fallback chime audio (BR-042)
+    - Voice catalog CRUD delegated to VoiceRepository with owner and system-preset guards
   - id: COMP-006
     name: exam-and-reference-service
     type: core-pedagogy-service
     responsibilities:
-    - Exam bank catalog retrieval and multi-level query filtering (N5..N1, Kaiwa)
-    - Interactive test submission, auto-scoring, and explanation generation
-    - Reference materials repository curation (Google Drive folders, Grammar guide,
-      Dictionaries)
-    - Preset exam immutability enforcement and link sanitization
+    - Single-query ExamRepository (eliminating N+1 question count queries) & level/category filtering (N5..N1, Kaiwa)
+    - Interactive test submission, strict option validation, auto-scoring, and Sensei explanations
+    - Anti-cheat answer-key protection (CTRL-EXAM-03) and system-preset immutability (BR-044)
+    - Safe local PDF serving (mtime-cached manifest + PROJECT_ROOT containment) and pedagogical RAG search
   - id: COMP-007
     name: stt-transcription-service
     type: speech-recognition-service
     responsibilities:
-    - Multilingual speech-to-text pipeline (Vietnamese, English, Japanese)
-    - Whisper API / Faster-Whisper / Gemini multimodal audio integration
-    - Audio normalization, MIME magic byte validation, and temporary chunking
-    - Streaming transcription, language auto-detection, and confidence scoring
+    - Strategy + Chain-of-Responsibility multilingual STT (Groq Whisper -> OpenAI Whisper -> Gemini Multimodal Audio -> Heuristic Fallback)
+    - Non-blocking thread offloading for synchronous SDK calls & dynamic audio MIME detection
+    - Bounded chunked upload cap (10MB, SEC-021), magic-byte validation, and disk rollback on DB failure
   boundaries:
   - name: client-boundary
     scope: Browser to Reverse Proxy / API Gateway
@@ -151,4 +146,8 @@ architecture:
   - id: ADR-016
     title: Exam Bank, Interactive Assessment Runner, and Curated Reference Repository
       Architecture
+    status: approved
+  - id: ADR-017
+    title: Backend 4-Layer SOLID, KISS, and Design Pattern Refactoring (Thin Routers,
+      Services, Repositories, UnitOfWork, Composition Root, and Pure ASGI Telemetry)
     status: approved

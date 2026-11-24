@@ -1,7 +1,7 @@
 version: '1.0'
 test_model:
   id: TESTMODEL-001
-  system_name: AI-Chan Virtual Assistant
+  system_name: ChatJPT Japanese Learning Ecosystem
   source_refs:
   - docs/02-requirements/functional-requirements.md
   - docs/02-requirements/acceptance-criteria.md
@@ -9,36 +9,43 @@ test_model:
   - docs/08-api/api-specifications.md
   - docs/10-security/security-controls.md
   - docs/11-ux/ui-interaction-specs.md
+  - docs/06-architecture/ADR/ADR-017-backend-solid-kiss-refactoring.md
   scenarios:
   - id: SCENARIO-AUTH
     name: Authentication & Identity Lifecycle
     target_components:
-    - Backend Auth Module
-    - PostgreSQL Users Table
+    - Backend AuthService & UserRepository
+    - SQLite WAL Users Table
   - id: SCENARIO-CONV
     name: Conversation Thread CRUD & Data Isolation
     target_components:
-    - Backend Conversation Service
-    - PostgreSQL Conversations Table
+    - Backend ConversationService & ConversationRepository
+    - SQLite WAL Conversations & Messages Tables
   - id: SCENARIO-CHAT-STREAM
     name: Streaming Real-Time Chat & Provider Failover
     target_components:
-    - Backend Chat Service
-    - LLM Gateway
-    - SSE Stream Engine
+    - Backend ChatService & PedagogicalPromptBuilder
+    - Modular LLM Orchestrator & Scoped Circuit Breaker
+    - Pure ASGI SSE Stream Pipeline
   - id: SCENARIO-SECURITY
-    name: Security Boundary & Rate Limit Verification
+    name: Security Boundary, SEC-007 Revocation & Rate Limit Verification
     target_components:
-    - SlowAPI Rate Limiter
-    - Auth Middleware
-    - Frontend Markdown Sanitizer
+    - InMemoryRateLimiter & Security Dependencies
+    - SecretVault AES-256-GCM & SSRF/Path-Traversal Guards
+    - Anti-IDOR & Exam Anti-Cheat Guards
   - id: SCENARIO-RESOURCE-MANAGEMENT
     name: Resource Telemetry & Real-Time Dashboard Verification
     target_components:
-    - Telemetry Middleware
-    - SSE Metrics Broadcaster
+    - Pure ASGI TelemetryMiddleware
+    - Bounded SSEConnectionManager Broadcaster
     - Resource Dashboard UI
-    - SQLite ApiMetricLog & UserQuota
+    - SQLite TelemetryRepository (ApiMetricLog & UserQuota)
+  - id: SCENARIO-SOLID-PIPELINES
+    name: Refactored Backend Unit & Cross-Function Integration Pipelines (P1..P6)
+    target_components:
+    - Composition Root (src/dependencies.py)
+    - All 10 Repositories & 14 Application Services
+    - tests/unit/* & tests/integration/test_pipelines.py
   test_cases:
   - id: TC-001
     title: User registration with valid email and password
@@ -410,3 +417,39 @@ test_model:
     trace_req: SEC-021
     trace_uc: UC-021
     trace_ac: AC-068
+  - id: TC-REF-001
+    title: Pipeline P1 — Auth, SEC-007 password_changed_at JWT revocation, profile XSS guard & conversation cascade
+    type: Integration
+    priority: P0
+    trace_req: SEC-007
+    trace_adr: ADR-017
+  - id: TC-REF-002
+    title: Pipeline P2 — Attachment upload, 4-arg text extraction in Chat stream & prompt attachment listing
+    type: Integration
+    priority: P0
+    trace_req: FR-ATT-001
+    trace_adr: ADR-017
+  - id: TC-REF-003
+    title: Pipeline P3 — BYOK key isolation, Ollama SSRF guard, atomic default model swap & embedded route non-shadowing
+    type: Integration
+    priority: P0
+    trace_req: BR-023
+    trace_adr: ADR-017
+  - id: TC-REF-004
+    title: Pipeline P4 — Rules atomic OCC conflict (409), Anti-IDOR clone block (403), always_on chat injection & Markdown import
+    type: Integration
+    priority: P0
+    trace_req: BR-002
+    trace_adr: ADR-017
+  - id: TC-REF-005
+    title: Pipeline P5 — VoiceVox Chain-of-Responsibility (no fallback beep caching), Sensei voice binding & STT chain
+    type: Integration
+    priority: P0
+    trace_req: FR-071
+    trace_adr: ADR-017
+  - id: TC-REF-006
+    title: Pipeline P6 — Exam anti-cheat answer masking, RAG search, Pure ASGI Telemetry & SQL-aggregated KPI summary
+    type: Integration
+    priority: P0
+    trace_req: FR-076
+    trace_adr: ADR-017

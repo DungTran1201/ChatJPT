@@ -84,16 +84,17 @@ entities:
   attributes:
   - id: UUID (PK)
   - user_id: UUID (FK -> User.id, nullable for guest)
-  - endpoint: string (e.g. /api/v1/chat/stream)
-  - http_method: string (GET, POST, PATCH)
+  - endpoint: string (e.g. /api/v1/conversations/{id}/messages/stream)
+  - method: string (GET, POST, PUT, PATCH, DELETE)
   - status_code: integer
   - latency_ms: float
   - ttft_ms: float (nullable)
+  - model_name: string (FK -> AgentModel.id, nullable)
+  - provider: string (nullable)
   - prompt_tokens: integer
   - completion_tokens: integer
   - total_tokens: integer
-  - model_used: string (FK -> AgentModel.id, nullable)
-  - ip_address: string (hashed/redacted)
+  - error_code: string (nullable)
   - created_at: timestamp
 - name: UserQuota
   aggregate_root: true
@@ -137,9 +138,13 @@ entities:
   - description: string (max 500, nullable)
   - content: string (TEXT)
   - activation_mode: enum(always_on, model_decision, glob, manual)
+  - glob_patterns: string (JSON array, nullable)
+  - tags: string (JSON array, nullable)
   - priority: integer (0..100, default 50)
   - status: enum(active, draft, archived)
   - scope: enum(system, user)
+  - version: integer (OCC optimistic concurrency counter, default 1)
+  - deleted_at: timestamp (nullable soft-delete marker)
   - created_at: timestamp
   - updated_at: timestamp
 - name: Attachment
@@ -148,14 +153,34 @@ entities:
   - id: string (PK, att_hex)
   - user_id: UUID / string (FK -> User.id)
   - conversation_id: UUID (FK -> Conversation.id, nullable)
+  - message_id: UUID (FK -> Message.id, nullable)
   - prompt_id: string (FK -> SystemPrompt.id, nullable)
   - filename: string
   - file_size: integer
   - mime_type: string
-  - category: enum(text, image, audio, document)
+  - category: enum(code, document, image, audio, video, archive, other)
   - storage_path: string
+  - stored_path: string
   - checksum_sha256: string
-  - status: enum(STAGED, ATTACHED, ARCHIVED, DELETED)
+  - extracted_text: text (nullable)
+  - image_width: integer (nullable)
+  - image_height: integer (nullable)
+  - status: enum(READY, STAGED, ATTACHED, ARCHIVED, DELETED)
+  - created_at: timestamp
+  - updated_at: timestamp
+- name: UserApiKey
+  aggregate_root: true
+  attributes:
+  - id: string (PK)
+  - user_id: UUID (FK -> User.id ON DELETE CASCADE)
+  - provider: enum(google, openai, anthropic, groq, ollama, brave, serpapi)
+  - encrypted_key: string (AES-256-GCM ciphertext via SecretVault)
+  - key_last4: string
+  - key_fingerprint: string (SHA-256 prefix)
+  - is_active: boolean (default true)
+  - validation_status: enum(NOT_TESTED, VALID, INVALID, ERROR)
+  - last_validated_at: timestamp (nullable)
+  - last_error_summary: string (redacted, nullable)
   - created_at: timestamp
   - updated_at: timestamp
 - name: SemanticCache
@@ -338,4 +363,7 @@ relationships:
   type: one-to-many
 - from: User
   to: ReferenceMaterial
+  type: one-to-many
+- from: User
+  to: UserApiKey
   type: one-to-many

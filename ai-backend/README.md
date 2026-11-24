@@ -1,46 +1,61 @@
-# AI Backend
+# ChatJPT AI Backend
 
-Backend service for AI-Chan, architected into two decoupled modules:
-1. `src/`: Core application lifecycle, database, authentication, business services, and public REST/WebSocket APIs.
-2. `llm/`: Autonomous Large Language Model integration engine managing API providers, prompt engineering, streaming, function calling tools, and token tracking.
-
-## Architecture & Directory Layout
+FastAPI backend for the **ChatJPT Japanese Learning Ecosystem**, structured into a 4-layer SOLID/KISS architecture:
 
 ```
+HTTP / SSE Routers (src/api/v1/)
+        │  Depends(...) via src/dependencies.py
+        ▼
+Application Services (src/services/) ◄──► LLM Orchestration Engine (llm/)
+        │
+        ▼
+Repositories & Unit of Work (src/repositories/ + src/core/database.py)
+        │
+        ▼
+SQLite WAL Database (database/app.db, schema in database/schema.sql)
+```
+
+## Directory Layout
+
+```text
 ai-backend/
-├── src/                          # Core Backend Application
-│   ├── api/                      # Routing & API controllers
-│   │   └── v1/                   # Versioned REST & WebSocket endpoints
-│   ├── core/                     # Configuration, security, exceptions, logging
-│   ├── database/                 # SQLAlchemy ORM models, connection pool, migrations
-│   ├── repositories/             # Data access layer
-│   ├── services/                 # High-level business logic
-│   └── main.py                   # Application entrypoint & lifespan
-│
-├── llm/                          # LLM Integration Engine
-│   ├── providers/                # Multi-provider adapters (OpenAI, Gemini, Anthropic, Ollama)
-│   ├── prompts/                  # Versioned prompt templates & system instructions
-│   ├── tools/                    # Function calling tools & agent tool registry
-│   ├── memory/                   # Context window & conversation buffer management
-│   ├── streaming/                # SSE & token chunk streaming handlers
-│   ├── guardrails/               # Prompt injection defense & output moderation
-│   ├── cost_tracker/             # Token usage counter & API budget guards
-│   └── client.py                 # Central LLM Manager & Fallback Router
-│
-├── tests/                        # Unit & integration test suites
-├── .env.example                  # Environment configuration template
-├── requirements.txt              # Production Python dependencies
+├── database/
+│   └── schema.sql                # Canonical 16-table SQLite schema + FTS5 semantic cache
+├── llm/                          # Modular LLM Orchestration Engine
+│   ├── circuit_breaker.py        # Per-user scoped 429 cooldown tracker
+│   ├── message_builder.py        # 20-message sliding window + multimodal attachment context
+│   ├── orchestrator.py           # LangGraph workflow & multi-provider failover streamer
+│   └── agent.py                  # Backward-compatible facade exporting chat_agent
+├── src/
+│   ├── api/v1/                   # Thin HTTP/SSE controllers (0 inline SQL / schemas)
+│   ├── core/                     # Config, DatabaseManager/UoW, DomainError, Security, Vault, Storage, Telemetry
+│   ├── models/v1/                # Internal domain entities & constants
+│   ├── repositories/             # SQLite data-access layer (10 domain repositories)
+│   ├── schemas/v1/               # Pydantic v2 API request/response DTO contracts
+│   ├── services/                 # Business logic, Strategy registries, Facades, Builders
+│   ├── dependencies.py           # Composition Root (FastAPI DI wiring)
+│   ├── db.py                     # Backward-compatible thin facade over DatabaseManager
+│   └── main.py                   # App factory, CORS, Pure ASGI TelemetryMiddleware, DomainError handler
+├── tests/
+│   ├── unit/                     # Isolated unit tests per refactored module
+│   ├── integration/              # End-to-end cross-service pipeline tests (P1..P6)
+│   └── test_*.py                 # Legacy regression & API contract tests
+├── requirements.txt
 └── README.md
 ```
 
-## Setup & Running
-```bash
-python -m venv venv
-# On Windows:
-.\venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
+## Setup & Verification
 
+```powershell
+# Activate virtual environment (Windows PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run full test suite (legacy + unit + integration)
+pytest -q
+
+# Start development server
 uvicorn src.main:app --reload --port 8000
 ```

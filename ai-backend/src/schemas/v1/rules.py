@@ -87,8 +87,8 @@ class RuleResponse(BaseModel):
     content: str
     scope: str
     activation_mode: str
-    glob_patterns: List[str] = []
-    tags: List[str] = []
+    glob_patterns: List[str] = Field(default_factory=list)
+    tags: List[str] = Field(default_factory=list)
     priority: int
     status: str
     version: int

@@ -1,497 +1,125 @@
-import os
-import time
-from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+"""Thin HTTP router for AI Model Catalog Management (/api/v1/models)."""
 
-from src.core.config import settings
+from typing import Any, Dict, List, Optional
+from fastapi import APIRouter, Depends, Query, status
+
 from src.core.security import get_current_user
-from src.db import query_one, query_all, execute_commit
-from src.models.v1.ai_model import AIModelEntity, VALID_LLM_PROVIDERS
+from src.dependencies import get_model_service
 from src.schemas.v1.models import (
-    SetDefaultModelRequest,
     CreateModelRequest,
+    SetDefaultModelRequest,
     UpdateModelRequest,
 )
+from src.services.model_service import ModelService
 
 models_router = APIRouter(prefix="/models", tags=["Model Management"])
 
-def check_provider_api_key(provider: str, user_id: Optional[str] = None) -> bool:
-    """Kiểm tra sự hiện diện của API Key cho nhà cung cấp (ưu tiên User Personal Key > System .env)."""
-    try:
-        from src.services.credential_service import CredentialService
-        return CredentialService.is_provider_configured(provider, user_id=user_id)
-    except Exception:
-        p = provider.lower().strip()
-        if p in ("google", "gemini"):
-            key = settings.GEMINI_API_KEY or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-            return bool(key and key.strip())
-        elif p == "openai":
-            key = settings.OPENAI_API_KEY or os.getenv("OPENAI_API_KEY")
-            return bool(key and key.strip())
-        elif p == "anthropic":
-            key = settings.ANTHROPIC_API_KEY or os.getenv("ANTHROPIC_API_KEY")
-            return bool(key and key.strip())
-        elif p == "groq":
-            key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
-            return bool(key and key.strip())
-        elif p == "ollama":
-            url = settings.OLLAMA_BASE_URL or os.getenv("OLLAMA_BASE_URL")
-            return bool(url and url.strip())
-        return False
 
-def format_model_record(row: Dict[str, Any], user_id: Optional[str] = None) -> Dict[str, Any]:
-    """Chuẩn hóa dữ liệu mô hình trả về theo đặc tả API Contract (OP-010, OP-011)."""
-    has_key = (
-        True
-        if row["id"] == "offline-semantic-cache"
-        else check_provider_api_key(row["provider"], user_id=user_id)
-    )
-    return AIModelEntity.from_model_row(row, has_api_key=has_key).to_api_dict()
+def _extract_uid(current_user: Any) -> Optional[str]:
+    return current_user.get("id") if isinstance(current_user, dict) else None
 
 
-# ------------------------------------------------------------------------------
-# 6.1 GET /api/v1/models (FR-021, UC-016, OP-010)
-# ------------------------------------------------------------------------------
 @models_router.get("", response_model=List[Dict[str, Any]])
 @models_router.get("/", response_model=List[Dict[str, Any]])
 async def list_models(
-    status_filter: Optional[str] = Query("ALL", alias="status", description="Bộ lọc trạng thái: ALL, ACTIVE, INACTIVE, ARCHIVED, DEGRADED"),
-    current_user: dict = Depends(get_current_user)
+    status_filter: Optional[str] = Query("ALL", alias="status"),
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Lấy danh mục toàn bộ các mô hình Agent được cấu hình từ các nhà cung cấp bên ngoài.
-    Hỗ trợ lọc theo trạng thái (ALL, ACTIVE, INACTIVE, ARCHIVED) và tự động nhận diện khóa API từ .env.
-    """
-    filter_upper = (status_filter or "ALL").upper().strip()
-    if filter_upper in ("ACTIVE", "INACTIVE", "ARCHIVED", "DEGRADED"):
-        rows = query_all("SELECT * FROM models WHERE status = ? ORDER BY is_default DESC, name ASC", (filter_upper,))
-    else:
-        rows = query_all("SELECT * FROM models ORDER BY is_default DESC, status ASC, name ASC")
-
-    return [format_model_record(r, user_id=current_user.get("id") if isinstance(current_user, dict) else None) for r in rows]
+    return model_service.list_models(status_filter=status_filter or "ALL", user_id=_extract_uid(current_user))
 
 
-# ------------------------------------------------------------------------------
-# 6.7 POST /api/v1/models (FR-035, UC-MOD-001, OP-022, BR-022, BR-024, SEC-010)
-# ------------------------------------------------------------------------------
 @models_router.post("", status_code=status.HTTP_201_CREATED)
 @models_router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_model(
     req: CreateModelRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Đăng ký mô hình LLM mới vào danh mục hệ thống (FR-035, OP-022).
-    Ràng buộc:
-    - ID là duy nhất toàn cục, cấm trùng lặp (BR-022).
-    - Provider thuộc danh mục hỗ trợ: google, anthropic, openai, groq, ollama.
-    - Giới hạn biên an toàn: context_window >= 1000, max_tokens >= 256, max_tokens <= context_window (BR-024).
-    """
-    # BR-024: Kiểm tra ngưỡng biên an toàn
-    if req.max_tokens > req.context_window:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Tham số max_tokens ({req.max_tokens}) không được vượt quá context_window ({req.context_window}) (BR-024)."
-        )
-
-    provider_clean = req.provider.lower().strip()
-    if provider_clean not in VALID_LLM_PROVIDERS:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Nhà cung cấp không hợp lệ '{req.provider}'. Phải là một trong: {', '.join(VALID_LLM_PROVIDERS)}."
-        )
-
-    # BR-022: Kiểm tra tính duy nhất của ID mô hình
-    existing = query_one("SELECT id FROM models WHERE id = ?", (req.id.strip(),))
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Mô hình với mã định danh '{req.id.strip()}' đã tồn tại trong hệ thống (BR-022)."
-        )
-
-    execute_commit(
-        """
-        INSERT INTO models (id, name, provider, status, is_default, context_window, max_tokens, supports_streaming)
-        VALUES (?, ?, ?, 'INACTIVE', 0, ?, ?, ?)
-        """,
-        (
-            req.id.strip(),
-            req.name.strip(),
-            provider_clean,
-            req.context_window,
-            req.max_tokens,
-            1 if req.supports_streaming else 0
-        )
-    )
-
-    created_row = query_one("SELECT * FROM models WHERE id = ?", (req.id.strip(),))
-    record = format_model_record(created_row)
-    record["message"] = "Đăng ký mô hình mới thành công."
-    return record
+    return model_service.create_model(req, user_id=_extract_uid(current_user))
 
 
-# ------------------------------------------------------------------------------
-# 6.9 GET /api/v1/models/search (FR-037, FR-038, NFR-022, OP-024, UC-MOD-003)
-# Lưu ý: Đặt route này trước /{model_id} để tránh nhầm lẫn path parameter
-# ------------------------------------------------------------------------------
 @models_router.get("/search")
 async def search_models(
-    q: Optional[str] = Query(None, description="Từ khóa tìm kiếm theo tên hoặc ID"),
-    provider: Optional[str] = Query("ALL", description="Lọc theo nhà cung cấp"),
-    status_filter: Optional[str] = Query("ALL", alias="status", description="Lọc theo trạng thái: ALL, ACTIVE, INACTIVE, ARCHIVED, DEGRADED"),
-    has_api_key: Optional[bool] = Query(None, description="Lọc theo tình trạng cấu hình API Key"),
-    is_default: Optional[bool] = Query(None, description="Lọc theo cờ mặc định"),
-    sort: Optional[str] = Query("name_asc", description="Sắp xếp: name_asc, latency_asc, context_desc"),
-    current_user: dict = Depends(get_current_user)
+    q: Optional[str] = Query(None),
+    provider: Optional[str] = Query("ALL"),
+    status_filter: Optional[str] = Query("ALL", alias="status"),
+    has_api_key: Optional[bool] = Query(None),
+    is_default: Optional[bool] = Query(None),
+    sort: Optional[str] = Query("name_asc"),
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Tìm kiếm toàn văn và lọc đa thuộc tính danh mục mô hình với SLA độ trễ <= 200ms (FR-037, FR-038, NFR-022).
-    """
-    start_time = time.perf_counter()
-
-    sql = "SELECT * FROM models WHERE 1=1"
-    params: List[Any] = []
-
-    if q and q.strip():
-        kw = f"%{q.strip()}%"
-        sql += " AND (name LIKE ? OR id LIKE ?)"
-        params.extend([kw, kw])
-
-    if provider and provider.upper() != "ALL":
-        sql += " AND LOWER(provider) = ?"
-        params.append(provider.lower().strip())
-
-    if status_filter and status_filter.upper() != "ALL":
-        sql += " AND status = ?"
-        params.append(status_filter.upper().strip())
-
-    if is_default is not None:
-        sql += " AND is_default = ?"
-        params.append(1 if is_default else 0)
-
-    # Sắp xếp
-    if sort == "latency_asc":
-        sql += " ORDER BY CASE WHEN latency_ms IS NULL THEN 1 ELSE 0 END, latency_ms ASC, name ASC"
-    elif sort == "context_desc":
-        sql += " ORDER BY context_window DESC, name ASC"
-    else:
-        sql += " ORDER BY is_default DESC, name ASC"
-
-    rows = query_all(sql, tuple(params))
-    items = [format_model_record(r, user_id=current_user.get("id") if isinstance(current_user, dict) else None) for r in rows]
-
-    # Lọc tiếp theo has_api_key nếu có
-    if has_api_key is not None:
-        items = [item for item in items if item["has_api_key"] == has_api_key]
-
-    execution_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
-
-    return {
-        "total": len(items),
-        "execution_time_ms": execution_time_ms,
-        "items": items
-    }
+    return model_service.search_models(
+        q=q,
+        provider=provider,
+        status_filter=status_filter,
+        has_api_key=has_api_key,
+        is_default=is_default,
+        sort=sort,
+        user_id=_extract_uid(current_user),
+    )
 
 
-# ------------------------------------------------------------------------------
-# 6.6 PATCH /api/v1/models/default (FR-026, UC-020, BR-013, OP-015)
-# ------------------------------------------------------------------------------
 @models_router.patch("/default")
 async def set_default_model(
     req: SetDefaultModelRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Thiết lập mô hình mặc định cho các cuộc trò chuyện mới.
-    Ràng buộc: Mô hình chỉ định phải tồn tại và đang ở trạng thái ACTIVE (BR-013).
-    """
-    model = query_one("SELECT * FROM models WHERE id = ?", (req.model_id,))
-    if not model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không tìm thấy mô hình với mã định danh '{req.model_id}'."
-        )
-
-    if model["status"] != "ACTIVE":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Mô hình '{model['name']}' đang ở trạng thái {model['status']}. Chỉ có thể đặt mô hình ACTIVE làm mặc định (BR-013)."
-        )
-
-    # Đặt tất cả mô hình về không mặc định, sau đó kích hoạt mô hình đích
-    execute_commit("UPDATE models SET is_default = 0")
-    execute_commit("UPDATE models SET is_default = 1 WHERE id = ?", (req.model_id,))
-
-    return {
-        "default_model": req.model_id,
-        "message": f"Đã thiết lập '{model['name']}' làm mô hình mặc định thành công."
-    }
+    return model_service.set_default_model(req)
 
 
-# ------------------------------------------------------------------------------
-# 6.2 GET /api/v1/models/{model_id} (FR-022, UC-017, OP-011)
-# ------------------------------------------------------------------------------
 @models_router.get("/{model_id}")
 async def get_model_detail(
     model_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Xem chi tiết thông số kỹ thuật, cấu hình và độ trễ của một mô hình cụ thể.
-    """
-    model = query_one("SELECT * FROM models WHERE id = ?", (model_id,))
-    if not model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không tìm thấy mô hình '{model_id}'."
-        )
-
-    return format_model_record(model, user_id=current_user.get("id") if isinstance(current_user, dict) else None)
+    return model_service.get_model(model_id, user_id=_extract_uid(current_user))
 
 
-# ------------------------------------------------------------------------------
-# 6.8 PUT /api/v1/models/{model_id} (FR-036, UC-MOD-002, OP-023, BR-022, BR-024, SEC-010)
-# ------------------------------------------------------------------------------
 @models_router.put("/{model_id}")
 async def update_model(
     model_id: str,
     req: UpdateModelRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Cập nhật thông tin cấu hình mô hình hiện có (FR-036, OP-023).
-    Ràng buộc:
-    - ID và Provider là bất biến, không thể sửa đổi (BR-022).
-    - Giới hạn biên: context_window >= 1000, max_tokens >= 256, max_tokens <= context_window (BR-024).
-    """
-    model = query_one("SELECT * FROM models WHERE id = ?", (model_id,))
-    if not model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không tìm thấy mô hình với mã định danh '{model_id}'."
-        )
-
-    new_name = req.name.strip() if req.name is not None else model["name"]
-    new_cw = req.context_window if req.context_window is not None else model["context_window"]
-    new_mt = req.max_tokens if req.max_tokens is not None else model["max_tokens"]
-    new_streaming = (1 if req.supports_streaming else 0) if req.supports_streaming is not None else model["supports_streaming"]
-
-    # BR-024: Kiểm tra ngưỡng biên an toàn
-    if new_cw < 1000 or new_mt < 256:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Vi phạm ngưỡng an toàn: context_window >= 1000 và max_tokens >= 256 (BR-024)."
-        )
-    if new_mt > new_cw:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Tham số max_tokens ({new_mt}) không được vượt quá context_window ({new_cw}) (BR-024)."
-        )
-
-    execute_commit(
-        """
-        UPDATE models
-        SET name = ?, context_window = ?, max_tokens = ?, supports_streaming = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-        """,
-        (new_name, new_cw, new_mt, new_streaming, model_id)
-    )
-
-    updated_row = query_one("SELECT * FROM models WHERE id = ?", (model_id,))
-    record = format_model_record(updated_row)
-    record["message"] = "Cập nhật cấu hình mô hình thành công."
-    return record
+    return model_service.update_model(model_id, req, user_id=_extract_uid(current_user))
 
 
-# ------------------------------------------------------------------------------
-# 6.10 DELETE /api/v1/models/{model_id} (FR-039, UC-MOD-002, OP-025, BR-023, SEC-010)
-# ------------------------------------------------------------------------------
 @models_router.delete("/{model_id}")
 async def archive_model(
     model_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Xóa mềm (chuyển sang ARCHIVED) mô hình khỏi danh mục hoạt động (FR-039, OP-025).
-    Ràng buộc:
-    - Không xóa vật lý dữ liệu (BR-012).
-    - Cấm tuyệt đối xóa mềm mô hình đang giữ cờ mặc định is_default = 1 (BR-023).
-    """
-    model = query_one("SELECT * FROM models WHERE id = ?", (model_id,))
-    if not model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không tìm thấy mô hình với mã định danh '{model_id}'."
-        )
-
-    # BR-023: Invariant Default Model Guard
-    if bool(model["is_default"]):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Không thể lưu trữ mô hình '{model['name']}' vì đây là mô hình mặc định của hệ thống. Hãy chọn mô hình khác làm mặc định trước (BR-023)."
-        )
-
-    execute_commit(
-        "UPDATE models SET status = 'ARCHIVED', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-        (model_id,)
-    )
-
-    return {
-        "model_id": model_id,
-        "status": "ARCHIVED",
-        "message": f"Đã chuyển mô hình '{model['name']}' vào trạng thái lưu trữ an toàn."
-    }
+    return model_service.archive_model(model_id)
 
 
-# ------------------------------------------------------------------------------
-# 6.3 POST /api/v1/models/{model_id}/test (FR-023, UC-018, BR-014, OP-012)
-# ------------------------------------------------------------------------------
 @models_router.post("/{model_id}/test")
 async def test_model_connection(
     model_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Kiểm tra trực tiếp kết nối (Ping / Health Check) tới API nhà cung cấp và đo lường độ trễ mạng.
-    Tự động cập nhật latency_ms và last_checked_at vào cơ sở dữ liệu.
-    """
-    model = query_one("SELECT * FROM models WHERE id = ?", (model_id,))
-    if not model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không tìm thấy mô hình '{model_id}'."
-        )
-
-    provider = model["provider"]
-    user_id = current_user.get("id") if isinstance(current_user, dict) else None
-    if not check_provider_api_key(provider, user_id=user_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Chưa cấu hình API Key cho nhà cung cấp '{provider}' (BR-014)."
-        )
-
-    start_time = time.perf_counter()
-    tested_at_str = datetime.now(timezone.utc).isoformat()
-
-    try:
-        from src.services.credential_service import CredentialService, redact_secrets_from_text
-        effective_key = CredentialService.get_effective_key(user_id, provider)
-
-        # Thực hiện ping kết nối thực tế hoặc đo độ trễ tới endpoint
-        if provider in ("google", "gemini"):
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            # Google GenAI yêu cầu deadline tối thiểu 10s -> sử dụng timeout 15.0s
-            llm = ChatGoogleGenerativeAI(model=model_id, google_api_key=effective_key, timeout=15.0)
-            await llm.ainvoke("ping")
-        elif provider == "openai":
-            from langchain_openai import ChatOpenAI
-            llm = ChatOpenAI(model=model_id, api_key=effective_key, timeout=15.0)
-            await llm.ainvoke("ping")
-        elif provider == "ollama":
-            import httpx
-            endpoint = (effective_key or "http://localhost:11434").rstrip("/") + "/api/tags"
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(endpoint)
-                if resp.status_code != 200:
-                    raise ValueError(f"Ollama trả về HTTP {resp.status_code}")
-        else:
-            time.sleep(0.05)
-
-        latency_ms = max(1, int((time.perf_counter() - start_time) * 1000))
-    except Exception as exc:
-        from src.services.credential_service import redact_secrets_from_text
-        err_msg = redact_secrets_from_text(str(exc))
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Lỗi kết nối tới nhà cung cấp {provider}: {err_msg}"
-        )
-
-    # Cập nhật kết quả vào CSDL
-    execute_commit(
-        "UPDATE models SET latency_ms = ?, last_checked_at = CURRENT_TIMESTAMP WHERE id = ?",
-        (latency_ms, model_id)
-    )
-
-    return {
-        "model_id": model_id,
-        "healthy": True,
-        "latency_ms": latency_ms,
-        "message": f"Kết nối thành công với nhà cung cấp {provider.title()} ({model['name']}).",
-        "tested_at": tested_at_str
-    }
+    return await model_service.test_connection(model_id, user_id=_extract_uid(current_user))
 
 
-# ------------------------------------------------------------------------------
-# 6.4 PATCH /api/v1/models/{model_id}/activate (FR-024, UC-019, BR-012, BR-014, OP-013)
-# ------------------------------------------------------------------------------
 @models_router.patch("/{model_id}/activate")
 async def activate_model(
     model_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Kích hoạt trạng thái của mô hình sang ACTIVE để đưa vào giao diện chat.
-    Yêu cầu: Nhà cung cấp phải có API Key hợp lệ trong .env (BR-014).
-    """
-    model = query_one("SELECT * FROM models WHERE id = ?", (model_id,))
-    if not model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không tìm thấy mô hình '{model_id}'."
-        )
-
-    provider = model["provider"]
-    if not check_provider_api_key(provider):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Không thể kích hoạt mô hình: Chưa cấu hình API Key cho nhà cung cấp '{provider}' trong file .env (BR-014)."
-        )
-
-    execute_commit(
-        "UPDATE models SET status = 'ACTIVE' WHERE id = ?",
-        (model_id,)
-    )
-
-    return {
-        "model_id": model_id,
-        "status": "ACTIVE",
-        "message": f"Mô hình '{model['name']}' đã được kích hoạt thành công."
-    }
+    return model_service.activate_model(model_id, user_id=_extract_uid(current_user))
 
 
-# ------------------------------------------------------------------------------
-# 6.5 PATCH /api/v1/models/{model_id}/deactivate (FR-025, UC-019, BR-012, BR-013, OP-014)
-# ------------------------------------------------------------------------------
 @models_router.patch("/{model_id}/deactivate")
 async def deactivate_model(
     model_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
 ):
-    """
-    Tạm dừng mô hình (chuyển sang INACTIVE) mà KHÔNG XÓA VẬT LÝ khỏi CSDL (BR-012).
-    Ràng buộc: Không được hủy kích hoạt mô hình đang được đặt làm mặc định hệ thống (BR-013).
-    """
-    model = query_one("SELECT * FROM models WHERE id = ?", (model_id,))
-    if not model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Không tìm thấy mô hình '{model_id}'."
-        )
-
-    if bool(model["is_default"]):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Không thể hủy kích hoạt '{model['name']}' vì đây là mô hình mặc định của hệ thống. Hãy chọn mô hình mặc định khác trước (BR-013)."
-        )
-
-    execute_commit(
-        "UPDATE models SET status = 'INACTIVE' WHERE id = ?",
-        (model_id,)
-    )
-
-    return {
-        "model_id": model_id,
-        "status": "INACTIVE",
-        "message": f"Mô hình '{model['name']}' đã được hủy kích hoạt thành công."
-    }
+    return model_service.deactivate_model(model_id)

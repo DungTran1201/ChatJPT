@@ -1,65 +1,141 @@
-import time
+"""Pure ASGI Telemetry Middleware (non-buffering SSE-safe, BR-019, NFR-020)."""
+
 import asyncio
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
-from src.core.telemetry import metric_logger
+import time
+from http.cookies import SimpleCookie
+from typing import Any, Callable, Optional
+
 from src.core.security import decode_access_token
+from src.core.telemetry import metric_logger
 
-class TelemetryMiddleware(BaseHTTPMiddleware):
-    """
-    Middleware đo đạc độ trễ phản hồi, mã trạng thái HTTP và số lượng API requests tự động.
-    Tuân thủ BR-019 (Non-blocking telemetry collection) và NFR-020 (Overhead <= 5ms).
-    """
-    async def dispatch(self, request: Request, call_next):
-        path = request.url.path
 
-        # Bỏ qua các endpoint không cần ghi nhật ký (SSE stream để tránh đệ quy, healthcheck, docs)
+def _extract_user_id_from_scope(scope: dict) -> Optional[str]:
+    token: Optional[str] = None
+    headers = scope.get("headers") or []
+    cookie_header = ""
+    auth_header = ""
+    for raw_k, raw_v in headers:
+        k = raw_k.decode("latin-1").lower()
+        if k == "cookie":
+            cookie_header = raw_v.decode("latin-1")
+        elif k == "authorization":
+            auth_header = raw_v.decode("latin-1")
+
+    if cookie_header:
+        cookie = SimpleCookie()
+        try:
+            cookie.load(cookie_header)
+            if "access_token" in cookie:
+                token = cookie["access_token"].value
+        except Exception:
+            pass
+
+    if not token and auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+
+    if not token:
+        return None
+    try:
+        payload = decode_access_token(token)
+        if payload and "sub" in payload:
+            return str(payload["sub"])
+    except Exception:
+        pass
+    return None
+
+
+class TelemetryMiddleware:
+    """Pure ASGI middleware measuring latency and status codes without buffering SSE streams."""
+
+    def __init__(self, app: Any):
+        self.app = app
+
+    async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None:
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path: str = scope.get("path") or ""
         if (
             path.startswith("/api/v1/resources/stream")
             or path in ("/api/v1/health", "/docs", "/openapi.json", "/")
             or not path.startswith("/api/v1")
+            or "/messages/stream" in path
         ):
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
-        # Đối với endpoint chat stream hoặc bot dispatch, bản thân handler sẽ đo tokens & telemetry chi tiết
-        is_custom_logged = "/messages/stream" in path or "/bot/discord/test-dispatch" in path
-
+        method: str = scope.get("method") or "GET"
         start_time = time.perf_counter()
-        response: Response = await call_next(request)
-        latency_ms = (time.perf_counter() - start_time) * 1000
+        status_code = 500
+        error_code: Optional[str] = None
 
-        # Nếu không phải custom logged endpoint, ghi nhật ký telemetry chung cho các API khác
-        if not is_custom_logged:
-            # Trích xuất user_id từ cookie hoặc Authorization header
-            user_id = None
-            token = request.cookies.get("access_token")
-            if not token and "authorization" in request.headers:
-                auth_val = request.headers["authorization"]
-                if auth_val.startswith("Bearer "):
-                    token = auth_val[7:]
+        async def send_wrapper(message: dict) -> None:
+            nonlocal status_code
+            if message.get("type") == "http.response.start":
+                status_code = int(message.get("status", 500))
+            await send(message)
 
-            if token:
-                try:
-                    payload = decode_access_token(token)
-                    if payload and "sub" in payload:
-                        user_id = payload["sub"]
-                except Exception:
-                    pass
+        try:
+            await self.app(scope, receive, send_wrapper)
+        except Exception:
+            status_code = 500
+            error_code = "UNHANDLED_EXCEPTION"
+            raise
+        finally:
+            latency_ms = (time.perf_counter() - start_time) * 1000
+            user_id = _extract_user_id_from_scope(scope)
+            self._schedule_metric_write(
+                endpoint=path,
+                method=method,
+                status_code=status_code,
+                latency_ms=latency_ms,
+                user_id=user_id,
+                error_code=error_code,
+            )
 
-            # Chạy non-blocking để không làm chậm response
+    @staticmethod
+    def _schedule_metric_write(
+        *,
+        endpoint: str,
+        method: str,
+        status_code: int,
+        latency_ms: float,
+        user_id: Optional[str],
+        error_code: Optional[str],
+    ) -> None:
+        async def _persist() -> None:
             try:
-                metric_logger.log_metric(
-                    endpoint=path,
-                    method=request.method,
-                    status_code=response.status_code,
+                await asyncio.to_thread(
+                    metric_logger.log_metric,
+                    endpoint=endpoint,
+                    method=method,
+                    status_code=status_code,
                     latency_ms=latency_ms,
                     user_id=user_id,
                     prompt_tokens=0,
                     completion_tokens=0,
-                    total_tokens=0
+                    total_tokens=0,
+                    error_code=error_code,
                 )
             except Exception:
                 pass
 
-        return response
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(_persist())
+        except RuntimeError:
+            try:
+                metric_logger.log_metric(
+                    endpoint=endpoint,
+                    method=method,
+                    status_code=status_code,
+                    latency_ms=latency_ms,
+                    user_id=user_id,
+                    prompt_tokens=0,
+                    completion_tokens=0,
+                    total_tokens=0,
+                    error_code=error_code,
+                )
+            except Exception:
+                pass

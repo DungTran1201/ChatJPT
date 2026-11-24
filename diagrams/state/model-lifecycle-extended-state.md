@@ -1,13 +1,13 @@
 # Sơ Đồ Máy Trạng Thái: Vòng Đời Mô Hình Agent Mở Rộng (Agent Model Extended Lifecycle State Machine)
-## Dự Án: Website Chatbot Trợ Lý Ảo (AI-Chan Assistant)
+## Dự Án: Website Hỗ Trợ Học Tiếng Nhật & AI Virtual Sensei (ChatJPT)
 
 ---
 
 | Thông Tin Sơ Đồ | Chi Tiết |
 | :--- | :--- |
 | **Mã Sơ Đồ** | `DIAG-STATE-006` |
-| **Mã Trạng Thái** | `STATE-004` (Phiên Bản Mở Rộng - Extended) |
-| **Nguồn Sự Thật Thượng Nguồn** | [docs/09-behavior/state-machines.md](file:///c:/Users/PC/Project/ai-chan/docs/09-behavior/state-machines.md), [docs/06-architecture/ADR/ADR-009-extensible-model-management-search-filter.md](file:///c:/Users/PC/Project/ai-chan/docs/06-architecture/ADR/ADR-009-extensible-model-management-search-filter.md), [docs/02-requirements/functional-requirements.md](file:///c:/Users/PC/Project/ai-chan/docs/02-requirements/functional-requirements.md) (`FR-035` - `FR-039`), [docs/02-requirements/business-rules.md](file:///c:/Users/PC/Project/ai-chan/docs/02-requirements/business-rules.md) (`BR-022`, `BR-023`, `BR-024`) |
+| **Mã Trạng Thái** | `STATE-006` (Vòng Đời Mô Hình Mở Rộng — Extended) |
+| **Nguồn Sự Thật Thượng Nguồn** | [docs/09-behavior/state-machines.md](../../docs/09-behavior/state-machines.md), [ADR-009](../../docs/06-architecture/ADR/ADR-009-extensible-model-management-search-filter.md), [ADR-017](../../docs/06-architecture/ADR/ADR-017-backend-solid-kiss-refactoring.md), [functional-requirements.md](../../docs/02-requirements/functional-requirements.md) (`FR-035` - `FR-039`), [business-rules.md](../../docs/02-requirements/business-rules.md) (`BR-022`, `BR-023`, `BR-024`) |
 | **Mục Đích** | Mô tả đầy đủ các trạng thái hữu hạn và các biến cố kích hoạt chuyển đổi trạng thái của thực thể AgentModel bao gồm đăng ký động, kích hoạt, kiểm tra kết nối, suy giảm hiệu năng và lưu trữ mềm an toàn với chốt chặn bảo vệ mô hình mặc định |
 
 ---

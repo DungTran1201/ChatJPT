@@ -1,11 +1,11 @@
 """Health check API schemas."""
 
 from typing import Any, Dict, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HealthResponse(BaseModel):
-    model_config = {"extra": "allow"}
+    model_config = ConfigDict(extra="allow")
     status: str = Field(default="healthy")
     service: Optional[str] = Field(default="ai-backend")
     version: Optional[str] = Field(default="1.0.0")

@@ -1,125 +1,68 @@
+"""Resource Management & Telemetry API router — thin HTTP/SSE controller."""
+
 import asyncio
 import json
-from fastapi import APIRouter, HTTPException, status, Depends, Request, Query
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
-from typing import Optional
-from src.core.security import get_current_user, decode_access_token
+
+from src.core.security import get_current_user, get_current_user_or_query
 from src.core.telemetry import metric_logger, quota_manager, sse_manager
-from src.db import query_one
 from src.models.v1.resource import UserQuotaEntity
 from src.schemas.v1.resources import ResourceHistoryData
 
 resources_router = APIRouter(prefix="/resources", tags=["Resource Management & Telemetry"])
 
-def get_user_from_request_or_query(request: Request) -> dict:
-    """Xác thực người dùng qua HttpOnly Cookie, Bearer Token hoặc Query param (dành cho EventSource)."""
-    token = request.cookies.get("access_token")
-    if not token and "authorization" in request.headers:
-        auth_val = request.headers["authorization"]
-        if auth_val.startswith("Bearer "):
-            token = auth_val[7:]
-    if not token:
-        token = request.query_params.get("token")
-
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Chưa xác thực danh tính."
-        )
-
-    payload = decode_access_token(token)
-    if not payload or "sub" not in payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token không hợp lệ hoặc đã hết hạn."
-        )
-
-    user = query_one("SELECT id, email, status FROM users WHERE id = ?", (payload["sub"],))
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Người dùng không tồn tại."
-        )
-    return user
 
 @resources_router.get("/summary")
 async def get_resources_summary(
     range: str = Query("24h", pattern="^(1h|24h|7d|30d)$", description="Khung thời gian lọc thống kê"),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
-    """
-    OP-018: Lấy tổng hợp chỉ số hiệu năng và hạn ngạch (KPI Summary).
-    Tuân thủ BR-021: Người dùng chỉ xem được dữ liệu của chính mình.
-    """
-    user_id = current_user["id"]
-    summary = metric_logger.get_metrics_summary(user_id=user_id, time_range=range)
-    return {
-        "status": "success",
-        "data": summary
-    }
+    """OP-018: KPI Summary & Quota status (strictly owner-scoped, BR-021)."""
+    summary = await asyncio.to_thread(metric_logger.get_metrics_summary, current_user["id"], range)
+    return {"status": "success", "data": summary}
+
 
 @resources_router.get("/quota")
-async def get_user_quota_info(
-    current_user: dict = Depends(get_current_user)
-):
-    """
-    OP-020: Lấy trạng thái hạn ngạch token hàng ngày của người dùng hiện hành.
-    """
+async def get_user_quota_info(current_user: dict = Depends(get_current_user)):
+    """OP-020: Daily token quota status for the authenticated user."""
     user_id = current_user["id"]
-    quota = quota_manager.get_or_create_quota(user_id)
-    quota_entity = UserQuotaEntity.from_quota_row(user_id, quota)
+    quota = await asyncio.to_thread(quota_manager.get_or_create_quota, user_id)
+    return {"status": "success", "data": UserQuotaEntity.from_quota_row(user_id, quota).to_status_dict()}
 
-    return {
-        "status": "success",
-        "data": quota_entity.to_status_dict()
-    }
 
 @resources_router.get("/history")
 async def get_resources_history(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
-    """
-    OP-021: Lấy danh sách lịch sử nhật ký đo đạc telemetry gần nhất.
-    """
-    user_id = current_user["id"]
-    history = metric_logger.get_metrics_history(user_id=user_id, limit=limit, offset=offset)
+    """OP-021: Paginated API telemetry history for the authenticated user."""
+    history = await asyncio.to_thread(metric_logger.get_metrics_history, current_user["id"], limit, offset)
     data = ResourceHistoryData(items=history, count=len(history), limit=limit, offset=offset)
-    return {
-        "status": "success",
-        "data": data.model_dump()
-    }
+    return {"status": "success", "data": data.model_dump()}
+
 
 @resources_router.get("/stream")
-async def stream_resource_telemetry(
-    request: Request
-):
-    """
-    OP-019: Server-Sent Events (SSE) phát trực tiếp các sự kiện đo đạc hiệu năng và biến động Quota.
-    Tuân thủ NFR-021: Độ trễ đẩy sự kiện <= 1.0s.
-    """
-    user = get_user_from_request_or_query(request)
-    user_id = user["id"]
-
+async def stream_resource_telemetry(current_user: dict = Depends(get_current_user_or_query)):
+    """OP-019: Real-time Server-Sent Events (SSE) telemetry & quota stream (NFR-021)."""
+    user_id = current_user["id"]
     queue = await sse_manager.connect(user_id)
 
     async def sse_generator():
         try:
-            # 1. Phát sự kiện initial_state khi vừa thiết lập kết nối
-            summary = metric_logger.get_metrics_summary(user_id=user_id, time_range="24h")
-            initial_payload = json.dumps(summary, ensure_ascii=False)
-            yield f"event: initial_state\ndata: {initial_payload}\n\n"
+            summary = await asyncio.to_thread(metric_logger.get_metrics_summary, user_id, "24h")
+            yield f"event: initial_state\ndata: {json.dumps(summary, ensure_ascii=False)}\n\n"
 
-            # 2. Vòng lặp chờ sự kiện hoặc heartbeat ping
             while True:
                 try:
-                    # Chờ sự kiện mới với timeout 15 giây để phát heartbeat
                     payload = await asyncio.wait_for(queue.get(), timeout=15.0)
                     yield payload
                 except asyncio.TimeoutError:
-                    # Gửi heartbeat giữ kết nối mở
-                    yield f"event: ping\ndata: {{\"timestamp\": \"{json.dumps(None)}\"}}\n\n"
+                    ts = datetime.now(timezone.utc).isoformat()
+                    yield f"event: ping\ndata: {json.dumps({'timestamp': ts})}\n\n"
         except asyncio.CancelledError:
             pass
         finally:
@@ -131,6 +74,6 @@ async def stream_resource_telemetry(
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"
-        }
+            "X-Accel-Buffering": "no",
+        },
     )

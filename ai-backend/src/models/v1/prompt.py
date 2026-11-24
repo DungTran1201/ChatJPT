@@ -1,6 +1,7 @@
 """System Prompt / Sensei Persona domain entity (system_prompts table)."""
 
 from typing import Any, Dict, List, Mapping, Optional
+from pydantic import Field
 from src.models.v1.base import DomainModel
 
 
@@ -24,7 +25,7 @@ class SystemPromptEntity(DomainModel):
     voice_id: Optional[str] = None
     is_default: bool = False
     is_system_preset: bool = False
-    attachments: List[Dict[str, Any]] = []
+    attachments: List[Dict[str, Any]] = Field(default_factory=list)
     created_at: str = ""
     updated_at: str = ""
 
@@ -75,6 +76,6 @@ class SystemPromptEntity(DomainModel):
             is_default=bool(row.get("is_default", 0)),
             is_system_preset=is_preset,
             attachments=attachments or [],
-            created_at=str(row.get("created_at")),
-            updated_at=str(row.get("updated_at")),
+            created_at=str(row.get("created_at") or ""),
+            updated_at=str(row.get("updated_at") or ""),
         )

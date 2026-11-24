@@ -62,6 +62,10 @@ class UserPreferencesModel(DomainModel):
 
     @classmethod
     def from_user_row(cls, row: Mapping[str, Any]) -> "UserPreferencesModel":
+        def _bool_pref(key: str, default: bool = True) -> bool:
+            val = row.get(key)
+            return default if val is None else bool(val)
+
         return cls(
             theme_preference=row.get("theme_preference") or "DARK",
             language_preference=row.get("language_preference") or "vi",
@@ -71,12 +75,12 @@ class UserPreferencesModel(DomainModel):
             bg_dim=row["bg_dim"] if row.get("bg_dim") is not None else 0,
             accent_color=row.get("accent_color") or "emerald",
             ui_font_size=row.get("ui_font_size") or "medium",
-            response_show_translation=bool(row.get("response_show_translation", 1)),
-            response_show_furigana=bool(row.get("response_show_furigana", 1)),
-            response_highlight_grammar=bool(row.get("response_highlight_grammar", 1)),
-            response_show_romaji=bool(row.get("response_show_romaji", 1)),
-            response_grammar_breakdown=bool(row.get("response_grammar_breakdown", 1)),
-            response_audio_speech=bool(row.get("response_audio_speech", 1)),
+            response_show_translation=_bool_pref("response_show_translation", True),
+            response_show_furigana=_bool_pref("response_show_furigana", True),
+            response_highlight_grammar=_bool_pref("response_highlight_grammar", True),
+            response_show_romaji=_bool_pref("response_show_romaji", True),
+            response_grammar_breakdown=_bool_pref("response_grammar_breakdown", True),
+            response_audio_speech=_bool_pref("response_audio_speech", True),
             response_bilingual_mode=row.get("response_bilingual_mode") or "interlinear",
         )
 
